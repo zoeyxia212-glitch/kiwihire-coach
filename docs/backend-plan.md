@@ -242,3 +242,4 @@ Files to create later:
 - entity/JobApplication.java
 - dto/CreateJobApplicationRequest.java
 - dto/JobApplicationResponse.java
+

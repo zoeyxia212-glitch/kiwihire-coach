@@ -6,7 +6,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
+import com.kiwihirecoach.backend.dto.CreateJobApplicationRequest;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import java.util.List;
 
 @RestController
@@ -22,4 +24,8 @@ public class JobApplicationController {
     public List<JobApplication> getApplicationsForUser(@PathVariable Long userId) {
         return jobApplicationService.getApplicationsForUser(userId);
     }
+    @PostMapping
+public JobApplication createApplication(@RequestBody CreateJobApplicationRequest request) {
+    return jobApplicationService.createApplication(request);
+}
 }

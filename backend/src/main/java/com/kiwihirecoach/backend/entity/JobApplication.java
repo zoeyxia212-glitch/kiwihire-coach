@@ -1,17 +1,21 @@
 package com.kiwihirecoach.backend.entity;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 @Entity
+@Table(name = "applications")
 public class JobApplication {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    private LocalDateTime createdAt;
     private String company;
 
     private String roleTitle;
@@ -32,6 +36,8 @@ public class JobApplication {
         this.status = status;
         this.jobDescription = jobDescription;
         this.user = user;
+        this.createdAt = LocalDateTime.now();
+
     }
 
     public Long getId() {
@@ -57,4 +63,7 @@ public class JobApplication {
     public User getUser() {
         return user;
     }
+    public LocalDateTime getCreatedAt() {
+    return createdAt;
+}
 }

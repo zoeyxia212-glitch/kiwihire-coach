@@ -10,6 +10,7 @@ import com.kiwihirecoach.backend.dto.CreateJobApplicationRequest;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import java.util.List;
+import com.kiwihirecoach.backend.dto.JobApplicationResponse;
 
 @RestController
 @RequestMapping("/api/applications")
@@ -24,6 +25,10 @@ public class JobApplicationController {
     public List<JobApplication> getApplicationsForUser(@PathVariable Long userId) {
         return jobApplicationService.getApplicationsForUser(userId);
     }
+    @GetMapping("/{id}")
+public JobApplicationResponse getApplicationById(@PathVariable Long id) {
+    return jobApplicationService.getApplicationById(id);
+}
     @PostMapping
 public JobApplication createApplication(@RequestBody CreateJobApplicationRequest request) {
     return jobApplicationService.createApplication(request);

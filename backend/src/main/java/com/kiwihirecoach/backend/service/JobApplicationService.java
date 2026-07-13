@@ -8,6 +8,7 @@ import com.kiwihirecoach.backend.entity.User;
 import org.springframework.stereotype.Service;
 import com.kiwihirecoach.backend.dto.JobApplicationResponse;
 import java.util.List;
+import com.kiwihirecoach.backend.dto.UpdateJobApplicationRequest;
 
 @Service
 public class JobApplicationService {
@@ -32,16 +33,19 @@ public class JobApplicationService {
         this.userRepository = userRepository;
     }
 
-    public List<JobApplication> getApplicationsForUser(Long userId) {
-        return jobApplicationRepository.findByUserId(userId);
-    }
+    public List<JobApplicationResponse> getApplicationsForUser(Long userId) {
+    return jobApplicationRepository.findByUserId(userId)
+            .stream()
+            .map(this::toResponse)
+            .toList();
+}
   public JobApplicationResponse getApplicationById(Long id) {
     JobApplication application = jobApplicationRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Application not found"));
 
     return toResponse(application);
 }
-    public JobApplication createApplication(CreateJobApplicationRequest request) {
+    public JobApplicationResponse createApplication(CreateJobApplicationRequest request) {
     User user = userRepository.findById(request.getUserId())
             .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
@@ -52,8 +56,22 @@ public class JobApplicationService {
             request.getJobDescription(),
             user
     );
+    JobApplication savedApplication = jobApplicationRepository.save(application);
 
-    return jobApplicationRepository.save(application);
+    return toResponse(savedApplication);
+}
+public JobApplicationResponse updateApplication(Long id, UpdateJobApplicationRequest request) {
+    JobApplication application = jobApplicationRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Application not found"));
+
+    application.setCompany(request.getCompany());
+    application.setRoleTitle(request.getRoleTitle());
+    application.setStatus(request.getStatus());
+    application.setJobDescription(request.getJobDescription());
+
+    JobApplication savedApplication = jobApplicationRepository.save(application);
+
+    return toResponse(savedApplication);
 }
 
 }

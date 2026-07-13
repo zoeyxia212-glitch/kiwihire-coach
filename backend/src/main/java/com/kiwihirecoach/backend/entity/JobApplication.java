@@ -66,4 +66,19 @@ public class JobApplication {
     public LocalDateTime getCreatedAt() {
     return createdAt;
 }
+public void setCompany(String company) {
+    this.company = company;
+}
+
+public void setRoleTitle(String roleTitle) {
+    this.roleTitle = roleTitle;
+}
+
+public void setStatus(String status) {
+    this.status = status;
+}
+
+public void setJobDescription(String jobDescription) {
+    this.jobDescription = jobDescription;
+}
 }

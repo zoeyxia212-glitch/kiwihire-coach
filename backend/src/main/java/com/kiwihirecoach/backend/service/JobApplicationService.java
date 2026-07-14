@@ -5,6 +5,8 @@ import com.kiwihirecoach.backend.repository.JobApplicationRepository;
 import com.kiwihirecoach.backend.repository.UserRepository;
 import com.kiwihirecoach.backend.dto.CreateJobApplicationRequest;
 import com.kiwihirecoach.backend.entity.User;
+import com.kiwihirecoach.backend.exception.ResourceNotFoundException;
+
 import org.springframework.stereotype.Service;
 import com.kiwihirecoach.backend.dto.JobApplicationResponse;
 import java.util.List;
@@ -41,13 +43,13 @@ public class JobApplicationService {
 }
   public JobApplicationResponse getApplicationById(Long id) {
     JobApplication application = jobApplicationRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Application not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
 
     return toResponse(application);
 }
     public JobApplicationResponse createApplication(CreateJobApplicationRequest request) {
     User user = userRepository.findById(request.getUserId())
-            .orElseThrow(() -> new IllegalArgumentException("User not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
     JobApplication application = new JobApplication(
             request.getCompany(),
@@ -62,7 +64,7 @@ public class JobApplicationService {
 }
 public JobApplicationResponse updateApplication(Long id, UpdateJobApplicationRequest request) {
     JobApplication application = jobApplicationRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Application not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
 
     application.setCompany(request.getCompany());
     application.setRoleTitle(request.getRoleTitle());
@@ -75,7 +77,7 @@ public JobApplicationResponse updateApplication(Long id, UpdateJobApplicationReq
 }
 public void deleteApplication(Long id) {
     JobApplication application = jobApplicationRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Application not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
 
     jobApplicationRepository.delete(application);
 }

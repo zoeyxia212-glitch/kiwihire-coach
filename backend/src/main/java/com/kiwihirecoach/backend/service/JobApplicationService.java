@@ -73,5 +73,10 @@ public JobApplicationResponse updateApplication(Long id, UpdateJobApplicationReq
 
     return toResponse(savedApplication);
 }
+public void deleteApplication(Long id) {
+    JobApplication application = jobApplicationRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Application not found"));
 
+    jobApplicationRepository.delete(application);
+}
 }

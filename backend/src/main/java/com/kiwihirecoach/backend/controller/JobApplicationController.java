@@ -12,6 +12,7 @@ import java.util.List;
 import com.kiwihirecoach.backend.dto.JobApplicationResponse;
 import com.kiwihirecoach.backend.dto.UpdateJobApplicationRequest;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 
 @RestController
 @RequestMapping("/api/applications")
@@ -40,5 +41,9 @@ public JobApplicationResponse updateApplication(
         @RequestBody UpdateJobApplicationRequest request
 ) {
     return jobApplicationService.updateApplication(id, request);
+}
+@DeleteMapping("/{id}")
+public void deleteApplication(@PathVariable Long id) {
+    jobApplicationService.deleteApplication(id);
 }
 }

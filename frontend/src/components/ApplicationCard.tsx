@@ -1,13 +1,20 @@
+import type { Application } from "../types/application";
 import StatusBadge from "./StatusBadge";
 
-export default function ApplicationCard() {
+type ApplicationCardProps = {
+  application: Application;
+};
+
+export default function ApplicationCard({ application }: ApplicationCardProps) {
   return (
     <article className="list-row">
       <div>
-        <h3>Trade Me</h3>
-        <p>Junior Full Stack Developer · Wellington · SEEK</p>
+        <h3>{application.company}</h3>
+        <p>
+          {application.roleTitle} · {application.userEmail} 
+        </p>
       </div>
-      <StatusBadge status="Applied" />
+      <StatusBadge status={application.status} />
     </article>
   );
 }

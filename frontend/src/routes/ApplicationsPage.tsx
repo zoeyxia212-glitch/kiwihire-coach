@@ -1,6 +1,18 @@
 import ApplicationCard from "../components/ApplicationCard";
+import type { Application } from "../types/application";
+import { useEffect, useState } from "react";
 
 export default function ApplicationsPage() {
+const [applications, setApplications] = useState<Application[]>([
+  
+]);
+useEffect(() => {
+  fetch("http://localhost:8080/api/applications/user/1")
+    .then((response) => response.json())
+    .then((data) => {
+      setApplications(data);
+    });
+}, []);
   return (
     <section className="page">
       <div className="page-header">
@@ -13,21 +25,9 @@ export default function ApplicationsPage() {
       </div>
       <div className="panel">
         <div className="panel-inner list">
-          <ApplicationCard />
-          <article className="list-row">
-            <div>
-              <h3>Serko</h3>
-              <p>Graduate Engineer · Auckland · LinkedIn</p>
-            </div>
-            <span className="status">Saved</span>
-          </article>
-          <article className="list-row">
-            <div>
-              <h3>Sharesies</h3>
-              <p>Frontend Developer · Wellington · Company website</p>
-            </div>
-            <span className="status">Interview</span>
-          </article>
+{applications.map((application) => (
+  <ApplicationCard key={application.id} application={application} />
+))}
         </div>
       </div>
     </section>

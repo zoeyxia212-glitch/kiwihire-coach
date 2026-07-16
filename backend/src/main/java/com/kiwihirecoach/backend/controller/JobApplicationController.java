@@ -13,9 +13,10 @@ import com.kiwihirecoach.backend.dto.JobApplicationResponse;
 import com.kiwihirecoach.backend.dto.UpdateJobApplicationRequest;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
-
+import org.springframework.web.bind.annotation.CrossOrigin;
 @RestController
 @RequestMapping("/api/applications")
+@CrossOrigin(origins = "http://localhost:5173")
 public class JobApplicationController {
     private final JobApplicationService jobApplicationService;
 

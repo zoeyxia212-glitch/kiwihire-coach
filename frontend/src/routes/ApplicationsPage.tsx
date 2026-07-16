@@ -1,14 +1,15 @@
 import ApplicationCard from "../components/ApplicationCard";
 import type { Application } from "../types/application";
 import { useEffect, useState } from "react";
-
+import { API_BASE_URL } from "../utils/api";
 export default function ApplicationsPage() {
 const [applications, setApplications] = useState<Application[]>([
   
 ]);
+const userId = 1;
 useEffect(() => {
-  fetch("http://localhost:8080/api/applications/user/1")
-    .then((response) => response.json())
+fetch(`${API_BASE_URL}/api/applications/user/${userId}`)   
+ .then((response) => response.json())
     .then((data) => {
       setApplications(data);
     });

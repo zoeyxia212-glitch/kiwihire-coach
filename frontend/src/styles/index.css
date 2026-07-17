@@ -268,3 +268,12 @@ p {
     grid-template-columns: 1fr;
   }
 }
+.error-message {
+  color: #b42318;
+  background: #fef3f2;
+  border: 1px solid #fecdca;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  margin: 0;
+}

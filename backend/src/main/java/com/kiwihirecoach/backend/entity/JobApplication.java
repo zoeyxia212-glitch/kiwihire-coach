@@ -1,7 +1,5 @@
 package com.kiwihirecoach.backend.entity;
 
-import java.time.LocalDateTime;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -9,15 +7,18 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "applications")
 public class JobApplication {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private LocalDateTime createdAt;
     private String company;
-
+    private LocalDateTime createdAt;
+    private LocalDate closingDate;
     private String roleTitle;
 
     private String status;
@@ -30,13 +31,14 @@ public class JobApplication {
     public JobApplication() {
     }
 
-    public JobApplication(String company, String roleTitle, String status, String jobDescription, User user) {
+    public JobApplication(String company, String roleTitle, String status, String jobDescription, LocalDate closingDate, User user) {
         this.company = company;
         this.roleTitle = roleTitle;
         this.status = status;
         this.jobDescription = jobDescription;
         this.user = user;
         this.createdAt = LocalDateTime.now();
+        this.closingDate = closingDate;
 
     }
 
@@ -78,7 +80,15 @@ public void setStatus(String status) {
     this.status = status;
 }
 
-public void setJobDescription(String jobDescription) {
-    this.jobDescription = jobDescription;
-}
+    public void setJobDescription(String jobDescription) {
+        this.jobDescription = jobDescription;
+    }
+
+    public LocalDate getClosingDate() {
+        return closingDate;
+    }
+
+    public void setClosingDate(LocalDate closingDate) {
+        this.closingDate = closingDate;
+    }
 }

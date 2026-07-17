@@ -23,6 +23,7 @@ public class JobApplicationService {
             application.getRoleTitle(),
             application.getStatus(),
             application.getJobDescription(),
+            application.getClosingDate(),
             application.getCreatedAt(),
             application.getUser().getId(),
             application.getUser().getEmail()
@@ -56,6 +57,7 @@ public class JobApplicationService {
             request.getRoleTitle(),
             request.getStatus(),
             request.getJobDescription(),
+            request.getClosingDate(),
             user
     );
     JobApplication savedApplication = jobApplicationRepository.save(application);

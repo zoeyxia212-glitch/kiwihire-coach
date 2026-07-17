@@ -1,11 +1,14 @@
 package com.kiwihirecoach.backend.dto;
 
+import java.time.LocalDate;
+
 public class CreateJobApplicationRequest {
     private Long userId;
     private String company;
     private String roleTitle;
     private String status;
     private String jobDescription;
+    private LocalDate closingDate;
 
     public Long getUserId() {
         return userId;
@@ -25,5 +28,9 @@ public class CreateJobApplicationRequest {
 
     public String getJobDescription() {
         return jobDescription;
+    }
+
+    public LocalDate getClosingDate() {
+        return closingDate;
     }
 }

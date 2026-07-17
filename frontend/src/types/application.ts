@@ -6,6 +6,7 @@ export type Application = {
   roleTitle: string;
   status: ApplicationStatus;
   jobDescription: string;
+  closingDate: string | null;
   createdAt: string;
   userId: number;
   userEmail: string;

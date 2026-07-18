@@ -11,8 +11,9 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
       <div>
         <h3>{application.company}</h3>
         <p>
-          {application.roleTitle} · {application.userEmail} 
-        </p>
+  {application.roleTitle} · {application.userEmail}
+  {application.closingDate && ` · Closes ${application.closingDate}`}
+          </p>
       </div>
       <StatusBadge status={application.status} />
     </article>

@@ -20,7 +20,7 @@ public class JobApplication {
     private LocalDateTime createdAt;
     private LocalDate closingDate;
     private String roleTitle;
-
+    private String location;
     private String status;
 
     private String jobDescription;
@@ -31,14 +31,16 @@ public class JobApplication {
     public JobApplication() {
     }
 
-    public JobApplication(String company, String roleTitle, String status, String jobDescription, LocalDate closingDate, User user) {
+    public JobApplication(String company, String roleTitle, String location, String status, String jobDescription, LocalDate closingDate, User user) {
         this.company = company;
         this.roleTitle = roleTitle;
+        this.location = location;
         this.status = status;
         this.jobDescription = jobDescription;
         this.user = user;
         this.createdAt = LocalDateTime.now();
         this.closingDate = closingDate;
+        
 
     }
 
@@ -54,6 +56,10 @@ public class JobApplication {
         return roleTitle;
     }
 
+    public String getLocation() {
+        return location;
+    }
+
     public String getStatus() {
         return status;
     }
@@ -65,20 +71,26 @@ public class JobApplication {
     public User getUser() {
         return user;
     }
+
     public LocalDateTime getCreatedAt() {
-    return createdAt;
-}
-public void setCompany(String company) {
-    this.company = company;
-}
+        return createdAt;
+    }
 
-public void setRoleTitle(String roleTitle) {
-    this.roleTitle = roleTitle;
-}
+    public void setCompany(String company) {
+        this.company = company;
+    }
 
-public void setStatus(String status) {
-    this.status = status;
-}
+    public void setRoleTitle(String roleTitle) {
+        this.roleTitle = roleTitle;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
     public void setJobDescription(String jobDescription) {
         this.jobDescription = jobDescription;

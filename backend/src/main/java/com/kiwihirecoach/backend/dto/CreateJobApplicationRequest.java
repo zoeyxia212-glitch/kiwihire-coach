@@ -6,6 +6,7 @@ public class CreateJobApplicationRequest {
     private Long userId;
     private String company;
     private String roleTitle;
+    private String location;
     private String status;
     private String jobDescription;
     private LocalDate closingDate;
@@ -20,6 +21,10 @@ public class CreateJobApplicationRequest {
 
     public String getRoleTitle() {
         return roleTitle;
+    }
+
+    public String getLocation() {
+        return location;
     }
 
     public String getStatus() {

@@ -4,6 +4,7 @@ export type Application = {
   id: number;
   company: string;
   roleTitle: string;
+  location: string | null;
   status: ApplicationStatus;
   jobDescription: string;
   closingDate: string | null;

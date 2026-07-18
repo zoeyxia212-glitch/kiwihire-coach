@@ -21,6 +21,7 @@ public class JobApplicationService {
             application.getId(),
             application.getCompany(),
             application.getRoleTitle(),
+            application.getLocation(),
             application.getStatus(),
             application.getJobDescription(),
             application.getClosingDate(),
@@ -55,6 +56,7 @@ public class JobApplicationService {
     JobApplication application = new JobApplication(
             request.getCompany(),
             request.getRoleTitle(),
+            request.getLocation(),
             request.getStatus(),
             request.getJobDescription(),
             request.getClosingDate(),
@@ -70,6 +72,7 @@ public JobApplicationResponse updateApplication(Long id, UpdateJobApplicationReq
 
     application.setCompany(request.getCompany());
     application.setRoleTitle(request.getRoleTitle());
+    application.setLocation(request.getLocation());
     application.setStatus(request.getStatus());
     application.setJobDescription(request.getJobDescription());
 

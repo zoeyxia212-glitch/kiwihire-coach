@@ -5,6 +5,7 @@ import { API_BASE_URL } from "../utils/api";
 export default function ApplicationForm() {
   const [company, setCompany] = useState("");
   const [roleTitle, setRoleTitle] = useState("");
+  const [location, setLocation] = useState("");
   const [status, setStatus] = useState<ApplicationStatus>("Saved");
   const [jobDescription, setJobDescription] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -44,6 +45,7 @@ export default function ApplicationForm() {
         userId: 1,
         company,
         roleTitle,
+        location,
         status,
         jobDescription,
         closingDate,
@@ -81,7 +83,11 @@ export default function ApplicationForm() {
 
         <div className="field">
           <label>Location</label>
-          <input placeholder="Auckland" />
+          <input
+            placeholder="Auckland"
+            value={location}
+            onChange={(event) => setLocation(event.target.value)}
+          />
         </div>
 
         <div className="field">

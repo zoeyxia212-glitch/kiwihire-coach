@@ -19,6 +19,18 @@ The central goal is to build and demonstrate the skills commonly requested in Ne
 - Automated testing
 - Clear technical documentation
 
+## Portfolio Evidence Requirements
+
+This repository is also intended to give recruiters direct evidence of practical coding ability. It should remain suitable for public review and make the project's quality easy to assess.
+
+- Keep the repository public and link it from the CV and GitHub profile
+- Maintain clear, focused commit history that shows continuous development
+- Keep setup, architecture, API, build, and test instructions accurate
+- Never commit secrets, passwords, or local environment files
+- Add screenshots or a short demonstration of the working application
+- Show automated build and test status after CI is introduced
+- Pin the finished repository on the GitHub profile
+
 ## Current Features
 
 - Create a job application through a controlled React form
@@ -199,5 +211,8 @@ The roadmap prioritises evidence requested by junior software and full-stack job
 5. Add registration, password hashing, authentication, and authorization
 6. Remove the fixed frontend user ID
 7. Add New Zealand-specific application fields
+8. Add GitHub Actions continuous integration
+9. Add a Docker-based local development environment
+10. Add project screenshots and a short feature demonstration
 
 Cloud deployment, Kubernetes, and cloud infrastructure are intentionally deferred until the core full-stack and testing skills are complete.

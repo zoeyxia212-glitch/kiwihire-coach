@@ -10,6 +10,17 @@ Junior developers often apply for many jobs but do not clearly understand which 
 - Junior developers applying for their first full-time role
 - International students who need to track work rights, location, and job requirements
 
+## Recruitment and Portfolio Requirements
+
+KiwiHire Coach is both a product and evidence of the developer's practical ability. Recruiters should be able to inspect the public repository and quickly understand what was built, how it works, and how its quality is verified.
+
+- The public GitHub repository must be linked from the CV and pinned on the GitHub profile.
+- The repository must contain readable application code and a clear, continuous commit history.
+- The README must explain the problem, features, architecture, setup, API, build, and test commands.
+- Secrets and local environment files must never be committed.
+- The finished project must include screenshots or a short working demonstration.
+- CI build and test results should be visible after GitHub Actions is added.
+
 ## User Stories
 
 - As a user, I want to save a job application so that I can track my progress.

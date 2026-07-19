@@ -40,8 +40,6 @@ public class JobApplication {
         this.user = user;
         this.createdAt = LocalDateTime.now();
         this.closingDate = closingDate;
-        
-
     }
 
     public Long getId() {

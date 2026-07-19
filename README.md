@@ -1,72 +1,203 @@
 # KiwiHire Coach
 
-KiwiHire Coach is a job search tracker and resume improvement tool for junior developers looking for roles in New Zealand.
+KiwiHire Coach is a full-stack job application tracker and resume improvement tool for junior developers looking for roles in New Zealand.
 
-Most job trackers only help users remember where they applied. This project also helps users understand why a role is or is not a good match. Users can save job applications, paste job descriptions, store resume text, and compare a resume against a role's required skills.
+The project is built with React, TypeScript, Java, Spring Boot, REST APIs, JPA, and a relational database. It is designed to demonstrate practical junior full-stack skills through a real job-search workflow rather than an isolated tutorial project.
 
-## Main Idea
+Most job trackers only help users remember where they applied. KiwiHire Coach also helps users compare a resume with a job description, identify missing skills, and prepare role-specific interview questions.
 
-The project combines three things:
+## Project Goal
 
-- Job application tracking
-- Resume and job description matching
-- Interview and job search reflection
+The central goal is to build and demonstrate the skills commonly requested in New Zealand junior software developer and full-stack job descriptions:
 
-The first version will use keyword-based matching rather than AI. This keeps the project easier to explain, cheaper to run, and closer to normal full-stack business logic.
+- Component-based frontend development with React and TypeScript
+- REST API design and integration
+- Java and object-oriented programming
+- Layered Spring Boot architecture
+- Relational data modelling and persistence
+- Git-based development
+- Automated testing
+- Clear technical documentation
 
-## Prototype Features
+## Current Features
 
-- Apple-style frontend pages
-- Job application dashboard mockup
-- Application list and application detail screens
-- Resume version screen
-- Resume review screen
-- Static match score, keywords, and suggestions
+- Create a job application through a controlled React form
+- View applications belonging to a user
+- Open a single application detail page using a dynamic route
+- Store company, role title, location, status, job description, and closing date
+- Display loading and error states when fetching application data
+- Persist application data through a Spring Boot API and JPA
+- Map entities to request and response DTOs
+- Provide backend endpoints for create, read, update, and delete operations
+- Generate interview questions from job-description keywords
+- Display resume review, keyword, and suggestion interfaces
 
-## Creative Feature
+The frontend currently supports creating and reading applications. Update and delete endpoints exist in the backend, while their frontend workflows remain on the roadmap.
 
-The main creative feature is the resume optimizer.
+## Core Workflow
 
-When a user adds a job description and selects a resume, the app compares the required skills in the job description with the skills mentioned in the resume. It then shows:
+```text
+React form
+  -> fetch request
+  -> Spring REST controller
+  -> service layer
+  -> JPA repository
+  -> relational database
+```
 
-- Matched keywords
-- Missing keywords
-- Match score
-- Simple suggestions for improving the resume
+Responses travel back through response DTOs and JSON before being rendered by React components.
 
-This makes the app more useful than a normal Kanban-style job tracker.
+## Tech Stack
 
-## Current Tech Stack
+### Frontend
 
 - React
 - TypeScript
+- React Router
 - Vite
 - CSS
 
-The current version is a frontend prototype only.
+### Backend
+
+- Java 17
+- Spring Boot
+- Spring Web
+- Spring Data JPA
+- Maven
+
+### Database
+
+- H2 for the current local development environment
+- PostgreSQL JDBC driver included for the planned local PostgreSQL migration
+
+### Testing and Development Tools
+
+- Vitest
+- JUnit
+- Spring Boot Test
+- Git
+- npm
+- Maven Wrapper
 
 ## Why This Stack
 
-React and TypeScript are useful for New Zealand junior frontend and full-stack roles. Starting with the frontend first makes the project easier to understand before adding backend, database, and API work.
+React and TypeScript provide a component-based frontend with explicit data types for forms, application records, and API responses.
 
-Backend, database, authentication, and API design are intentionally left for a later stage.
+Spring Boot provides a structured Java backend. Controllers handle HTTP requests, services contain application logic, repositories handle persistence, entities model database records, and DTOs define the API contract.
+
+Spring Data JPA reduces repetitive persistence code while preserving a relational data model. H2 keeps local development and basic tests lightweight. PostgreSQL is included as the next local database step; cloud infrastructure is intentionally outside the current scope.
+
+## Backend Architecture
+
+```text
+controller/
+  HTTP endpoints and request routing
+
+service/
+  Application logic and entity-to-response mapping
+
+repository/
+  Spring Data JPA database access
+
+entity/
+  Relational domain models
+
+dto/
+  API request and response objects
+
+exception/
+  Application errors and HTTP error responses
+```
 
 ## Project Structure
 
 ```text
-frontend/
-  React pages, components, and CSS
+kiwihire-coach/
+  frontend/
+    src/components/   Reusable forms and UI components
+    src/routes/       Page-level route components
+    src/types/        Shared TypeScript types
+    src/utils/        API and interview-question utilities
 
-backend/
-  Placeholder only for later work
+  backend/
+    src/main/java/    Spring Boot application code
+    src/resources/    Application configuration and seed data
+    src/test/         Backend tests
 
-docs/
-  Product notes and setup notes
+  docs/
+    Product and backend planning notes
 ```
 
-## Development Plan
+## Application API
 
-1. Finish the frontend page structure.
-2. Improve the static user flow.
-3. Decide which backend feature to add first.
-4. Add backend and database only after the flow is clear.
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| `POST` | `/api/applications` | Create an application |
+| `GET` | `/api/applications/user/{userId}` | List applications for a user |
+| `GET` | `/api/applications/{id}` | Get one application |
+| `PUT` | `/api/applications/{id}` | Update an application |
+| `DELETE` | `/api/applications/{id}` | Delete an application |
+
+The prototype frontend currently uses user ID `1`. Replacing this with authenticated-user context is part of the roadmap.
+
+## Running Locally
+
+### Start the backend
+
+```bash
+cd backend
+./mvnw spring-boot:run
+```
+
+The API runs at `http://localhost:8080`.
+
+### Start the frontend
+
+In a second terminal:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The frontend runs at `http://localhost:5173`.
+
+## Build and Test
+
+Run the frontend tests and production build:
+
+```bash
+cd frontend
+npm test
+npm run build
+```
+
+Run the backend tests:
+
+```bash
+cd backend
+./mvnw test
+```
+
+The current automated test coverage is foundational. Service, controller, and React component coverage will be expanded as the project develops.
+
+## Product Direction
+
+The resume matching feature uses transparent keyword-based logic rather than AI-generated rewriting. This keeps the matching behaviour explainable and provides clear business logic that can be discussed in a technical interview.
+
+New Zealand-specific application fields are planned to include job source, work-rights requirements, and whether a role is graduate or junior friendly.
+
+## Roadmap
+
+The roadmap prioritises evidence requested by junior software and full-stack job descriptions:
+
+1. Complete frontend update and delete workflows
+2. Add JobApplication service and controller tests
+3. Add React component and API-state tests
+4. Run the application against a local PostgreSQL database
+5. Add registration, password hashing, authentication, and authorization
+6. Remove the fixed frontend user ID
+7. Add New Zealand-specific application fields
+
+Cloud deployment, Kubernetes, and cloud infrastructure are intentionally deferred until the core full-stack and testing skills are complete.

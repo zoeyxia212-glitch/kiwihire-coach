@@ -1,15 +1,41 @@
 import { useState } from "react";
 import type { ApplicationStatus } from "../types/application";
-import { API_BASE_URL } from "../utils/api";
 
-export default function ApplicationForm() {
-  const [company, setCompany] = useState("");
-  const [roleTitle, setRoleTitle] = useState("");
-  const [location, setLocation] = useState("");
-  const [status, setStatus] = useState<ApplicationStatus>("Saved");
-  const [jobDescription, setJobDescription] = useState("");
+export type ApplicationFormValues = {
+  company: string;
+  roleTitle: string;
+  location: string;
+  status: ApplicationStatus;
+  jobDescription: string;
+  closingDate: string;
+};
+type ApplicationFormProps = {
+  initialValues?: ApplicationFormValues;
+  submitLabel?: string;
+  onSubmit: (values: ApplicationFormValues) => Promise<void>;
+};
+export default function ApplicationForm({
+  initialValues,
+  submitLabel = "Save application",
+  onSubmit,
+}: ApplicationFormProps) {
+  const [company, setCompany] = useState(initialValues?.company ?? "");
+  const [roleTitle, setRoleTitle] = useState(
+    initialValues?.roleTitle ?? "",
+  );
+  const [location, setLocation] = useState(
+    initialValues?.location ?? "",
+  );
+  const [status, setStatus] = useState<ApplicationStatus>(
+    initialValues?.status ?? "Saved",
+  );
+  const [jobDescription, setJobDescription] = useState(
+    initialValues?.jobDescription ?? "",
+  );
+  const [closingDate, setClosingDate] = useState(
+    initialValues?.closingDate ?? "",
+  );
   const [errorMessage, setErrorMessage] = useState("");
-  const [closingDate, setClosingDate] = useState("");
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -35,34 +61,24 @@ export default function ApplicationForm() {
     }
 
     setErrorMessage("");
+    const formValues: ApplicationFormValues = {
+      company,
+      roleTitle,
+      location,
+      status,
+      jobDescription,
+      closingDate,
+    };
 
-    const response = await fetch(`${API_BASE_URL}/api/applications`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        userId: 1,
-        company,
-        roleTitle,
-        location,
-        status,
-        jobDescription,
-        closingDate,
-      }),
-    });
-
-    if (!response.ok) {
-      setErrorMessage("Failed to create application. Please try again.");
-      return;
+    try {
+      await onSubmit(formValues);
+    } catch {
+      setErrorMessage("Failed to save application. Please try again.");
     }
-
-    window.location.href = "/applications";
   }
-  
   return (
-<form className="panel" onSubmit={handleSubmit}>
-        <div className="panel-inner form-grid">
+    <form className="panel" onSubmit={handleSubmit}>
+      <div className="panel-inner form-grid">
         <div className="field">
           <label>Company</label>
           <input
@@ -134,7 +150,7 @@ export default function ApplicationForm() {
         {errorMessage && <p className="error-message">{errorMessage}</p>}
 
         <button className="button primary" type="submit">
-          Save application
+          {submitLabel}
         </button>
       </div>
     </form>

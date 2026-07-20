@@ -7,6 +7,7 @@ import ResumesPage from "./routes/ResumesPage";
 import ResumeReviewPage from "./routes/ResumeReviewPage";
 import LoginPage from "./routes/LoginPage";
 import RegisterPage from "./routes/RegisterPage";
+import EditApplicationPage from "./routes/EditApplicationPage";
 
 export default function App() {
   return (
@@ -30,9 +31,12 @@ export default function App() {
           <Route path="/applications/:id" element={<ApplicationDetailPage />} />
           <Route path="/resumes" element={<ResumesPage />} />
           <Route path="/review" element={<ResumeReviewPage />} />
+          <Route
+            path="/applications/:id/edit"
+            element={<EditApplicationPage />}
+          />
         </Routes>
       </main>
     </div>
   );
 }
-

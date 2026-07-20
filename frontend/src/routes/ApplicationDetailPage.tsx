@@ -1,8 +1,14 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import StatusBadge from "../components/StatusBadge";
 import type { Application } from "../types/application";
 import { API_BASE_URL } from "../utils/api";
+function formatDateTime(value: string) {
+  return new Intl.DateTimeFormat("en-NZ", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
 
 export default function ApplicationDetailPage() {
   const { id } = useParams();
@@ -38,7 +44,37 @@ export default function ApplicationDetailPage() {
   if (errorMessage) {
     return <p className="error-message">{errorMessage}</p>;
   }
+  async function handleDelete() {
+    if (!id) {
+      setErrorMessage("Application ID is missing.");
+      return;
+    }
 
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this application?",
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/applications/${id}`,
+        {
+          method: "DELETE",
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to delete application.");
+      }
+
+      window.location.href = "/applications";
+    } catch {
+      setErrorMessage("Failed to delete application.");
+    }
+  }
   if (!application) {
     return <p className="muted">Loading application...</p>;
   }
@@ -58,7 +94,22 @@ export default function ApplicationDetailPage() {
               ` · Closes ${application.closingDate}`}
           </p>
         </div>
-        <StatusBadge status={application.status} />
+        <div>
+          <StatusBadge status={application.status} />
+          <Link
+            className="button"
+            to={`/applications/${application.id}/edit`}
+          >
+            Edit application
+          </Link>
+          <button
+            className="button"
+            type="button"
+            onClick={handleDelete}
+          >
+            Delete application
+          </button>
+        </div>
       </div>
 
       <div className="grid two">
@@ -74,7 +125,9 @@ export default function ApplicationDetailPage() {
           <div className="panel-inner">
             <h2>Application details</h2>
             <p className="muted">Status: {application.status}</p>
-            <p className="muted">Created: {application.createdAt}</p>
+            <p className="muted">
+              Created: {formatDateTime(application.createdAt)}
+            </p>
           </div>
         </div>
       </div>

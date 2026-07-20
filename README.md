@@ -207,12 +207,14 @@ The roadmap prioritises evidence requested by junior software and full-stack job
 1. Complete frontend update and delete workflows
 2. Add JobApplication service and controller tests
 3. Add React component and API-state tests
-4. Run the application against a local PostgreSQL database
-5. Add registration, password hashing, authentication, and authorization
-6. Remove the fixed frontend user ID
-7. Add New Zealand-specific application fields
-8. Add GitHub Actions continuous integration
-9. Add a Docker-based local development environment
-10. Add project screenshots and a short feature demonstration
+4. Expand resume-to-JD analysis to show a match score, matched skills, and missing skills
+5. Turn missing skills into an interview preparation checklist and a personal learning plan
+6. Run the application against a local PostgreSQL database
+7. Add registration, password hashing, authentication, and authorization
+8. Remove the fixed frontend user ID
+9. Add New Zealand-specific application fields
+10. Add GitHub Actions continuous integration
+11. Add a Docker-based local development environment
+12. Add project screenshots and a short feature demonstration
 
 Cloud deployment, Kubernetes, and cloud infrastructure are intentionally deferred until the core full-stack and testing skills are complete.

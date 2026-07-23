@@ -200,6 +200,10 @@ The resume matching feature uses transparent keyword-based logic rather than AI-
 
 New Zealand-specific application fields are planned to include job source, work-rights requirements, and whether a role is graduate or junior friendly.
 
+The current product hypothesis is to support New Zealand graduates, international candidates, and career changers seeking their first local technology role. A possible differentiator is helping users connect transferable experience from operations, support, data centres, and other previous work to the skills and evidence requested by a job description.
+
+This positioning is not treated as validated. The prototype will be tested with real candidates before larger AI features are added. Research will focus on what candidates currently use, where they struggle, which parts of the workflow they return to, and why they would or would not use KiwiHire Coach for a real application.
+
 ## Roadmap
 
 The roadmap prioritises evidence requested by junior software and full-stack job descriptions:
@@ -207,14 +211,17 @@ The roadmap prioritises evidence requested by junior software and full-stack job
 1. Complete frontend update and delete workflows
 2. Add JobApplication service and controller tests
 3. Add React component and API-state tests
-4. Expand resume-to-JD analysis to show a match score, matched skills, and missing skills
-5. Turn missing skills into an interview preparation checklist and a personal learning plan
-6. Run the application against a local PostgreSQL database
-7. Add registration, password hashing, authentication, and authorization
-8. Remove the fixed frontend user ID
-9. Add New Zealand-specific application fields
-10. Add GitHub Actions continuous integration
-11. Add a Docker-based local development environment
-12. Add project screenshots and a short feature demonstration
+4. Test the prototype with 5-10 New Zealand graduates, international candidates, or career changers and document the findings
+5. Add a candidate profile for target roles, work rights, location preferences, and previous experience
+6. Expand resume-to-JD analysis to show matched skills, missing skills, and transferable skills
+7. Turn skill gaps and transferable experience into interview preparation, STAR evidence prompts, and a personal learning plan
+8. Add a lightweight feedback prompt to measure what candidates find useful or missing
+9. Run the application against a local PostgreSQL database
+10. Add registration, password hashing, authentication, and authorization
+11. Remove the fixed frontend user ID
+12. Add New Zealand-specific application fields
+13. Add GitHub Actions continuous integration
+14. Add a Docker-based local development environment
+15. Add project screenshots and a short feature demonstration
 
 Cloud deployment, Kubernetes, and cloud infrastructure are intentionally deferred until the core full-stack and testing skills are complete.

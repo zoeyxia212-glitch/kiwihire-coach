@@ -18,6 +18,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -67,6 +68,31 @@ class JobApplicationServiceTest {
         ResourceNotFoundException exception = assertThrows(
                 ResourceNotFoundException.class,
                 () -> jobApplicationService.getApplicationById(99L)
+        );
+
+        assertEquals("Application not found", exception.getMessage());
+    }
+
+    @Test
+    void deleteApplicationDeletesExistingApplication() {
+        JobApplication application = new JobApplication();
+
+        when(jobApplicationRepository.findById(1L))
+                .thenReturn(Optional.of(application));
+
+        jobApplicationService.deleteApplication(1L);
+
+        verify(jobApplicationRepository).delete(application);
+    }
+
+    @Test
+    void deleteApplicationThrowsWhenApplicationDoesNotExist() {
+        when(jobApplicationRepository.findById(99L))
+                .thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> jobApplicationService.deleteApplication(99L)
         );
 
         assertEquals("Application not found", exception.getMessage());

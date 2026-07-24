@@ -192,7 +192,7 @@ cd backend
 ./mvnw test
 ```
 
-The current automated test coverage is foundational. Service, controller, and React component coverage will be expanded as the project develops.
+The current automated test coverage includes Spring service unit tests, Spring MVC controller slice tests, a Spring context smoke test, and Vitest coverage for the interview-question generator. Full-stack integration and React API-state coverage will be expanded as the project develops.
 
 ## Product Direction
 
@@ -206,22 +206,27 @@ This positioning is not treated as validated. The prototype will be tested with 
 
 ## Roadmap
 
-The roadmap prioritises evidence requested by junior software and full-stack job descriptions:
+The roadmap prioritises product validation and technical evidence commonly requested by junior software and full-stack job descriptions:
 
-1. Complete frontend update and delete workflows
-2. Add JobApplication service and controller tests
-3. Add React component and API-state tests
-4. Test the prototype with 5-10 New Zealand graduates, international candidates, or career changers and document the findings
-5. Add a candidate profile for target roles, work rights, location preferences, and previous experience
-6. Expand resume-to-JD analysis to show matched skills, missing skills, and transferable skills
-7. Turn skill gaps and transferable experience into interview preparation, STAR evidence prompts, and a personal learning plan
-8. Add a lightweight feedback prompt to measure what candidates find useful or missing
-9. Run the application against a local PostgreSQL database
-10. Add registration, password hashing, authentication, and authorization
-11. Remove the fixed frontend user ID
-12. Add New Zealand-specific application fields
-13. Add GitHub Actions continuous integration
-14. Add a Docker-based local development environment
-15. Add project screenshots and a short feature demonstration
+1. [x] Complete frontend update and delete workflows
+2. [x] Add JobApplication service unit tests with JUnit and Mockito
+3. [x] Add Spring MVC controller tests for CRUD and error responses
+4. [ ] Add a full Spring integration test covering Controller -> Service -> Repository -> H2
+5. [ ] Centralise frontend HTTP requests in a typed API client and add Vitest success and failure tests
+6. [ ] Add React component tests for loading, success, error, and user interaction states
+7. [ ] Test the prototype with 5-10 New Zealand graduates, international candidates, or career changers and document the findings
+8. [ ] Add a candidate profile for target roles, work rights, location preferences, and previous experience
+9. [ ] Expand resume-to-JD analysis to show matched skills, missing skills, and transferable skills
+10. [ ] Turn skill gaps and transferable experience into interview preparation, STAR evidence prompts, and a personal learning plan
+11. [ ] Add a lightweight feedback prompt to measure what candidates find useful or missing
+12. [ ] Run the application against a local PostgreSQL database and document the relational model and representative SQL
+13. [ ] Add registration, password hashing, JWT authentication, authorization, and authenticated-user context
+14. [ ] Remove the fixed frontend user ID
+15. [ ] Add New Zealand-specific application fields
+16. [ ] Publish the REST contract with OpenAPI/Swagger and document common success and error status codes
+17. [ ] Add GitHub Actions continuous integration for frontend tests/build and backend tests
+18. [ ] Add a Docker Compose local environment for the frontend, backend, and PostgreSQL
+19. [ ] Deploy the application and document the frontend/backend deployment flow
+20. [ ] Add project screenshots and a short feature demonstration
 
-Cloud deployment, Kubernetes, and cloud infrastructure are intentionally deferred until the core full-stack and testing skills are complete.
+A third-party API integration will be selected only if candidate validation identifies a real need, rather than being added solely as a portfolio checkbox. Cloud deployment follows the core full-stack, testing, security, and CI work; Kubernetes and multi-cloud infrastructure remain outside the current scope.

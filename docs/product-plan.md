@@ -21,6 +21,23 @@ KiwiHire Coach is both a product and evidence of the developer's practical abili
 - The finished project must include screenshots or a short working demonstration.
 - CI build and test results should be visible after GitHub Actions is added.
 
+## Interview Evidence Plan
+
+The project should provide concrete examples for common New Zealand and Australian junior backend and full-stack interview topics:
+
+- Explain the Controller, Service, Repository, DTO, dependency-injection, and JPA/Hibernate responsibilities using implemented code.
+- Demonstrate service unit testing with JUnit and Mockito, Spring MVC slice testing with MockMvc, and one full integration test backed by H2.
+- Demonstrate a typed frontend API client and Vitest coverage for successful and failed HTTP requests.
+- Document RESTful CRUD routes, request and response DTOs, and representative 2xx, 4xx, and 5xx behaviours through OpenAPI/Swagger.
+- Replace the prototype's fixed user ID with password hashing, JWT authentication, authorization, and authenticated-user context.
+- Run locally with PostgreSQL and document both ORM usage and representative SQL queries.
+- Automate frontend tests/build and backend tests with GitHub Actions.
+- Package the local stack with Docker Compose and document a real deployment flow.
+- Describe the solo iterative workflow accurately: prioritised roadmap, small increments, automated verification, Git commits, and feedback-driven refinement. Do not represent this as commercial Agile team experience.
+- Describe AI-assisted development with evidence of planning, implementation, debugging, testing, review, and human validation of generated changes.
+
+Third-party integration should be driven by validated candidate needs. Potential integrations may be evaluated after user research, but should not be added only to satisfy an interview checklist.
+
 ## User Stories
 
 - As a user, I want to save a job application so that I can track my progress.

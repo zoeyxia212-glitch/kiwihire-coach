@@ -2,7 +2,11 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import StatusBadge from "../components/StatusBadge";
 import type { Application } from "../types/application";
-import { API_BASE_URL } from "../utils/api";
+import {
+  deleteApplication,
+  getApplicationById,
+} from "../utils/api";
+
 function formatDateTime(value: string) {
   return new Intl.DateTimeFormat("en-NZ", {
     dateStyle: "medium",
@@ -23,15 +27,7 @@ export default function ApplicationDetailPage() {
       }
 
       try {
-        const response = await fetch(
-          `${API_BASE_URL}/api/applications/${id}`,
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to load application.");
-        }
-
-        const data = await response.json();
+        const data = await getApplicationById(id);
         setApplication(data);
       } catch {
         setErrorMessage("Failed to load application.");
@@ -59,17 +55,7 @@ export default function ApplicationDetailPage() {
     }
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/applications/${id}`,
-        {
-          method: "DELETE",
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to delete application.");
-      }
-
+      await deleteApplication(id);
       window.location.href = "/applications";
     } catch {
       setErrorMessage("Failed to delete application.");

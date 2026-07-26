@@ -1,4 +1,14 @@
-export type ApplicationStatus = "Saved" | "Applied" | "Interview" | "Rejected" | "Offer";
+export type ApplicationStatus =
+  | "Saved"
+  | "Applied"
+  | "Recruiter Screen"
+  | "First Interview"
+  | "Second Interview"
+  | "Technical Interview"
+  | "Reference Check"
+  | "Offer"
+  | "Rejected"
+  | "Withdrawn";
 
 export type Application = {
   id: number;
@@ -11,4 +21,9 @@ export type Application = {
   createdAt: string;
   userId: number;
   userEmail: string;
+  source: string | null;
+  workMode: string | null;
+  workRightsRequirement: string | null;
+  salaryRange: string | null;
+  contactPerson: string | null;
 };

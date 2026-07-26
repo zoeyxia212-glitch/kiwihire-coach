@@ -6,9 +6,12 @@ import com.kiwihirecoach.backend.dto.UpdateJobApplicationRequest;
 import com.kiwihirecoach.backend.entity.JobApplication;
 import com.kiwihirecoach.backend.entity.User;
 import com.kiwihirecoach.backend.exception.ResourceNotFoundException;
+import com.kiwihirecoach.backend.repository.ApplicationEventRepository;
 import com.kiwihirecoach.backend.repository.JobApplicationRepository;
+import com.kiwihirecoach.backend.repository.ResumeReviewRepository;
 import com.kiwihirecoach.backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -16,13 +19,19 @@ import java.util.List;
 public class JobApplicationService {
     private final JobApplicationRepository jobApplicationRepository;
     private final UserRepository userRepository;
+    private final ApplicationEventRepository applicationEventRepository;
+    private final ResumeReviewRepository resumeReviewRepository;
 
     public JobApplicationService(
             JobApplicationRepository jobApplicationRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            ApplicationEventRepository applicationEventRepository,
+            ResumeReviewRepository resumeReviewRepository
     ) {
         this.jobApplicationRepository = jobApplicationRepository;
         this.userRepository = userRepository;
+        this.applicationEventRepository = applicationEventRepository;
+        this.resumeReviewRepository = resumeReviewRepository;
     }
 
     public List<JobApplicationResponse> getApplicationsForUser(Long userId) {
@@ -32,15 +41,22 @@ public class JobApplicationService {
                 .toList();
     }
 
-    public JobApplicationResponse getApplicationById(Long id) {
-        JobApplication application = jobApplicationRepository.findById(id)
+    public JobApplicationResponse getApplicationById(
+            Long id,
+            Long userId
+    ) {
+        JobApplication application = jobApplicationRepository
+                .findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
 
         return toResponse(application);
     }
 
-    public JobApplicationResponse createApplication(CreateJobApplicationRequest request) {
-        User user = userRepository.findById(request.getUserId())
+    public JobApplicationResponse createApplication(
+            CreateJobApplicationRequest request,
+            Long userId
+    ) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         JobApplication application = new JobApplication(
@@ -50,6 +66,11 @@ public class JobApplicationService {
                 request.getStatus(),
                 request.getJobDescription(),
                 request.getClosingDate(),
+                normalize(request.getSource()),
+                normalize(request.getWorkMode()),
+                normalize(request.getWorkRightsRequirement()),
+                normalize(request.getSalaryRange()),
+                normalize(request.getContactPerson()),
                 user
         );
         JobApplication savedApplication = jobApplicationRepository.save(application);
@@ -57,8 +78,13 @@ public class JobApplicationService {
         return toResponse(savedApplication);
     }
 
-    public JobApplicationResponse updateApplication(Long id, UpdateJobApplicationRequest request) {
-        JobApplication application = jobApplicationRepository.findById(id)
+    public JobApplicationResponse updateApplication(
+            Long id,
+            UpdateJobApplicationRequest request,
+            Long userId
+    ) {
+        JobApplication application = jobApplicationRepository
+                .findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
 
         application.setCompany(request.getCompany());
@@ -67,16 +93,29 @@ public class JobApplicationService {
         application.setStatus(request.getStatus());
         application.setJobDescription(request.getJobDescription());
         application.setClosingDate(request.getClosingDate());
+        application.setSource(normalize(request.getSource()));
+        application.setWorkMode(normalize(request.getWorkMode()));
+        application.setWorkRightsRequirement(
+                normalize(request.getWorkRightsRequirement())
+        );
+        application.setSalaryRange(normalize(request.getSalaryRange()));
+        application.setContactPerson(
+                normalize(request.getContactPerson())
+        );
 
         JobApplication savedApplication = jobApplicationRepository.save(application);
 
         return toResponse(savedApplication);
     }
 
-    public void deleteApplication(Long id) {
-        JobApplication application = jobApplicationRepository.findById(id)
+    @Transactional
+    public void deleteApplication(Long id, Long userId) {
+        JobApplication application = jobApplicationRepository
+                .findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
 
+        resumeReviewRepository.deleteByApplicationId(id);
+        applicationEventRepository.deleteByApplicationId(id);
         jobApplicationRepository.delete(application);
     }
 
@@ -91,7 +130,16 @@ public class JobApplicationService {
                 application.getClosingDate(),
                 application.getCreatedAt(),
                 application.getUser().getId(),
-                application.getUser().getEmail()
+                application.getUser().getEmail(),
+                application.getSource(),
+                application.getWorkMode(),
+                application.getWorkRightsRequirement(),
+                application.getSalaryRange(),
+                application.getContactPerson()
         );
+    }
+
+    private String normalize(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 }

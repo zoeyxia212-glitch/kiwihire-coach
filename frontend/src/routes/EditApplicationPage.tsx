@@ -31,6 +31,12 @@ export default function EditApplicationPage() {
           status: application.status,
           jobDescription: application.jobDescription,
           closingDate: application.closingDate ?? "",
+          source: application.source ?? "",
+          workMode: application.workMode ?? "",
+          workRightsRequirement:
+            application.workRightsRequirement ?? "",
+          salaryRange: application.salaryRange ?? "",
+          contactPerson: application.contactPerson ?? "",
         });
       } catch {
         setErrorMessage("Failed to load application.");

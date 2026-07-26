@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import StatusBadge from "../components/StatusBadge";
+import ApplicationTimeline from "../components/ApplicationTimeline";
 import type { Application } from "../types/application";
 import {
   deleteApplication,
@@ -114,9 +115,39 @@ export default function ApplicationDetailPage() {
             <p className="muted">
               Created: {formatDateTime(application.createdAt)}
             </p>
+            <p className="muted">
+              Source: {application.source || "Not recorded"}
+            </p>
+            <p className="muted">
+              Work mode: {application.workMode || "Not specified"}
+            </p>
+            <p className="muted">
+              Work rights:{" "}
+              {application.workRightsRequirement || "Not specified"}
+            </p>
+            <p className="muted">
+              Salary: {application.salaryRange || "Not recorded"}
+            </p>
+            <p className="muted">
+              Contact: {application.contactPerson || "Not recorded"}
+            </p>
           </div>
         </div>
       </div>
+
+      <ApplicationTimeline
+        applicationId={id!}
+        onStageChange={(stage) =>
+          setApplication((currentApplication) =>
+            currentApplication
+              ? {
+                  ...currentApplication,
+                  status: stage as Application["status"],
+                }
+              : currentApplication
+          )
+        }
+      />
     </section>
   );
 }

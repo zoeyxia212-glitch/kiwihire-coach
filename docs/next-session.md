@@ -1,12 +1,13 @@
 # Next Session
 
-## PostgreSQL Runtime with Docker Compose
+## Real Registration Foundation
 
-1. Add a PostgreSQL service to a root Docker Compose file.
-2. Add a named volume so local database data persists.
-3. Configure Spring Boot runtime datasource values through environment variables.
-4. Keep H2 as the integration-test database.
-5. Start PostgreSQL in Docker and run Spring Boot locally.
-6. Verify the existing CRUD workflow against PostgreSQL.
+1. Review the existing `User` entity and decide the minimum registration fields.
+2. Add a registration request DTO that never exposes entity internals.
+3. Add secure password hashing.
+4. Add a user service that rejects duplicate email addresses.
+5. Add a registration controller endpoint.
+6. Add service, controller, and integration tests.
+7. Connect the existing React registration form after the backend flow is verified.
 
-The frontend API client, Spring integration-testing, and first React component-testing milestones are complete. The detailed infrastructure sequence is documented in `docs/cloud-native-plan.md`. The fixed user ID remains temporary and will be replaced after authentication and JWT support are implemented.
+The frontend API client, Spring integration-testing, and first React component-testing milestones are complete. Product functionality now takes priority over infrastructure. The cloud-native sequence remains documented in `docs/cloud-native-plan.md` for later implementation.

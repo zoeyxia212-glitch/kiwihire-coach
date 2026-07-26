@@ -6,9 +6,32 @@ The project is built with React, TypeScript, Java, Spring Boot, REST APIs, JPA, 
 
 Most job trackers only help users remember where they applied. KiwiHire Coach also helps users compare a resume with a job description, identify missing skills, and prepare role-specific interview questions.
 
+## Product Function
+
+KiwiHire Coach is intended to provide three primary user outcomes:
+
+1. Upload or paste a resume and job description, then compare them.
+2. Receive specific, explainable recommendations for improving the resume for that role.
+3. Prepare for likely interview questions using relevant resume evidence and STAR prompts.
+
+Supporting features include private user accounts, multiple resume versions, job-application tracking, a chronological application timeline, follow-up reminders, saved review history, candidate profiles, and a dashboard.
+
+The core product journey is:
+
+```text
+Upload or paste resume
+  + upload or paste job description
+  -> matched, missing, and transferable-skill comparison
+  -> role-specific resume optimisation recommendations
+  -> predicted interview questions, STAR evidence, and answer preparation
+  -> save the review and track the related application
+```
+
+The product is not complete until this journey works with authenticated and persisted user data. The detailed product definition, MVP acceptance criteria, current gaps, and product-first delivery order are documented in [`docs/product-plan.md`](docs/product-plan.md).
+
 ## Project Goal
 
-The central goal is to build and demonstrate the skills commonly requested in New Zealand junior software developer and full-stack job descriptions:
+The primary goal is to build a useful end-to-end candidate workflow. A second goal is to demonstrate skills commonly requested in New Zealand junior software developer and full-stack job descriptions:
 
 - Component-based frontend development with React and TypeScript
 - REST API design and integration
@@ -215,19 +238,25 @@ The roadmap prioritises product validation and technical evidence commonly reque
 4. [x] Add full Spring integration tests covering Controller -> Service -> Repository -> H2
 5. [x] Centralise frontend HTTP requests in a typed API client and add Vitest success and failure tests
 6. [x] Add React component tests for loading, success, error, and user interaction states
-7. [ ] Test the prototype with 5-10 New Zealand graduates, international candidates, or career changers and document the findings
-8. [ ] Add a candidate profile for target roles, work rights, location preferences, and previous experience
-9. [ ] Expand resume-to-JD analysis to show matched skills, missing skills, and transferable skills
-10. [ ] Turn skill gaps and transferable experience into interview preparation, STAR evidence prompts, and a personal learning plan
-11. [ ] Add a lightweight feedback prompt to measure what candidates find useful or missing
-12. [ ] Run the application against a local PostgreSQL database and document the relational model and representative SQL
-13. [ ] Add registration, password hashing, JWT authentication, authorization, and authenticated-user context
-14. [ ] Remove the fixed frontend user ID
-15. [ ] Add New Zealand-specific application fields
-16. [ ] Publish the REST contract with OpenAPI/Swagger and document common success and error status codes
-17. [ ] Add GitHub Actions continuous integration for frontend tests/build and backend tests
-18. [ ] Add a Docker Compose local environment for the frontend, backend, and PostgreSQL
-19. [ ] Deploy the application and document the frontend/backend deployment flow
-20. [ ] Add project screenshots and a short feature demonstration
+7. [ ] Add registration, password hashing, JWT authentication, logout, and protected routes
+8. [ ] Replace the fixed frontend user ID and enforce authenticated-user ownership
+9. [ ] Add application timeline events for Applied, screening, first interview, second interview, technical interview, offer, rejection, and withdrawal
+10. [ ] Add next actions, follow-up due dates, upcoming interview reminders, and overdue indicators
+11. [ ] Replace the static dashboard with current-user application and follow-up data
+12. [ ] Add a candidate profile for target roles, work rights, location preferences, and previous experience
+13. [ ] Add resume file upload, text extraction, and persistent resume CRUD
+14. [ ] Add job-description upload or paste and connect it to a persisted review
+15. [ ] Show matched skills, missing skills, transferable skills, and supporting resume evidence
+16. [ ] Turn review results into resume actions, predicted interview questions, STAR prompts, saved answers, and learning priorities
+17. [ ] Save review history and add a lightweight usefulness feedback prompt
+18. [ ] Test the workflow with 5-10 target candidates and document product decisions
+19. [ ] Add New Zealand-specific application fields
+20. [ ] Run the application against local PostgreSQL and document the relational model and representative SQL
+21. [ ] Publish the REST contract with OpenAPI/Swagger and document success and error status codes
+22. [ ] Add GitHub Actions for frontend tests/build and backend tests
+23. [ ] Add a Docker Compose environment for the frontend, backend, and PostgreSQL
+24. [ ] Add metrics, dashboards, centralised logs, and an operations runbook
+25. [ ] Deploy the application and document the deployment flow
+26. [ ] Add project screenshots and a short feature demonstration
 
 A third-party API integration will be selected only if candidate validation identifies a real need, rather than being added solely as a portfolio checkbox. The staged containerisation, CI, monitoring, logging, and operations plan is documented in `docs/cloud-native-plan.md`. Kubernetes follows a stable Docker Compose environment rather than being introduced as an isolated portfolio checkbox.

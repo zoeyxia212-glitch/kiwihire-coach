@@ -12,4 +12,18 @@ public class GlobalExceptionHandler {
     public String handleResourceNotFound(ResourceNotFoundException exception) {
         return exception.getMessage();
     }
+
+    @ExceptionHandler(DuplicateEmailException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public String handleDuplicateEmail(DuplicateEmailException exception) {
+        return exception.getMessage();
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public String handleInvalidCredentials(
+            InvalidCredentialsException exception
+    ) {
+        return exception.getMessage();
+    }
 }

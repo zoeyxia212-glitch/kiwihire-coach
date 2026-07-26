@@ -8,6 +8,11 @@ export type ApplicationFormValues = {
   status: ApplicationStatus;
   jobDescription: string;
   closingDate: string;
+  source: string;
+  workMode: string;
+  workRightsRequirement: string;
+  salaryRange: string;
+  contactPerson: string;
 };
 type ApplicationFormProps = {
   initialValues?: ApplicationFormValues;
@@ -34,6 +39,19 @@ export default function ApplicationForm({
   );
   const [closingDate, setClosingDate] = useState(
     initialValues?.closingDate ?? "",
+  );
+  const [source, setSource] = useState(initialValues?.source ?? "");
+  const [workMode, setWorkMode] = useState(
+    initialValues?.workMode ?? "",
+  );
+  const [workRightsRequirement, setWorkRightsRequirement] = useState(
+    initialValues?.workRightsRequirement ?? "",
+  );
+  const [salaryRange, setSalaryRange] = useState(
+    initialValues?.salaryRange ?? "",
+  );
+  const [contactPerson, setContactPerson] = useState(
+    initialValues?.contactPerson ?? "",
   );
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -68,6 +86,11 @@ export default function ApplicationForm({
       status,
       jobDescription,
       closingDate,
+      source,
+      workMode,
+      workRightsRequirement,
+      salaryRange,
+      contactPerson,
     };
 
     try {
@@ -108,12 +131,63 @@ export default function ApplicationForm({
 
         <div className="field">
           <label>Source</label>
-          <select>
-            <option>SEEK</option>
-            <option>LinkedIn</option>
-            <option>Company website</option>
-            <option>Referral</option>
+          <select
+            value={source}
+            onChange={(event) => setSource(event.target.value)}
+          >
+            <option value="">Not recorded</option>
+            <option value="SEEK">SEEK</option>
+            <option value="LinkedIn">LinkedIn</option>
+            <option value="Company website">Company website</option>
+            <option value="Referral">Referral</option>
+            <option value="Recruiter">Recruiter</option>
+            <option value="Other">Other</option>
           </select>
+        </div>
+
+        <div className="field">
+          <label>Work mode</label>
+          <select
+            value={workMode}
+            onChange={(event) => setWorkMode(event.target.value)}
+          >
+            <option value="">Not specified</option>
+            <option value="On-site">On-site</option>
+            <option value="Hybrid">Hybrid</option>
+            <option value="Remote">Remote</option>
+          </select>
+        </div>
+
+        <div className="field">
+          <label>Work rights requirement</label>
+          <input
+            placeholder="NZ work rights required, sponsorship available..."
+            value={workRightsRequirement}
+            maxLength={200}
+            onChange={(event) =>
+              setWorkRightsRequirement(event.target.value)
+            }
+          />
+        </div>
+
+        <div className="field">
+          <label>Salary range</label>
+          <input
+            placeholder="NZ$65,000–75,000"
+            value={salaryRange}
+            maxLength={120}
+            onChange={(event) => setSalaryRange(event.target.value)}
+          />
+        </div>
+
+        <div className="field">
+          <label>Recruiter or contact person</label>
+          <input
+            placeholder="Name or email"
+            value={contactPerson}
+            maxLength={200}
+            onChange={(event) => setContactPerson(event.target.value)}
+          />
         </div>
 
         <div className="field">
@@ -124,9 +198,14 @@ export default function ApplicationForm({
           >
             <option>Saved</option>
             <option>Applied</option>
-            <option>Interview</option>
-            <option>Rejected</option>
+            <option>Recruiter Screen</option>
+            <option>First Interview</option>
+            <option>Second Interview</option>
+            <option>Technical Interview</option>
+            <option>Reference Check</option>
             <option>Offer</option>
+            <option>Rejected</option>
+            <option>Withdrawn</option>
           </select>
         </div>
 

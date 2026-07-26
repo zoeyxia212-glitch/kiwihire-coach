@@ -9,6 +9,11 @@ public class UpdateJobApplicationRequest {
     private String status;
     private String jobDescription;
     private LocalDate closingDate;
+    private String source;
+    private String workMode;
+    private String workRightsRequirement;
+    private String salaryRange;
+    private String contactPerson;
 
     public String getCompany() {
         return company;
@@ -32,5 +37,25 @@ public class UpdateJobApplicationRequest {
 
     public LocalDate getClosingDate() {
         return closingDate;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public String getWorkMode() {
+        return workMode;
+    }
+
+    public String getWorkRightsRequirement() {
+        return workRightsRequirement;
+    }
+
+    public String getSalaryRange() {
+        return salaryRange;
+    }
+
+    public String getContactPerson() {
+        return contactPerson;
     }
 }

@@ -11,11 +11,65 @@ import {
   deleteApplication,
   getApplicationById,
   getApplicationsForUser,
+  registerUser,
   updateApplication,
 } from "./api";
 
 afterEach(() => {
   vi.unstubAllGlobals();
+});
+
+describe("registerUser", () => {
+  it("sends registration details and returns the created user", async () => {
+    const request = {
+      email: "zoey@example.com",
+      password: "password123",
+    };
+    const user = {
+      id: 1,
+      email: "zoey@example.com",
+      createdAt: "2026-07-26T15:30:00",
+    };
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => user,
+    });
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await registerUser(request);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      `${API_BASE_URL}/api/auth/register`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(request),
+      },
+    );
+    expect(result).toEqual(user);
+  });
+
+  it("shows the backend message when the email already exists", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 409,
+      text: async () => "An account already exists for this email.",
+    });
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      registerUser({
+        email: "zoey@example.com",
+        password: "password123",
+      }),
+    ).rejects.toThrow(
+      "An account already exists for this email.",
+    );
+  });
 });
 
 describe("getApplicationById", () => {

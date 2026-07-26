@@ -2,23 +2,24 @@ import type { InterviewQuestion } from "../types/interview";
 
 export function generateInterviewQuestions(
     jobDescription: string,
-    resumeText: string
+    resumeText: string,
+    candidateContext = ""
 ): InterviewQuestion[] {
     const questions: InterviewQuestion[] = [];
     const jobText = jobDescription.toLowerCase();
-    const resume = resumeText.toLowerCase();
-    if (jobText.includes("react") && resume.includes("react")) {
+    const background = `${resumeText} ${candidateContext}`.toLowerCase();
+    if (jobText.includes("react") && background.includes("react")) {
         questions.push({
             id: "react-project-question",
             question: "Can you tell me about a project where you used React?",
-            reason: "Both the job description and your resume mention React.",
+            reason: "The role and your saved candidate background mention React.",
             answerGuide:
                 "Choose one React project from your resume. Explain the goal, your role, the components you built, and the result.",
             relatedSkill: "React",
         });
     }
 
-    if (jobText.includes("react") && !resume.includes("react")) {
+    if (jobText.includes("react") && !background.includes("react")) {
         questions.push({
             id: "react-learning-question",
             question: "The role mentions React. How would you get up to speed with it?",
@@ -30,13 +31,13 @@ export function generateInterviewQuestions(
     }
     if (
   (jobText.includes("javascript") || jobText.includes("typescript")) &&
-  (resume.includes("javascript") || resume.includes("typescript"))
+  (background.includes("javascript") || background.includes("typescript"))
 ) {
   questions.push({
     id: "js-ts-project-question",
     question: "Can you describe how you used JavaScript or TypeScript in a project?",
     reason:
-      "Both the job description and your resume mention JavaScript or TypeScript.",
+      "The role and your saved candidate background mention JavaScript or TypeScript.",
     answerGuide:
       "Choose one project. Explain what feature you built, how data moved through the page, and how TypeScript helped reduce mistakes.",
     relatedSkill: "JavaScript / TypeScript",
@@ -44,8 +45,8 @@ export function generateInterviewQuestions(
 }
 if (
   (jobText.includes("javascript") || jobText.includes("typescript")) &&
-  !resume.includes("javascript") &&
-  !resume.includes("typescript")
+  !background.includes("javascript") &&
+  !background.includes("typescript")
 ) {
   questions.push({
     id: "js-ts-learning-question",
@@ -60,12 +61,12 @@ if (
 }
     if (
         (jobText.includes("sql") || jobText.includes("database")) &&
-        (resume.includes("sql") || resume.includes("database"))
+        (background.includes("sql") || background.includes("database"))
     ) {
         questions.push({
             id: "database-project-question",
             question: "Can you explain a time when you worked with a database?",
-            reason: "Both the job description and your resume mention database or SQL skills.",
+            reason: "The role and your saved candidate background mention database or SQL skills.",
             answerGuide:
                 "Talk about one project where you stored, queried, or organised data. Explain what data you worked with and how it was used.",
             relatedSkill: "Database",
@@ -73,8 +74,8 @@ if (
     }
     if (
         (jobText.includes("sql") || jobText.includes("database")) &&
-        !resume.includes("sql") &&
-        !resume.includes("database")
+        !background.includes("sql") &&
+        !background.includes("database")
     ) {
         questions.push({
             id: "database-learning-question",
@@ -90,8 +91,8 @@ if (
   jobText.includes("support") ||
   jobText.includes("helpdesk") ||
   jobText.includes("operations") ||
-  resume.includes("data centre") ||
-  resume.includes("incident")
+  background.includes("data centre") ||
+  background.includes("incident")
 ) {
   questions.push({
     id: "operations-support-question",

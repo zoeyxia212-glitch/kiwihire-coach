@@ -22,6 +22,11 @@ public class JobApplication {
     private String roleTitle;
     private String location;
     private String status;
+    private String source;
+    private String workMode;
+    private String workRightsRequirement;
+    private String salaryRange;
+    private String contactPerson;
 
     private String jobDescription;
 
@@ -31,12 +36,30 @@ public class JobApplication {
     public JobApplication() {
     }
 
-    public JobApplication(String company, String roleTitle, String location, String status, String jobDescription, LocalDate closingDate, User user) {
+    public JobApplication(
+            String company,
+            String roleTitle,
+            String location,
+            String status,
+            String jobDescription,
+            LocalDate closingDate,
+            String source,
+            String workMode,
+            String workRightsRequirement,
+            String salaryRange,
+            String contactPerson,
+            User user
+    ) {
         this.company = company;
         this.roleTitle = roleTitle;
         this.location = location;
         this.status = status;
         this.jobDescription = jobDescription;
+        this.source = source;
+        this.workMode = workMode;
+        this.workRightsRequirement = workRightsRequirement;
+        this.salaryRange = salaryRange;
+        this.contactPerson = contactPerson;
         this.user = user;
         this.createdAt = LocalDateTime.now();
         this.closingDate = closingDate;
@@ -66,6 +89,26 @@ public class JobApplication {
         return jobDescription;
     }
 
+    public String getSource() {
+        return source;
+    }
+
+    public String getWorkMode() {
+        return workMode;
+    }
+
+    public String getWorkRightsRequirement() {
+        return workRightsRequirement;
+    }
+
+    public String getSalaryRange() {
+        return salaryRange;
+    }
+
+    public String getContactPerson() {
+        return contactPerson;
+    }
+
     public User getUser() {
         return user;
     }
@@ -92,6 +135,26 @@ public class JobApplication {
 
     public void setJobDescription(String jobDescription) {
         this.jobDescription = jobDescription;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public void setWorkMode(String workMode) {
+        this.workMode = workMode;
+    }
+
+    public void setWorkRightsRequirement(String workRightsRequirement) {
+        this.workRightsRequirement = workRightsRequirement;
+    }
+
+    public void setSalaryRange(String salaryRange) {
+        this.salaryRange = salaryRange;
+    }
+
+    public void setContactPerson(String contactPerson) {
+        this.contactPerson = contactPerson;
     }
 
     public LocalDate getClosingDate() {

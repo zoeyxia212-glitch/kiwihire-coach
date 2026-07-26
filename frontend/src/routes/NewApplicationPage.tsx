@@ -5,10 +5,7 @@ import { createApplication } from "../utils/api";
 
 export default function NewApplicationPage() {
   async function handleCreate(values: ApplicationFormValues) {
-    await createApplication({
-      userId: 1,
-      ...values,
-    });
+    await createApplication(values);
 
     window.location.href = "/applications";
   }

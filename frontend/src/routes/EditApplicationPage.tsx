@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router";
 import ApplicationForm, {
   type ApplicationFormValues,
 } from "../components/ApplicationForm";
-import type { Application } from "../types/application";
-import { API_BASE_URL } from "../utils/api";
+import {
+  getApplicationById,
+  updateApplication,
+} from "../utils/api";
 
 export default function EditApplicationPage() {
   const { id } = useParams();
@@ -20,15 +22,7 @@ export default function EditApplicationPage() {
       }
 
       try {
-        const response = await fetch(
-          `${API_BASE_URL}/api/applications/${id}`,
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to load application.");
-        }
-
-        const application: Application = await response.json();
+        const application = await getApplicationById(id);
 
         setInitialValues({
           company: application.company,
@@ -51,20 +45,7 @@ export default function EditApplicationPage() {
       throw new Error("Application ID is missing.");
     }
 
-    const response = await fetch(
-      `${API_BASE_URL}/api/applications/${id}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error("Failed to update application.");
-    }
+    await updateApplication(id, values);
 
     window.location.href = `/applications/${id}`;
   }

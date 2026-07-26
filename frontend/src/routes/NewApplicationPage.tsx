@@ -1,24 +1,14 @@
 import ApplicationForm, {
   type ApplicationFormValues,
 } from "../components/ApplicationForm";
-import { API_BASE_URL } from "../utils/api";
+import { createApplication } from "../utils/api";
 
 export default function NewApplicationPage() {
   async function handleCreate(values: ApplicationFormValues) {
-    const response = await fetch(`${API_BASE_URL}/api/applications`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        userId: 1,
-        ...values,
-      }),
+    await createApplication({
+      userId: 1,
+      ...values,
     });
-
-    if (!response.ok) {
-      throw new Error("Failed to create application.");
-    }
 
     window.location.href = "/applications";
   }

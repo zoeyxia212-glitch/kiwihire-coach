@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router";
 import StatusBadge from "../components/StatusBadge";
 import type { Application } from "../types/application";
 import {

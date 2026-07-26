@@ -1,4 +1,4 @@
-import { Link, Route, Routes } from "react-router-dom";
+import { Link, Route, Routes } from "react-router";
 import DashboardPage from "./routes/DashboardPage";
 import ApplicationsPage from "./routes/ApplicationsPage";
 import ApplicationDetailPage from "./routes/ApplicationDetailPage";

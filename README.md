@@ -44,12 +44,13 @@ This repository is also intended to give recruiters direct evidence of practical
 - Generate interview questions from job-description keywords
 - Display resume review, keyword, and suggestion interfaces
 
-The frontend currently supports creating and reading applications. Update and delete endpoints exist in the backend, while their frontend workflows remain on the roadmap.
+The frontend supports creating, reading, updating, and deleting applications through a centralised typed API client.
 
 ## Core Workflow
 
 ```text
 React form
+  -> typed API client
   -> fetch request
   -> Spring REST controller
   -> service layer
@@ -192,7 +193,7 @@ cd backend
 ./mvnw test
 ```
 
-The current automated test coverage includes Spring service unit tests, Spring MVC controller slice tests, a Spring context smoke test, and Vitest coverage for the interview-question generator. Full-stack integration and React API-state coverage will be expanded as the project develops.
+The current automated test coverage includes Spring service unit tests, Spring MVC controller slice tests, a Spring context smoke test, Controller-to-H2 integration tests for CRUD and error behaviour, and Vitest coverage for the interview-question generator and frontend API client. React component and end-to-end coverage will be expanded as the project develops.
 
 ## Product Direction
 
@@ -211,9 +212,9 @@ The roadmap prioritises product validation and technical evidence commonly reque
 1. [x] Complete frontend update and delete workflows
 2. [x] Add JobApplication service unit tests with JUnit and Mockito
 3. [x] Add Spring MVC controller tests for CRUD and error responses
-4. [ ] Add a full Spring integration test covering Controller -> Service -> Repository -> H2
-5. [ ] Centralise frontend HTTP requests in a typed API client and add Vitest success and failure tests
-6. [ ] Add React component tests for loading, success, error, and user interaction states
+4. [x] Add full Spring integration tests covering Controller -> Service -> Repository -> H2
+5. [x] Centralise frontend HTTP requests in a typed API client and add Vitest success and failure tests
+6. [x] Add React component tests for loading, success, error, and user interaction states
 7. [ ] Test the prototype with 5-10 New Zealand graduates, international candidates, or career changers and document the findings
 8. [ ] Add a candidate profile for target roles, work rights, location preferences, and previous experience
 9. [ ] Expand resume-to-JD analysis to show matched skills, missing skills, and transferable skills
@@ -229,4 +230,4 @@ The roadmap prioritises product validation and technical evidence commonly reque
 19. [ ] Deploy the application and document the frontend/backend deployment flow
 20. [ ] Add project screenshots and a short feature demonstration
 
-A third-party API integration will be selected only if candidate validation identifies a real need, rather than being added solely as a portfolio checkbox. Cloud deployment follows the core full-stack, testing, security, and CI work; Kubernetes and multi-cloud infrastructure remain outside the current scope.
+A third-party API integration will be selected only if candidate validation identifies a real need, rather than being added solely as a portfolio checkbox. The staged containerisation, CI, monitoring, logging, and operations plan is documented in `docs/cloud-native-plan.md`. Kubernetes follows a stable Docker Compose environment rather than being introduced as an isolated portfolio checkbox.

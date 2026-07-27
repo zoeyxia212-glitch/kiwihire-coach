@@ -1,13 +1,22 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import ReviewResultDisplay from "../components/ReviewResultDisplay";
-import type { ResumeReview } from "../types/resumeReview";
+import ResourceNotFoundState from "../components/ResourceNotFoundState";
+import type {
+  InterviewAnswerStatus,
+  ResumeReview,
+  SuggestionStatus,
+  WorkflowIntent,
+} from "../types/resumeReview";
 import {
   createLearningGoal,
   deleteResumeReview,
   getResumeReviewById,
   updateResumeReviewAnswers,
+  updateResumeReviewAnswerStatus,
   updateResumeReviewFeedback,
+  updateResumeReviewSuggestionStatus,
+  ResourceNotFoundError,
 } from "../utils/api";
 
 export default function SavedReviewPage() {
@@ -17,14 +26,19 @@ export default function SavedReviewPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSavingFeedback, setIsSavingFeedback] = useState(false);
+  const [feedbackComment, setFeedbackComment] = useState("");
+  const [workflowIntent, setWorkflowIntent] =
+    useState<WorkflowIntent>(null);
   const [addedSkills, setAddedSkills] = useState<string[]>([]);
   const [error, setError] = useState("");
+  const [isNotFound, setIsNotFound] = useState(false);
 
   useEffect(() => {
     async function loadReview() {
       setIsLoading(true);
       setReview(null);
       setError("");
+      setIsNotFound(false);
 
       if (!id) {
         setError("Review not found.");
@@ -33,9 +47,16 @@ export default function SavedReviewPage() {
       }
 
       try {
-        setReview(await getResumeReviewById(id));
-      } catch {
-        setError("This saved review could not be loaded.");
+        const loadedReview = await getResumeReviewById(id);
+        setReview(loadedReview);
+        setFeedbackComment(loadedReview.feedbackComment ?? "");
+        setWorkflowIntent(loadedReview.workflowIntent);
+      } catch (error) {
+        if (error instanceof ResourceNotFoundError) {
+          setIsNotFound(true);
+        } else {
+          setError("This saved review could not be loaded.");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -79,8 +100,38 @@ export default function SavedReviewPage() {
 
     try {
       setReview(
-        await updateResumeReviewFeedback(review.id, helpful),
+        await updateResumeReviewFeedback(
+          review.id,
+          helpful,
+          feedbackComment,
+          workflowIntent,
+        ),
       );
+    } catch {
+      setError("Your feedback could not be saved.");
+    } finally {
+      setIsSavingFeedback(false);
+    }
+  }
+
+  async function saveDetailedFeedback() {
+    if (!review || review.helpful === null) {
+      return;
+    }
+
+    setIsSavingFeedback(true);
+    setError("");
+
+    try {
+      const savedReview = await updateResumeReviewFeedback(
+        review.id,
+        review.helpful,
+        feedbackComment,
+        workflowIntent,
+      );
+      setReview(savedReview);
+      setFeedbackComment(savedReview.feedbackComment ?? "");
+      setWorkflowIntent(savedReview.workflowIntent);
     } catch {
       setError("Your feedback could not be saved.");
     } finally {
@@ -105,6 +156,46 @@ export default function SavedReviewPage() {
     setReview(
       await updateResumeReviewAnswers(review.id, answers),
     );
+  }
+
+  async function handleUpdateAnswerStatus(
+    questionIndex: number,
+    status: InterviewAnswerStatus,
+  ) {
+    if (!review) {
+      return;
+    }
+
+    setReview(
+      await updateResumeReviewAnswerStatus(
+        review.id,
+        questionIndex,
+        status,
+      ),
+    );
+  }
+
+  async function handleUpdateSuggestionStatus(
+    suggestionIndex: number,
+    status: SuggestionStatus,
+  ) {
+    if (!review) {
+      return;
+    }
+
+    setError("");
+
+    try {
+      setReview(
+        await updateResumeReviewSuggestionStatus(
+          review.id,
+          suggestionIndex,
+          status,
+        ),
+      );
+    } catch {
+      setError("The resume action decision could not be saved.");
+    }
   }
 
   async function addLearningPriority(
@@ -135,6 +226,17 @@ export default function SavedReviewPage() {
     return <p className="muted">Loading saved review...</p>;
   }
 
+  if (isNotFound) {
+    return (
+      <ResourceNotFoundState
+        title="This saved review could not be found."
+        message="It may have been deleted, or it may belong to another account."
+        backTo="/review"
+        backLabel="Back to review history"
+      />
+    );
+  }
+
   if (!review) {
     return (
       <section className="page">
@@ -159,7 +261,14 @@ export default function SavedReviewPage() {
             {formatReviewDate(review.createdAt)}
           </p>
         </div>
-        <div className="form-actions">
+        <div className="form-actions no-print">
+          <button
+            className="button primary"
+            type="button"
+            onClick={() => window.print()}
+          >
+            Print or save as PDF
+          </button>
           <Link
             className="button"
             to={`/applications/${review.applicationId}`}
@@ -225,6 +334,59 @@ export default function SavedReviewPage() {
               </span>
             )}
           </div>
+
+          <div className="review-feedback-details">
+            <fieldset>
+              <legend>
+                Would you use this workflow for a real application?
+              </legend>
+              <div className="form-actions">
+                {(["Yes", "Maybe", "No"] as const).map((option) => (
+                  <button
+                    className={`button compact ${workflowIntent === option ? "primary" : ""}`}
+                    type="button"
+                    aria-pressed={workflowIntent === option}
+                    key={option}
+                    onClick={() => setWorkflowIntent(option)}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+            <div className="field">
+              <label htmlFor="review-feedback-comment">
+                What was unclear, missing, or especially useful?
+              </label>
+              <textarea
+                id="review-feedback-comment"
+                value={feedbackComment}
+                maxLength={2000}
+                placeholder="Optional feedback about this review..."
+                onChange={(event) =>
+                  setFeedbackComment(event.target.value)
+                }
+              />
+              <span className="field-help">
+                {feedbackComment.length.toLocaleString()} / 2,000
+              </span>
+            </div>
+            <button
+              className="button primary"
+              type="button"
+              disabled={isSavingFeedback || review.helpful === null}
+              onClick={saveDetailedFeedback}
+            >
+              {isSavingFeedback
+                ? "Saving feedback..."
+                : "Save detailed feedback"}
+            </button>
+            {review.helpful === null && (
+              <p className="muted">
+                Choose Helpful or Not helpful before saving details.
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
@@ -273,7 +435,11 @@ export default function SavedReviewPage() {
         questions={review.questions}
         practiceKey={`resume-review-${review.id}`}
         practiceAnswers={review.answers}
+        practiceStatuses={review.answerStatuses}
+        suggestionStatuses={review.suggestionStatuses}
         onSavePracticeAnswer={handleSaveAnswer}
+        onUpdatePracticeStatus={handleUpdateAnswerStatus}
+        onUpdateSuggestionStatus={handleUpdateSuggestionStatus}
       />
     </section>
   );

@@ -9,4 +9,6 @@ public interface CandidateProfileRepository
         extends JpaRepository<CandidateProfile, Long> {
 
     Optional<CandidateProfile> findByUserId(Long userId);
+
+    void deleteByUserId(Long userId);
 }

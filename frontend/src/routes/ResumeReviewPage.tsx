@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import ReviewResultDisplay from "../components/ReviewResultDisplay";
 import type { Application } from "../types/application";
 import type { CandidateProfile } from "../types/candidateProfile";
@@ -18,7 +18,17 @@ import {
 import { generateInterviewQuestions } from "../utils/interviewQuestionGenerator";
 import { analyzeResume } from "../utils/resumeAnalysis";
 
+type ReviewFilter =
+  | "All"
+  | "Helpful"
+  | "Not helpful"
+  | "Needs preparation";
+type ReviewSort = "Newest" | "Oldest" | "Highest score";
+
 export default function ResumeReviewPage() {
+  const [searchParams] = useSearchParams();
+  const requestedApplicationId = searchParams.get("application");
+  const requestedResumeId = searchParams.get("resume");
   const [applications, setApplications] = useState<Application[]>([]);
   const [candidateProfile, setCandidateProfile] =
     useState<CandidateProfile | null>(null);
@@ -34,6 +44,11 @@ export default function ResumeReviewPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
   const [error, setError] = useState("");
+  const [reviewSearch, setReviewSearch] = useState("");
+  const [reviewFilter, setReviewFilter] =
+    useState<ReviewFilter>("All");
+  const [reviewSort, setReviewSort] =
+    useState<ReviewSort>("Newest");
 
   useEffect(() => {
     async function loadOptions() {
@@ -51,19 +66,32 @@ export default function ResumeReviewPage() {
             getCandidateProfile(),
           ]);
 
-        setApplications(loadedApplications);
+        const activeApplications = loadedApplications.filter(
+          (application) => !application.archived,
+        );
+        setApplications(activeApplications);
         setResumes(loadedResumes);
         setReviews(loadedReviews);
         setCandidateProfile(loadedProfile);
 
-        if (loadedApplications[0]) {
-          setApplicationId(String(loadedApplications[0].id));
-          setJobDescription(loadedApplications[0].jobDescription);
+        const selectedApplication =
+          activeApplications.find(
+            (application) =>
+              String(application.id) === requestedApplicationId,
+          ) ?? activeApplications[0];
+        const selectedResume =
+          loadedResumes.find(
+            (resume) => String(resume.id) === requestedResumeId,
+          ) ?? loadedResumes[0];
+
+        if (selectedApplication) {
+          setApplicationId(String(selectedApplication.id));
+          setJobDescription(selectedApplication.jobDescription);
         }
 
-        if (loadedResumes[0]) {
-          setResumeId(String(loadedResumes[0].id));
-          setResumeText(loadedResumes[0].content);
+        if (selectedResume) {
+          setResumeId(String(selectedResume.id));
+          setResumeText(selectedResume.content);
         }
       } catch {
         setError("Failed to load your applications and resumes.");
@@ -73,7 +101,7 @@ export default function ResumeReviewPage() {
     }
 
     loadOptions();
-  }, []);
+  }, [requestedApplicationId, requestedResumeId]);
 
   function chooseApplication(selectedId: string) {
     setApplicationId(selectedId);
@@ -173,6 +201,31 @@ export default function ResumeReviewPage() {
 
   const missingInputs =
     applications.length === 0 || resumes.length === 0;
+  const normalizedReviewSearch = reviewSearch.trim().toLowerCase();
+  const filteredReviews = reviews
+    .filter((review) => {
+      const matchesSearch =
+        !normalizedReviewSearch ||
+        [review.company, review.roleTitle, review.resumeName]
+          .join(" ")
+          .toLowerCase()
+          .includes(normalizedReviewSearch);
+      const matchesFilter =
+        reviewFilter === "All" ||
+        (reviewFilter === "Helpful" && review.helpful === true) ||
+        (reviewFilter === "Not helpful" &&
+          review.helpful === false) ||
+        (reviewFilter === "Needs preparation" &&
+          (review.suggestionStatuses.some(
+            (status) => status === "To do",
+          ) ||
+            review.answerStatuses.some(
+              (status) => status !== "Ready",
+            )));
+
+      return matchesSearch && matchesFilter;
+    })
+    .sort(reviewSorter(reviewSort));
 
   return (
     <section className="page">
@@ -308,6 +361,55 @@ export default function ResumeReviewPage() {
         <div className="panel-inner">
           <p className="eyebrow">Saved work</p>
           <h2>Review history</h2>
+          {reviews.length > 0 && (
+            <div className="review-history-filters">
+              <div className="field">
+                <label htmlFor="review-history-search">
+                  Search reviews
+                </label>
+                <input
+                  id="review-history-search"
+                  type="search"
+                  value={reviewSearch}
+                  placeholder="Company, role, or resume..."
+                  onChange={(event) =>
+                    setReviewSearch(event.target.value)
+                  }
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="review-history-filter">Filter</label>
+                <select
+                  id="review-history-filter"
+                  value={reviewFilter}
+                  onChange={(event) =>
+                    setReviewFilter(
+                      event.target.value as ReviewFilter,
+                    )
+                  }
+                >
+                  <option>All</option>
+                  <option>Helpful</option>
+                  <option>Not helpful</option>
+                  <option>Needs preparation</option>
+                </select>
+              </div>
+              <div className="field">
+                <label htmlFor="review-history-sort">Sort by</label>
+                <select
+                  id="review-history-sort"
+                  value={reviewSort}
+                  onChange={(event) =>
+                    setReviewSort(event.target.value as ReviewSort)
+                  }
+                >
+                  <option>Newest</option>
+                  <option>Oldest</option>
+                  <option>Highest score</option>
+                </select>
+              </div>
+            </div>
+          )}
           {!reviews.length ? (
             <p className="muted">
               No saved reviews yet. Analyze a role and save the result
@@ -315,34 +417,96 @@ export default function ResumeReviewPage() {
             </p>
           ) : (
             <div className="list">
-              {reviews.map((review) => (
-                <Link
-                  className="list-row"
-                  key={review.id}
-                  to={`/reviews/${review.id}`}
-                >
-                  <div>
-                    <h3>
-                      {review.company} · {review.roleTitle}
-                    </h3>
-                    <p>
-                      {review.resumeName}
-                      {` · ${formatReviewDate(review.createdAt)}`}
-                    </p>
-                  </div>
-                  <span className="status">
-                    {review.score === null
-                      ? "No score"
-                      : `${review.score}%`}
-                  </span>
-                </Link>
-              ))}
+              {filteredReviews.map((review) => {
+                const previousReview = reviews
+                  .filter(
+                    (candidate) =>
+                      new Date(candidate.createdAt).getTime() <
+                      new Date(review.createdAt).getTime(),
+                  )
+                  .find(
+                    (candidate) =>
+                      candidate.applicationId ===
+                      review.applicationId,
+                  );
+                const scoreChange = calculateScoreChange(
+                  review,
+                  previousReview,
+                );
+
+                return (
+                  <Link
+                    className="list-row"
+                    key={review.id}
+                    to={`/reviews/${review.id}`}
+                  >
+                    <div>
+                      <h3>
+                        {review.company} · {review.roleTitle}
+                      </h3>
+                      <p>
+                        {review.resumeName}
+                        {` · ${formatReviewDate(review.createdAt)}`}
+                      </p>
+                      <p
+                        className={`review-trend ${scoreChange?.tone ?? ""}`}
+                      >
+                        {scoreChange?.label ?? "First review for this role"}
+                      </p>
+                    </div>
+                    <span className="status">
+                      {review.score === null
+                        ? "No score"
+                        : `${review.score}%`}
+                    </span>
+                  </Link>
+                );
+              })}
+              {filteredReviews.length === 0 && (
+                <div className="empty-filter-result">
+                  <h3>No reviews match these filters</h3>
+                  <p className="muted">
+                    Try another company, role, resume, or preparation
+                    status.
+                  </p>
+                  <button
+                    className="button compact"
+                    type="button"
+                    onClick={() => {
+                      setReviewSearch("");
+                      setReviewFilter("All");
+                    }}
+                  >
+                    Clear filters
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
     </section>
   );
+}
+
+function reviewSorter(sortBy: ReviewSort) {
+  return (first: ResumeReview, second: ResumeReview) => {
+    if (sortBy === "Oldest") {
+      return (
+        new Date(first.createdAt).getTime() -
+        new Date(second.createdAt).getTime()
+      );
+    }
+
+    if (sortBy === "Highest score") {
+      return (second.score ?? -1) - (first.score ?? -1);
+    }
+
+    return (
+      new Date(second.createdAt).getTime() -
+      new Date(first.createdAt).getTime()
+    );
+  };
 }
 
 function formatReviewDate(value: string) {
@@ -370,6 +534,40 @@ function buildCandidateContext(profile: CandidateProfile | null) {
 
 function hasCandidateContext(profile: CandidateProfile | null) {
   return Boolean(buildCandidateContext(profile).trim());
+}
+
+function calculateScoreChange(
+  current: ResumeReview,
+  previous?: ResumeReview,
+) {
+  if (
+    !previous ||
+    current.score === null ||
+    previous.score === null
+  ) {
+    return null;
+  }
+
+  const difference = current.score - previous.score;
+
+  if (difference > 0) {
+    return {
+      label: `+${difference} since previous review`,
+      tone: "positive",
+    };
+  }
+
+  if (difference < 0) {
+    return {
+      label: `${difference} since previous review`,
+      tone: "negative",
+    };
+  }
+
+  return {
+    label: "No score change since previous review",
+    tone: "neutral",
+  };
 }
 
 type ReviewInputProps = {

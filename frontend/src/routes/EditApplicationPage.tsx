@@ -3,8 +3,10 @@ import { useParams } from "react-router";
 import ApplicationForm, {
   type ApplicationFormValues,
 } from "../components/ApplicationForm";
+import ResourceNotFoundState from "../components/ResourceNotFoundState";
 import {
   getApplicationById,
+  ResourceNotFoundError,
   updateApplication,
 } from "../utils/api";
 
@@ -13,6 +15,7 @@ export default function EditApplicationPage() {
   const [initialValues, setInitialValues] =
     useState<ApplicationFormValues | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isNotFound, setIsNotFound] = useState(false);
 
   useEffect(() => {
     async function fetchApplication() {
@@ -37,9 +40,14 @@ export default function EditApplicationPage() {
             application.workRightsRequirement ?? "",
           salaryRange: application.salaryRange ?? "",
           contactPerson: application.contactPerson ?? "",
+          jobUrl: application.jobUrl ?? "",
         });
-      } catch {
-        setErrorMessage("Failed to load application.");
+      } catch (error) {
+        if (error instanceof ResourceNotFoundError) {
+          setIsNotFound(true);
+        } else {
+          setErrorMessage("Failed to load application.");
+        }
       }
     }
 
@@ -54,6 +62,17 @@ export default function EditApplicationPage() {
     await updateApplication(id, values);
 
     window.location.href = `/applications/${id}`;
+  }
+
+  if (isNotFound) {
+    return (
+      <ResourceNotFoundState
+        title="This application cannot be edited."
+        message="It may have been deleted, or it may belong to another account."
+        backTo="/applications"
+        backLabel="Back to applications"
+      />
+    );
   }
 
   if (errorMessage) {

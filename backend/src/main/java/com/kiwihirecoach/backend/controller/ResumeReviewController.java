@@ -4,6 +4,8 @@ import com.kiwihirecoach.backend.dto.CreateResumeReviewRequest;
 import com.kiwihirecoach.backend.dto.ResumeReviewResponse;
 import com.kiwihirecoach.backend.dto.ReviewFeedbackRequest;
 import com.kiwihirecoach.backend.dto.SaveReviewAnswersRequest;
+import com.kiwihirecoach.backend.dto.UpdateReviewAnswerStatusRequest;
+import com.kiwihirecoach.backend.dto.UpdateReviewSuggestionStatusRequest;
 import com.kiwihirecoach.backend.service.ResumeReviewService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -72,6 +74,8 @@ public class ResumeReviewController {
         return resumeReviewService.updateFeedback(
                 reviewId,
                 request.helpful(),
+                request.comment(),
+                request.workflowIntent(),
                 (Long) authentication.getPrincipal()
         );
     }
@@ -85,6 +89,34 @@ public class ResumeReviewController {
         return resumeReviewService.updateAnswers(
                 reviewId,
                 request.answers(),
+                (Long) authentication.getPrincipal()
+        );
+    }
+
+    @PatchMapping("/{reviewId}/answers/status")
+    public ResumeReviewResponse updateAnswerStatus(
+            @PathVariable Long reviewId,
+            @Valid @RequestBody UpdateReviewAnswerStatusRequest request,
+            Authentication authentication
+    ) {
+        return resumeReviewService.updateAnswerStatus(
+                reviewId,
+                request.questionIndex(),
+                request.status(),
+                (Long) authentication.getPrincipal()
+        );
+    }
+
+    @PatchMapping("/{reviewId}/suggestions/status")
+    public ResumeReviewResponse updateSuggestionStatus(
+            @PathVariable Long reviewId,
+            @Valid @RequestBody UpdateReviewSuggestionStatusRequest request,
+            Authentication authentication
+    ) {
+        return resumeReviewService.updateSuggestionStatus(
+                reviewId,
+                request.suggestionIndex(),
+                request.status(),
                 (Long) authentication.getPrincipal()
         );
     }

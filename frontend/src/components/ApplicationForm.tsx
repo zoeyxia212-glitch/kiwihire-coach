@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { ApplicationStatus } from "../types/application";
+import { parseDocumentFile } from "../utils/documentFileParser";
 
 export type ApplicationFormValues = {
   company: string;
@@ -13,6 +14,7 @@ export type ApplicationFormValues = {
   workRightsRequirement: string;
   salaryRange: string;
   contactPerson: string;
+  jobUrl: string;
 };
 type ApplicationFormProps = {
   initialValues?: ApplicationFormValues;
@@ -53,7 +55,52 @@ export default function ApplicationForm({
   const [contactPerson, setContactPerson] = useState(
     initialValues?.contactPerson ?? "",
   );
+  const [jobUrl, setJobUrl] = useState(
+    initialValues?.jobUrl ?? "",
+  );
   const [errorMessage, setErrorMessage] = useState("");
+  const [isParsingJobFile, setIsParsingJobFile] = useState(false);
+  const [jobFileMessage, setJobFileMessage] = useState("");
+
+  async function handleJobFileChange(
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) {
+      return;
+    }
+
+    if (
+      jobDescription.trim() &&
+      !window.confirm(
+        "Replace the current job description with text from this file?",
+      )
+    ) {
+      return;
+    }
+
+    setIsParsingJobFile(true);
+    setErrorMessage("");
+    setJobFileMessage("");
+
+    try {
+      const parsedFile = await parseDocumentFile(file);
+      setJobDescription(parsedFile.text);
+      setJobFileMessage(
+        `Extracted ${parsedFile.text.length.toLocaleString()} characters from ${file.name}. Review the text before saving.`,
+      );
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "The job description file could not be read.",
+      );
+    } finally {
+      setIsParsingJobFile(false);
+    }
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -91,6 +138,7 @@ export default function ApplicationForm({
       workRightsRequirement,
       salaryRange,
       contactPerson,
+      jobUrl,
     };
 
     try {
@@ -191,6 +239,20 @@ export default function ApplicationForm({
         </div>
 
         <div className="field">
+          <label>Original job URL</label>
+          <input
+            type="url"
+            placeholder="https://www.seek.co.nz/job/..."
+            value={jobUrl}
+            maxLength={2000}
+            onChange={(event) => setJobUrl(event.target.value)}
+          />
+          <span className="field-help">
+            SEEK, LinkedIn, or the employer&apos;s careers page.
+          </span>
+        </div>
+
+        <div className="field">
           <label>Status</label>
           <select
             value={status}
@@ -220,6 +282,30 @@ export default function ApplicationForm({
 
         <div className="field">
           <label>Job description</label>
+          <div className="document-upload">
+            <div>
+              <strong>Import job description</strong>
+              <span>
+                PDF, DOCX, or TXT · Maximum 10 MB · Processed locally
+              </span>
+            </div>
+            <label className="button compact" htmlFor="job-file">
+              {isParsingJobFile ? "Reading file..." : "Choose file"}
+            </label>
+            <input
+              id="job-file"
+              className="visually-hidden"
+              type="file"
+              accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
+              disabled={isParsingJobFile}
+              onChange={handleJobFileChange}
+            />
+          </div>
+          {jobFileMessage && (
+            <p className="info-message" role="status">
+              {jobFileMessage}
+            </p>
+          )}
           <textarea
             placeholder="Paste the job description here..."
             value={jobDescription}

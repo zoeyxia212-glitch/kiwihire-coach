@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
 import type {
   LearningGoal,
   LearningGoalStatus,
 } from "../types/learningGoal";
 import {
+  createLearningGoal,
   deleteLearningGoal,
   getLearningGoals,
   updateLearningGoal,
@@ -18,7 +20,11 @@ const statuses: LearningGoalStatus[] = [
 export default function LearningPlanPage() {
   const [goals, setGoals] = useState<LearningGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
+  const [skill, setSkill] = useState("");
+  const [reason, setReason] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   useEffect(() => {
     async function loadGoals() {
@@ -33,6 +39,52 @@ export default function LearningPlanPage() {
 
     loadGoals();
   }, []);
+
+  async function handleCreate(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const normalizedSkill = skill.trim();
+
+    if (!normalizedSkill) {
+      setError("Enter a skill or topic.");
+      return;
+    }
+
+    const alreadyExists = goals.some(
+      (goal) =>
+        goal.skill.toLowerCase() === normalizedSkill.toLowerCase(),
+    );
+    setIsCreating(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const goal = await createLearningGoal({
+        skill: normalizedSkill,
+        reason,
+        sourceReviewId: null,
+      });
+      setGoals((currentGoals) => [
+        goal,
+        ...currentGoals.filter(
+          (currentGoal) => currentGoal.id !== goal.id,
+        ),
+      ]);
+      setSuccess(
+        alreadyExists
+          ? `"${goal.skill}" is already in your learning plan.`
+          : `"${goal.skill}" was added to your learning plan.`,
+      );
+
+      if (!alreadyExists) {
+        setSkill("");
+        setReason("");
+      }
+    } catch {
+      setError("The learning goal could not be added.");
+    } finally {
+      setIsCreating(false);
+    }
+  }
 
   async function changeStatus(
     goal: LearningGoal,
@@ -98,14 +150,61 @@ export default function LearningPlanPage() {
         </p>
       )}
 
+      <form
+        className="panel learning-create"
+        onSubmit={handleCreate}
+      >
+        <div className="panel-inner form-grid">
+          <div>
+            <p className="eyebrow">Add your own priority</p>
+            <h2>New learning goal</h2>
+          </div>
+          <div className="field">
+            <label htmlFor="learning-skill">Skill or topic</label>
+            <input
+              id="learning-skill"
+              value={skill}
+              maxLength={120}
+              required
+              placeholder="Docker, AWS, behavioural interviews..."
+              onChange={(event) => setSkill(event.target.value)}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="learning-reason">
+              Why it matters (optional)
+            </label>
+            <textarea
+              id="learning-reason"
+              value={reason}
+              maxLength={2000}
+              placeholder="This skill appears frequently in the roles I want."
+              onChange={(event) => setReason(event.target.value)}
+            />
+          </div>
+          {success && (
+            <p className="success-message" role="status">
+              {success}
+            </p>
+          )}
+          <button
+            className="button primary"
+            type="submit"
+            disabled={isCreating}
+          >
+            {isCreating ? "Adding goal..." : "Add learning goal"}
+          </button>
+        </div>
+      </form>
+
       <div className="panel">
         <div className="panel-inner">
           {!goals.length ? (
             <>
               <h2>No learning goals yet</h2>
               <p className="muted">
-                Open a saved resume review and add one of its missing
-                skills to begin.
+                Add a goal above or open a saved resume review and add
+                one of its missing skills.
               </p>
             </>
           ) : (

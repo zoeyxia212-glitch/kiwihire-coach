@@ -19,6 +19,7 @@ import com.kiwihirecoach.backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.ArrayList;
 
 @Service
 public class ResumeReviewService {
@@ -63,10 +64,18 @@ public class ResumeReviewService {
     public ResumeReviewResponse updateFeedback(
             Long reviewId,
             Boolean helpful,
+            String comment,
+            String workflowIntent,
             Long userId
     ) {
         ResumeReview review = findOwnedReview(reviewId, userId);
         review.setHelpful(helpful);
+        review.setFeedbackComment(
+                comment == null || comment.isBlank()
+                        ? null
+                        : comment.trim()
+        );
+        review.setWorkflowIntent(workflowIntent);
         return toResponse(resumeReviewRepository.save(review));
     }
 
@@ -76,11 +85,94 @@ public class ResumeReviewService {
             Long userId
     ) {
         ResumeReview review = findOwnedReview(reviewId, userId);
-        review.setAnswersJson(writeJson(
-                answers.stream()
-                        .map(answer -> answer == null ? "" : answer.trim())
-                        .toList()
+        List<String> normalizedAnswers = answers.stream()
+                .map(answer -> answer == null ? "" : answer.trim())
+                .toList();
+        List<String> currentStatuses = readJson(
+                review.getAnswerStatusesJson(),
+                new TypeReference<List<String>>() {}
+        );
+        List<String> nextStatuses = new ArrayList<>();
+
+        for (int index = 0; index < normalizedAnswers.size(); index++) {
+            String answer = normalizedAnswers.get(index);
+            String currentStatus = index < currentStatuses.size()
+                    ? currentStatuses.get(index)
+                    : "Not started";
+
+            nextStatuses.add(
+                    answer.isBlank()
+                            ? "Not started"
+                            : "Ready".equals(currentStatus)
+                            ? "Ready"
+                            : "Drafted"
+            );
+        }
+
+        review.setAnswersJson(writeJson(normalizedAnswers));
+        review.setAnswerStatusesJson(writeJson(nextStatuses));
+        return toResponse(resumeReviewRepository.save(review));
+    }
+
+    public ResumeReviewResponse updateAnswerStatus(
+            Long reviewId,
+            int questionIndex,
+            String status,
+            Long userId
+    ) {
+        ResumeReview review = findOwnedReview(reviewId, userId);
+        List<ReviewQuestion> questions = readJson(
+                review.getQuestionsJson(),
+                new TypeReference<List<ReviewQuestion>>() {}
+        );
+
+        if (questionIndex >= questions.size()) {
+            throw new IllegalArgumentException(
+                    "Interview question not found"
+            );
+        }
+
+        List<String> statuses = new ArrayList<>(readJson(
+                review.getAnswerStatusesJson(),
+                new TypeReference<List<String>>() {}
         ));
+        while (statuses.size() < questions.size()) {
+            statuses.add("Not started");
+        }
+        statuses.set(questionIndex, status);
+        review.setAnswerStatusesJson(writeJson(statuses));
+
+        return toResponse(resumeReviewRepository.save(review));
+    }
+
+    public ResumeReviewResponse updateSuggestionStatus(
+            Long reviewId,
+            int suggestionIndex,
+            String status,
+            Long userId
+    ) {
+        ResumeReview review = findOwnedReview(reviewId, userId);
+        List<String> suggestions = readJson(
+                review.getSuggestionsJson(),
+                new TypeReference<List<String>>() {}
+        );
+
+        if (suggestionIndex >= suggestions.size()) {
+            throw new IllegalArgumentException(
+                    "Resume suggestion not found"
+            );
+        }
+
+        List<String> statuses = new ArrayList<>(readJson(
+                review.getSuggestionStatusesJson(),
+                new TypeReference<List<String>>() {}
+        ));
+        while (statuses.size() < suggestions.size()) {
+            statuses.add("To do");
+        }
+        statuses.set(suggestionIndex, status);
+        review.setSuggestionStatusesJson(writeJson(statuses));
+
         return toResponse(resumeReviewRepository.save(review));
     }
 
@@ -151,6 +243,7 @@ public class ResumeReviewService {
                         review.getSuggestionsJson(),
                         new TypeReference<List<String>>() {}
                 ),
+                normalizedSuggestionStatuses(review),
                 readJson(
                         review.getQuestionsJson(),
                         new TypeReference<List<ReviewQuestion>>() {}
@@ -159,9 +252,39 @@ public class ResumeReviewService {
                         review.getAnswersJson(),
                         new TypeReference<List<String>>() {}
                 ),
+                readJson(
+                        review.getAnswerStatusesJson(),
+                        new TypeReference<List<String>>() {}
+                ),
                 review.getHelpful(),
+                review.getFeedbackComment(),
+                review.getWorkflowIntent(),
                 review.getCreatedAt()
         );
+    }
+
+    private List<String> normalizedSuggestionStatuses(
+            ResumeReview review
+    ) {
+        List<String> suggestions = readJson(
+                review.getSuggestionsJson(),
+                new TypeReference<List<String>>() {}
+        );
+        List<String> savedStatuses = readJson(
+                review.getSuggestionStatusesJson(),
+                new TypeReference<List<String>>() {}
+        );
+        List<String> statuses = new ArrayList<>();
+
+        for (int index = 0; index < suggestions.size(); index++) {
+            statuses.add(
+                    index < savedStatuses.size()
+                            ? savedStatuses.get(index)
+                            : "To do"
+            );
+        }
+
+        return statuses;
     }
 
     private String writeJson(Object value) {

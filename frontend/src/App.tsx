@@ -9,6 +9,8 @@ import ResumeReviewPage from "./routes/ResumeReviewPage";
 import SavedReviewPage from "./routes/SavedReviewPage";
 import CandidateProfilePage from "./routes/CandidateProfilePage";
 import LearningPlanPage from "./routes/LearningPlanPage";
+import AccountPage from "./routes/AccountPage";
+import NotFoundPage from "./routes/NotFoundPage";
 import LoginPage from "./routes/LoginPage";
 import RegisterPage from "./routes/RegisterPage";
 import EditApplicationPage from "./routes/EditApplicationPage";
@@ -24,6 +26,7 @@ export default function App() {
   const [authSession, setAuthSession] = useState<AuthSession | null>(
     loadAuthSession,
   );
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   function handleLogin(session: AuthSession) {
     saveAuthSession(session);
@@ -33,21 +36,65 @@ export default function App() {
   function handleLogout() {
     clearAuthSession();
     setAuthSession(null);
+    setIsMenuOpen(false);
   }
 
   return (
     <div className="app-shell">
       <header className="top-bar">
         <Link to="/" className="brand">KiwiHire Coach</Link>
-        <nav>
+        <button
+          className="nav-toggle"
+          type="button"
+          aria-expanded={isMenuOpen}
+          aria-controls="primary-navigation"
+          onClick={() => setIsMenuOpen((current) => !current)}
+        >
+          {isMenuOpen ? "Close" : "Menu"}
+        </button>
+        <nav
+          id="primary-navigation"
+          className={isMenuOpen ? "nav-open" : ""}
+        >
           {authSession ? (
             <>
-              <Link to="/applications">Applications</Link>
-              <Link to="/resumes">Resumes</Link>
-              <Link to="/review">Review Resume</Link>
-              <Link to="/profile">Profile</Link>
-              <Link to="/learning">Learning</Link>
-              <span className="nav-user">{authSession.email}</span>
+              <Link
+                to="/applications"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Applications
+              </Link>
+              <Link
+                to="/resumes"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Resumes
+              </Link>
+              <Link
+                to="/review"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Review Resume
+              </Link>
+              <Link
+                to="/profile"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Profile
+              </Link>
+              <Link
+                to="/learning"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Learning
+              </Link>
+              <Link
+                to="/account"
+                className="nav-user"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {authSession.email}
+              </Link>
               <button
                 className="nav-button"
                 type="button"
@@ -58,8 +105,18 @@ export default function App() {
             </>
           ) : (
             <>
-              <Link to="/login">Login</Link>
-              <Link to="/register">Register</Link>
+              <Link
+                to="/login"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Login
+              </Link>
+              <Link
+                to="/register"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Register
+              </Link>
             </>
           )}
         </nav>
@@ -95,10 +152,17 @@ export default function App() {
             <Route path="/profile" element={<CandidateProfilePage />} />
             <Route path="/learning" element={<LearningPlanPage />} />
             <Route
+              path="/account"
+              element={
+                <AccountPage onAccountDeleted={handleLogout} />
+              }
+            />
+            <Route
               path="/applications/:id/edit"
               element={<EditApplicationPage />}
             />
           </Route>
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
     </div>

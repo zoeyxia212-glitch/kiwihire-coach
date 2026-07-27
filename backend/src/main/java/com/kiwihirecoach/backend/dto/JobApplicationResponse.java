@@ -19,6 +19,8 @@ public class JobApplicationResponse {
     private String workRightsRequirement;
     private String salaryRange;
     private String contactPerson;
+    private String jobUrl;
+    private boolean archived;
 
     public JobApplicationResponse(
             Long id,
@@ -35,7 +37,9 @@ public class JobApplicationResponse {
             String workMode,
             String workRightsRequirement,
             String salaryRange,
-            String contactPerson
+            String contactPerson,
+            String jobUrl,
+            boolean archived
     ) {
         this.id = id;
         this.company = company;
@@ -52,6 +56,8 @@ public class JobApplicationResponse {
         this.workRightsRequirement = workRightsRequirement;
         this.salaryRange = salaryRange;
         this.contactPerson = contactPerson;
+        this.jobUrl = jobUrl;
+        this.archived = archived;
     }
 
     public Long getId() {
@@ -112,5 +118,13 @@ public class JobApplicationResponse {
 
     public String getContactPerson() {
         return contactPerson;
+    }
+
+    public String getJobUrl() {
+        return jobUrl;
+    }
+
+    public boolean isArchived() {
+        return archived;
     }
 }

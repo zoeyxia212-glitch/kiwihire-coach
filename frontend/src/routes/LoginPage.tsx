@@ -6,6 +6,7 @@ import {
 } from "react-router";
 import type { LoginResponse } from "../utils/api";
 import { loginUser } from "../utils/api";
+import { consumeAuthMessage } from "../utils/auth";
 
 type LoginPageProps = {
   onLogin: (session: LoginResponse) => void;
@@ -22,6 +23,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [sessionMessage] = useState(consumeAuthMessage);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -54,9 +56,9 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       </div>
       <form className="panel" onSubmit={handleSubmit}>
         <div className="panel-inner form-grid">
-          {locationState?.message && (
+          {(sessionMessage || locationState?.message) && (
             <p className="info-message" role="status">
-              {locationState.message}
+              {sessionMessage || locationState?.message}
             </p>
           )}
           <div className="field">

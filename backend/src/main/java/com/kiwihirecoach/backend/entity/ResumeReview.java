@@ -41,12 +41,24 @@ public class ResumeReview {
     private String suggestionsJson;
 
     @Column(columnDefinition = "TEXT")
+    private String suggestionStatusesJson;
+
+    @Column(columnDefinition = "TEXT")
     private String questionsJson;
 
     @Column(columnDefinition = "TEXT")
     private String answersJson;
 
+    @Column(columnDefinition = "TEXT")
+    private String answerStatusesJson;
+
     private Boolean helpful;
+
+    @Column(length = 2000)
+    private String feedbackComment;
+
+    private String workflowIntent;
+
     private LocalDateTime createdAt;
 
     public ResumeReview() {
@@ -71,8 +83,10 @@ public class ResumeReview {
         this.transferableJson = transferableJson;
         this.missingJson = missingJson;
         this.suggestionsJson = suggestionsJson;
+        this.suggestionStatusesJson = "[]";
         this.questionsJson = questionsJson;
         this.answersJson = "[]";
+        this.answerStatusesJson = "[]";
         this.createdAt = LocalDateTime.now();
     }
 
@@ -108,6 +122,14 @@ public class ResumeReview {
         return suggestionsJson;
     }
 
+    public String getSuggestionStatusesJson() {
+        return suggestionStatusesJson;
+    }
+
+    public void setSuggestionStatusesJson(String suggestionStatusesJson) {
+        this.suggestionStatusesJson = suggestionStatusesJson;
+    }
+
     public String getQuestionsJson() {
         return questionsJson;
     }
@@ -120,12 +142,36 @@ public class ResumeReview {
         this.answersJson = answersJson;
     }
 
+    public String getAnswerStatusesJson() {
+        return answerStatusesJson;
+    }
+
+    public void setAnswerStatusesJson(String answerStatusesJson) {
+        this.answerStatusesJson = answerStatusesJson;
+    }
+
     public Boolean getHelpful() {
         return helpful;
     }
 
     public void setHelpful(Boolean helpful) {
         this.helpful = helpful;
+    }
+
+    public String getFeedbackComment() {
+        return feedbackComment;
+    }
+
+    public void setFeedbackComment(String feedbackComment) {
+        this.feedbackComment = feedbackComment;
+    }
+
+    public String getWorkflowIntent() {
+        return workflowIntent;
+    }
+
+    public void setWorkflowIntent(String workflowIntent) {
+        this.workflowIntent = workflowIntent;
     }
 
     public LocalDateTime getCreatedAt() {

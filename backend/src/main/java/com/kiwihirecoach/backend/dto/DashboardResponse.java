@@ -8,6 +8,8 @@ public record DashboardResponse(
         long dueToday,
         long overdue,
         List<DashboardFollowUpResponse> followUps,
+        List<DashboardReminderResponse> upcomingReminders,
+        List<DashboardInactiveApplicationResponse> inactiveApplications,
         List<DashboardApplicationResponse> recentApplications
 ) {
 }

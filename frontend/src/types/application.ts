@@ -26,4 +26,6 @@ export type Application = {
   workRightsRequirement: string | null;
   salaryRange: string | null;
   contactPerson: string | null;
+  jobUrl: string | null;
+  archived: boolean;
 };

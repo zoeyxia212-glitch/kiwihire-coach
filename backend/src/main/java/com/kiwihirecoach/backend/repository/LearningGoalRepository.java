@@ -13,5 +13,10 @@ public interface LearningGoalRepository
 
     Optional<LearningGoal> findByIdAndUserId(Long id, Long userId);
 
-    boolean existsByUserIdAndSkillIgnoreCase(Long userId, String skill);
+    Optional<LearningGoal> findByUserIdAndSkillIgnoreCase(
+            Long userId,
+            String skill
+    );
+
+    void deleteByUserId(Long userId);
 }

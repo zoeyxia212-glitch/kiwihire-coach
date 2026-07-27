@@ -1,4 +1,5 @@
 const AUTH_SESSION_KEY = "kiwihire-auth-session";
+const AUTH_MESSAGE_KEY = "kiwihire-auth-message";
 
 export type AuthSession = {
   userId: number;
@@ -34,4 +35,14 @@ export function clearAuthSession() {
 
 export function getAuthToken(): string | null {
   return loadAuthSession()?.token ?? null;
+}
+
+export function saveAuthMessage(message: string) {
+  sessionStorage.setItem(AUTH_MESSAGE_KEY, message);
+}
+
+export function consumeAuthMessage(): string {
+  const message = sessionStorage.getItem(AUTH_MESSAGE_KEY) ?? "";
+  sessionStorage.removeItem(AUTH_MESSAGE_KEY);
+  return message;
 }

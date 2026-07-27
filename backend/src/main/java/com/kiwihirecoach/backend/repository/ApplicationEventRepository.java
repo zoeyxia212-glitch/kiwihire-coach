@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDateTime;
 
 public interface ApplicationEventRepository
         extends JpaRepository<ApplicationEvent, Long> {
@@ -18,10 +19,23 @@ public interface ApplicationEventRepository
             Long userId
     );
 
+    Optional<ApplicationEvent> findTopByApplicationIdOrderByOccurredAtDesc(
+            Long applicationId
+    );
+
     List<ApplicationEvent>
     findByApplicationUserIdAndCompletedFalseAndFollowUpDueDateIsNotNullOrderByFollowUpDueDateAsc(
             Long userId
     );
 
     void deleteByApplicationId(Long applicationId);
+
+    void deleteByApplicationUserId(Long userId);
+
+    List<ApplicationEvent>
+    findByApplicationUserIdAndOccurredAtBetweenOrderByOccurredAtAsc(
+            Long userId,
+            LocalDateTime start,
+            LocalDateTime end
+    );
 }

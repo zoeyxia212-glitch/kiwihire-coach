@@ -19,11 +19,25 @@ import type {
 } from "../types/resume";
 import type {
   CreateResumeReviewRequest,
+  InterviewAnswerStatus,
   ResumeReview,
+  SuggestionStatus,
+  WorkflowIntent,
 } from "../types/resumeReview";
-import { clearAuthSession, getAuthToken } from "./auth";
+import {
+  clearAuthSession,
+  getAuthToken,
+  saveAuthMessage,
+} from "./auth";
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+export class ResourceNotFoundError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ResourceNotFoundError";
+  }
+}
 
 export type CreateApplicationRequest = {
   company: string;
@@ -37,6 +51,7 @@ export type CreateApplicationRequest = {
   workRightsRequirement: string;
   salaryRange: string;
   contactPerson: string;
+  jobUrl: string;
 };
 
 export type UpdateApplicationRequest = CreateApplicationRequest;
@@ -50,6 +65,11 @@ export type UserResponse = {
   id: number;
   email: string;
   createdAt: string;
+};
+
+export type ChangePasswordRequest = {
+  currentPassword: string;
+  newPassword: string;
 };
 
 export type LoginRequest = {
@@ -81,6 +101,9 @@ async function authenticatedFetch(
 
   if (response.status === 401) {
     clearAuthSession();
+    saveAuthMessage(
+      "Your login session expired. Log in again to continue.",
+    );
     window.location.assign("/login");
   }
 
@@ -115,6 +138,61 @@ export async function registerUser(
   }
 
   return response.json();
+}
+
+export async function getAccount(): Promise<UserResponse> {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/account`,
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to load account.");
+  }
+
+  return response.json();
+}
+
+export async function changePassword(
+  request: ChangePasswordRequest,
+): Promise<void> {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/account/password`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      (await response.text()) || "Failed to change password.",
+    );
+  }
+}
+
+export async function deleteAccount(
+  currentPassword: string,
+  confirmation: string,
+): Promise<void> {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/account`,
+    {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ currentPassword, confirmation }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      (await response.text()) || "Failed to delete account.",
+    );
+  }
 }
 
 export async function loginUser(
@@ -152,6 +230,9 @@ export async function getApplicationById(
   );
 
   if (!response.ok) {
+    if (response.status === 404) {
+      throw new ResourceNotFoundError("Application not found.");
+    }
     throw new Error("Failed to load application.");
   }
 
@@ -208,6 +289,28 @@ export async function updateApplication(
 
   if (!response.ok) {
     throw new Error("Failed to update application.");
+  }
+
+  return response.json();
+}
+
+export async function updateApplicationArchived(
+  id: number,
+  archived: boolean,
+): Promise<Application> {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/applications/${id}/archive`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(archived),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to update application archive.");
   }
 
   return response.json();
@@ -485,6 +588,9 @@ export async function getResumeReviewById(
   );
 
   if (!response.ok) {
+    if (response.status === 404) {
+      throw new ResourceNotFoundError("Review not found.");
+    }
     throw new Error("Failed to load saved review.");
   }
 
@@ -509,6 +615,8 @@ export async function deleteResumeReview(
 export async function updateResumeReviewFeedback(
   reviewId: number,
   helpful: boolean,
+  comment: string,
+  workflowIntent: WorkflowIntent,
 ): Promise<ResumeReview> {
   const response = await authenticatedFetch(
     `${API_BASE_URL}/api/reviews/${reviewId}/feedback`,
@@ -517,7 +625,7 @@ export async function updateResumeReviewFeedback(
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ helpful }),
+      body: JSON.stringify({ helpful, comment, workflowIntent }),
     },
   );
 
@@ -545,6 +653,52 @@ export async function updateResumeReviewAnswers(
 
   if (!response.ok) {
     throw new Error("Failed to save practice answers.");
+  }
+
+  return response.json();
+}
+
+export async function updateResumeReviewAnswerStatus(
+  reviewId: number,
+  questionIndex: number,
+  status: InterviewAnswerStatus,
+): Promise<ResumeReview> {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/reviews/${reviewId}/answers/status`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ questionIndex, status }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to update answer status.");
+  }
+
+  return response.json();
+}
+
+export async function updateResumeReviewSuggestionStatus(
+  reviewId: number,
+  suggestionIndex: number,
+  status: SuggestionStatus,
+): Promise<ResumeReview> {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/reviews/${reviewId}/suggestions/status`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ suggestionIndex, status }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to update suggestion status.");
   }
 
   return response.json();

@@ -8,6 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -67,6 +68,19 @@ public class JobApplicationController {
         return jobApplicationService.updateApplication(
                 id,
                 request,
+                currentUserId(authentication)
+        );
+    }
+
+    @PatchMapping("/{id}/archive")
+    public JobApplicationResponse updateArchived(
+            @PathVariable Long id,
+            @RequestBody boolean archived,
+            Authentication authentication
+    ) {
+        return jobApplicationService.updateArchived(
+                id,
+                archived,
                 currentUserId(authentication)
         );
     }

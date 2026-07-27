@@ -15,9 +15,13 @@ public record ResumeReviewResponse(
         List<ReviewAnalysisItem> transferable,
         List<ReviewAnalysisItem> missing,
         List<String> suggestions,
+        List<String> suggestionStatuses,
         List<ReviewQuestion> questions,
         List<String> answers,
+        List<String> answerStatuses,
         Boolean helpful,
+        String feedbackComment,
+        String workflowIntent,
         LocalDateTime createdAt
 ) {
 }

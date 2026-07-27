@@ -27,6 +27,8 @@ public class JobApplication {
     private String workRightsRequirement;
     private String salaryRange;
     private String contactPerson;
+    private String jobUrl;
+    private boolean archived;
 
     private String jobDescription;
 
@@ -48,6 +50,7 @@ public class JobApplication {
             String workRightsRequirement,
             String salaryRange,
             String contactPerson,
+            String jobUrl,
             User user
     ) {
         this.company = company;
@@ -60,6 +63,7 @@ public class JobApplication {
         this.workRightsRequirement = workRightsRequirement;
         this.salaryRange = salaryRange;
         this.contactPerson = contactPerson;
+        this.jobUrl = jobUrl;
         this.user = user;
         this.createdAt = LocalDateTime.now();
         this.closingDate = closingDate;
@@ -109,6 +113,18 @@ public class JobApplication {
         return contactPerson;
     }
 
+    public String getJobUrl() {
+        return jobUrl;
+    }
+
+    public boolean isArchived() {
+        return archived;
+    }
+
+    public void setArchived(boolean archived) {
+        this.archived = archived;
+    }
+
     public User getUser() {
         return user;
     }
@@ -155,6 +171,10 @@ public class JobApplication {
 
     public void setContactPerson(String contactPerson) {
         this.contactPerson = contactPerson;
+    }
+
+    public void setJobUrl(String jobUrl) {
+        this.jobUrl = jobUrl;
     }
 
     public LocalDate getClosingDate() {

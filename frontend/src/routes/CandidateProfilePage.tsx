@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { getCandidateProfile, saveCandidateProfile } from "../utils/api";
+import { getCandidateProfileProgress } from "../utils/candidateProfileProgress";
+import type { CandidateProfile } from "../types/candidateProfile";
 
 export default function CandidateProfilePage() {
   const [targetRoles, setTargetRoles] = useState("");
@@ -58,6 +60,17 @@ export default function CandidateProfilePage() {
     return <p className="muted">Loading candidate profile...</p>;
   }
 
+  const currentProfile: CandidateProfile = {
+    id: null,
+    targetRoles,
+    workRights,
+    preferredLocations,
+    technicalSkills,
+    experienceSummary,
+    updatedAt: null,
+  };
+  const progress = getCandidateProfileProgress(currentProfile);
+
   return (
     <section className="page">
       <div className="page-header">
@@ -67,6 +80,35 @@ export default function CandidateProfilePage() {
           <p className="muted">
             Save the background that should be considered across every
             role, resume review, and interview preparation session.
+          </p>
+        </div>
+      </div>
+
+      <div className="panel profile-progress">
+        <div className="panel-inner">
+          <div className="progress-heading">
+            <div>
+              <p className="eyebrow">Profile completeness</p>
+              <h2>{progress.percentage}% complete</h2>
+            </div>
+            <strong>
+              {progress.completed} / {progress.total}
+            </strong>
+          </div>
+          <div
+            className="progress-track"
+            role="progressbar"
+            aria-label="Candidate Profile completion"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={progress.percentage}
+          >
+            <span style={{ width: `${progress.percentage}%` }} />
+          </div>
+          <p className="muted">
+            {progress.missing.length
+              ? `Still to add: ${progress.missing.join(", ")}.`
+              : "Your profile has enough context to support role-specific reviews."}
           </p>
         </div>
       </div>

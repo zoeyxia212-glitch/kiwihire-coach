@@ -71,6 +71,7 @@ public class JobApplicationService {
                 normalize(request.getWorkRightsRequirement()),
                 normalize(request.getSalaryRange()),
                 normalize(request.getContactPerson()),
+                normalize(request.getJobUrl()),
                 user
         );
         JobApplication savedApplication = jobApplicationRepository.save(application);
@@ -102,10 +103,25 @@ public class JobApplicationService {
         application.setContactPerson(
                 normalize(request.getContactPerson())
         );
+        application.setJobUrl(normalize(request.getJobUrl()));
 
         JobApplication savedApplication = jobApplicationRepository.save(application);
 
         return toResponse(savedApplication);
+    }
+
+    public JobApplicationResponse updateArchived(
+            Long id,
+            boolean archived,
+            Long userId
+    ) {
+        JobApplication application = jobApplicationRepository
+                .findByIdAndUserId(id, userId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Application not found"
+                ));
+        application.setArchived(archived);
+        return toResponse(jobApplicationRepository.save(application));
     }
 
     @Transactional
@@ -135,7 +151,9 @@ public class JobApplicationService {
                 application.getWorkMode(),
                 application.getWorkRightsRequirement(),
                 application.getSalaryRange(),
-                application.getContactPerson()
+                application.getContactPerson(),
+                application.getJobUrl(),
+                application.isArchived()
         );
     }
 

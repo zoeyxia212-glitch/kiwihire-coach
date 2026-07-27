@@ -24,6 +24,18 @@ export type ResumeReview = CreateResumeReviewRequest & {
   roleTitle: string;
   resumeName: string;
   helpful: boolean | null;
+  feedbackComment: string | null;
+  workflowIntent: WorkflowIntent;
+  suggestionStatuses: SuggestionStatus[];
   answers: string[];
+  answerStatuses: InterviewAnswerStatus[];
   createdAt: string;
 };
+
+export type SuggestionStatus = "To do" | "Accepted" | "Ignored";
+export type WorkflowIntent = "Yes" | "Maybe" | "No" | null;
+
+export type InterviewAnswerStatus =
+  | "Not started"
+  | "Drafted"
+  | "Ready";

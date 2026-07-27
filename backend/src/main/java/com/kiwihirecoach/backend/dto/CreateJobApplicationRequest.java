@@ -1,6 +1,8 @@
 package com.kiwihirecoach.backend.dto;
 
 import java.time.LocalDate;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 public class CreateJobApplicationRequest {
     private String company;
@@ -14,6 +16,13 @@ public class CreateJobApplicationRequest {
     private String workRightsRequirement;
     private String salaryRange;
     private String contactPerson;
+
+    @Size(max = 2000)
+    @Pattern(
+            regexp = "^$|^https?://.*$",
+            message = "Job URL must start with http:// or https://"
+    )
+    private String jobUrl;
 
     public String getCompany() {
         return company;
@@ -57,5 +66,9 @@ public class CreateJobApplicationRequest {
 
     public String getContactPerson() {
         return contactPerson;
+    }
+
+    public String getJobUrl() {
+        return jobUrl;
     }
 }

@@ -29,6 +29,10 @@ Upload or paste resume
 
 The product is not complete until this journey works with authenticated and persisted user data. The detailed product definition, MVP acceptance criteria, current gaps, and product-first delivery order are documented in [`docs/product-plan.md`](docs/product-plan.md).
 
+The first candidate research round can be run with the interview script,
+task checklist, privacy guidance, and findings template in
+[`docs/candidate-validation.md`](docs/candidate-validation.md).
+
 ## Project Goal
 
 The primary goal is to build a useful end-to-end candidate workflow. A second goal is to demonstrate skills commonly requested in New Zealand junior software developer and full-stack job descriptions:

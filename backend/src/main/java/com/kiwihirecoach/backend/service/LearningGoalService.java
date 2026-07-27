@@ -49,19 +49,13 @@ public class LearningGoalService {
                     ));
         }
 
-        if (learningGoalRepository.existsByUserIdAndSkillIgnoreCase(
-                userId,
-                request.skill().trim()
-        )) {
-            return learningGoalRepository
-                    .findByUserIdOrderByUpdatedAtDesc(userId)
-                    .stream()
-                    .filter(goal -> goal.getSkill().equalsIgnoreCase(
-                            request.skill().trim()
-                    ))
-                    .findFirst()
-                    .map(this::toResponse)
-                    .orElseThrow();
+        var existingGoal = learningGoalRepository
+                .findByUserIdAndSkillIgnoreCase(
+                        userId,
+                        request.skill().trim()
+                );
+        if (existingGoal.isPresent()) {
+            return toResponse(existingGoal.get());
         }
 
         User user = userRepository.findById(userId)

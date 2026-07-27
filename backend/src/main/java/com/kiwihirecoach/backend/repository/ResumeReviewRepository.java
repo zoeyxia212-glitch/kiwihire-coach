@@ -16,4 +16,6 @@ public interface ResumeReviewRepository
     void deleteByApplicationId(Long applicationId);
 
     void deleteByResumeId(Long resumeId);
+
+    void deleteByUserId(Long userId);
 }

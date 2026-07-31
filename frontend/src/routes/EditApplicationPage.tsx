@@ -41,6 +41,11 @@ export default function EditApplicationPage() {
           salaryRange: application.salaryRange ?? "",
           contactPerson: application.contactPerson ?? "",
           jobUrl: application.jobUrl ?? "",
+          careerLevel: application.careerLevel ?? "",
+          employmentType: application.employmentType ?? "",
+          graduateFriendly: application.graduateFriendly,
+          sponsorshipAvailable: application.sponsorshipAvailable,
+          industry: application.industry ?? "",
         });
       } catch (error) {
         if (error instanceof ResourceNotFoundError) {

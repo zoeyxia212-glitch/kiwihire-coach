@@ -15,6 +15,11 @@ export type ApplicationFormValues = {
   salaryRange: string;
   contactPerson: string;
   jobUrl: string;
+  careerLevel: string;
+  employmentType: string;
+  graduateFriendly: boolean | null;
+  sponsorshipAvailable: boolean | null;
+  industry: string;
 };
 type ApplicationFormProps = {
   initialValues?: ApplicationFormValues;
@@ -57,6 +62,21 @@ export default function ApplicationForm({
   );
   const [jobUrl, setJobUrl] = useState(
     initialValues?.jobUrl ?? "",
+  );
+  const [careerLevel, setCareerLevel] = useState(
+    initialValues?.careerLevel ?? "",
+  );
+  const [employmentType, setEmploymentType] = useState(
+    initialValues?.employmentType ?? "",
+  );
+  const [graduateFriendly, setGraduateFriendly] =
+    useState<boolean | null>(initialValues?.graduateFriendly ?? null);
+  const [sponsorshipAvailable, setSponsorshipAvailable] =
+    useState<boolean | null>(
+      initialValues?.sponsorshipAvailable ?? null,
+    );
+  const [industry, setIndustry] = useState(
+    initialValues?.industry ?? "",
   );
   const [errorMessage, setErrorMessage] = useState("");
   const [isParsingJobFile, setIsParsingJobFile] = useState(false);
@@ -139,12 +159,21 @@ export default function ApplicationForm({
       salaryRange,
       contactPerson,
       jobUrl,
+      careerLevel,
+      employmentType,
+      graduateFriendly,
+      sponsorshipAvailable,
+      industry,
     };
 
     try {
       await onSubmit(formValues);
-    } catch {
-      setErrorMessage("Failed to save application. Please try again.");
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Failed to save application. Please try again.",
+      );
     }
   }
   return (
@@ -204,6 +233,76 @@ export default function ApplicationForm({
             <option value="Hybrid">Hybrid</option>
             <option value="Remote">Remote</option>
           </select>
+        </div>
+
+        <div className="field">
+          <label>Career level</label>
+          <select
+            value={careerLevel}
+            onChange={(event) => setCareerLevel(event.target.value)}
+          >
+            <option value="">Not specified</option>
+            <option value="Graduate">Graduate</option>
+            <option value="Junior">Junior</option>
+            <option value="Intermediate">Intermediate</option>
+            <option value="Senior">Senior</option>
+            <option value="Lead">Lead</option>
+          </select>
+        </div>
+
+        <div className="field">
+          <label>Employment type</label>
+          <select
+            value={employmentType}
+            onChange={(event) => setEmploymentType(event.target.value)}
+          >
+            <option value="">Not specified</option>
+            <option value="Permanent">Permanent</option>
+            <option value="Fixed-term">Fixed-term</option>
+            <option value="Contract">Contract</option>
+            <option value="Internship">Internship</option>
+            <option value="Casual">Casual</option>
+          </select>
+        </div>
+
+        <div className="field">
+          <label>Graduate friendly</label>
+          <select
+            value={toOptionalBooleanValue(graduateFriendly)}
+            onChange={(event) =>
+              setGraduateFriendly(fromOptionalBooleanValue(event.target.value))
+            }
+          >
+            <option value="">Unknown</option>
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>
+        </div>
+
+        <div className="field">
+          <label>Visa sponsorship available</label>
+          <select
+            value={toOptionalBooleanValue(sponsorshipAvailable)}
+            onChange={(event) =>
+              setSponsorshipAvailable(
+                fromOptionalBooleanValue(event.target.value),
+              )
+            }
+          >
+            <option value="">Unknown</option>
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>
+        </div>
+
+        <div className="field">
+          <label>Industry</label>
+          <input
+            placeholder="SaaS, government, banking..."
+            value={industry}
+            maxLength={120}
+            onChange={(event) => setIndustry(event.target.value)}
+          />
         </div>
 
         <div className="field">
@@ -320,4 +419,12 @@ export default function ApplicationForm({
       </div>
     </form>
   );
+}
+
+function toOptionalBooleanValue(value: boolean | null) {
+  return value === null ? "" : String(value);
+}
+
+function fromOptionalBooleanValue(value: string) {
+  return value === "" ? null : value === "true";
 }

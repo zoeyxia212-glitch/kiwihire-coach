@@ -2,6 +2,8 @@ import type { Application } from "../types/application";
 import type {
   ApplicationEvent,
   CreateApplicationEventRequest,
+  UpdateApplicationEventRequest,
+  UpdateFollowUpRequest,
 } from "../types/applicationEvent";
 import type { Dashboard } from "../types/dashboard";
 import type {
@@ -24,6 +26,10 @@ import type {
   SuggestionStatus,
   WorkflowIntent,
 } from "../types/resumeReview";
+import type {
+  CreateProductFeedbackRequest,
+  ProductFeedback,
+} from "../types/productFeedback";
 import {
   clearAuthSession,
   getAuthToken,
@@ -52,6 +58,11 @@ export type CreateApplicationRequest = {
   salaryRange: string;
   contactPerson: string;
   jobUrl: string;
+  careerLevel?: string;
+  employmentType?: string;
+  graduateFriendly?: boolean | null;
+  sponsorshipAvailable?: boolean | null;
+  industry?: string;
 };
 
 export type UpdateApplicationRequest = CreateApplicationRequest;
@@ -82,6 +93,18 @@ export type LoginResponse = {
   email: string;
   token: string;
 };
+
+async function validationMessage(
+  response: Response,
+  fallback: string,
+): Promise<string> {
+  if (response.status !== 400) {
+    return fallback;
+  }
+
+  const message = await response.text();
+  return message || fallback;
+}
 
 async function authenticatedFetch(
   input: RequestInfo | URL,
@@ -222,6 +245,44 @@ export async function loginUser(
   return response.json();
 }
 
+export async function getProductFeedback(): Promise<ProductFeedback[]> {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/feedback`,
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to load product feedback.");
+  }
+
+  return response.json();
+}
+
+export async function createProductFeedback(
+  request: CreateProductFeedbackRequest,
+): Promise<ProductFeedback> {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/feedback`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      await validationMessage(
+        response,
+        "Failed to save product feedback.",
+      ),
+    );
+  }
+
+  return response.json();
+}
+
 export async function getApplicationById(
   id: string,
 ): Promise<Application> {
@@ -266,7 +327,12 @@ export async function createApplication(
   );
 
   if (!response.ok) {
-    throw new Error("Failed to create application.");
+    throw new Error(
+      await validationMessage(
+        response,
+        "Failed to create application.",
+      ),
+    );
   }
 
   return response.json();
@@ -288,7 +354,12 @@ export async function updateApplication(
   );
 
   if (!response.ok) {
-    throw new Error("Failed to update application.");
+    throw new Error(
+      await validationMessage(
+        response,
+        "Failed to update application.",
+      ),
+    );
   }
 
   return response.json();
@@ -383,6 +454,73 @@ export async function completeApplicationEvent(
   }
 
   return response.json();
+}
+
+export async function updateApplicationFollowUp(
+  applicationId: string,
+  eventId: number,
+  request: UpdateFollowUpRequest,
+): Promise<ApplicationEvent> {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/applications/${applicationId}/events/${eventId}/follow-up`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to update follow-up.");
+  }
+
+  return response.json();
+}
+
+export async function updateApplicationEvent(
+  applicationId: string,
+  eventId: number,
+  request: UpdateApplicationEventRequest,
+): Promise<ApplicationEvent> {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/applications/${applicationId}/events/${eventId}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      await validationMessage(
+        response,
+        "Failed to update application history.",
+      ),
+    );
+  }
+
+  return response.json();
+}
+
+export async function deleteApplicationEvent(
+  applicationId: string,
+  eventId: number,
+): Promise<void> {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/applications/${applicationId}/events/${eventId}`,
+    {
+      method: "DELETE",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to delete application update.");
+  }
 }
 
 export async function getDashboard(): Promise<Dashboard> {

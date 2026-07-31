@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-
+import com.kiwihirecoach.backend.service.JwtService;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -24,11 +24,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import org.springframework.http.MediaType;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 @SpringBootTest
@@ -46,6 +41,11 @@ class JobApplicationIntegrationTest {
     private JobApplicationRepository jobApplicationRepository;
 
     private User testUser;
+@Autowired
+private JwtService jwtService;
+
+
+private String authHeader;
 
     @BeforeEach
     void setUp() {
@@ -56,6 +56,7 @@ class JobApplicationIntegrationTest {
                         LocalDateTime.of(2026, 7, 26, 10, 0)
                 )
         );
+        authHeader = "Bearer " + jwtService.generateToken(testUser);
     }
 
     @Test
@@ -73,9 +74,11 @@ class JobApplicationIntegrationTest {
                 """.formatted(testUser.getId());
 
         mockMvc.perform(post("/api/applications")
+                        .header("Authorization", authHeader)
+
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestJson))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.company").value("Xero"))
                 .andExpect(jsonPath("$.userId")
                         .value(testUser.getId()));
@@ -102,8 +105,9 @@ class JobApplicationIntegrationTest {
                 )
         );
 
-        mockMvc.perform(get("/api/applications/{id}", application.getId()))
-                .andExpect(status().isOk())
+        mockMvc.perform(get("/api/applications/{id}", application.getId())
+                .header("Authorization", authHeader))
+        .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(application.getId()))
                 .andExpect(jsonPath("$.company").value("Datacom"))
                 .andExpect(jsonPath("$.status").value("Applied"))
@@ -129,25 +133,26 @@ class JobApplicationIntegrationTest {
                   "company": "Xero",
                   "roleTitle": "Software Developer",
                   "location": "Wellington",
-                  "status": "Interview",
+                  "status": "First Interview",
                   "jobDescription": "Updated description",
                   "closingDate": "2026-08-20"
                 }
                 """;
 
         mockMvc.perform(put("/api/applications/{id}", application.getId())
+                        .header("Authorization", authHeader)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestJson))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.roleTitle").value("Software Developer"))
-                .andExpect(jsonPath("$.status").value("Interview"));
+                .andExpect(jsonPath("$.status").value("First Interview"));
 
         JobApplication updatedApplication =
                 jobApplicationRepository.findById(application.getId()).orElseThrow();
 
         assertEquals("Software Developer", updatedApplication.getRoleTitle());
         assertEquals("Wellington", updatedApplication.getLocation());
-        assertEquals("Interview", updatedApplication.getStatus());
+        assertEquals("First Interview", updatedApplication.getStatus());
     }
 
     @Test
@@ -164,8 +169,9 @@ class JobApplicationIntegrationTest {
                 )
         );
 
-        mockMvc.perform(delete("/api/applications/{id}", application.getId()))
-                .andExpect(status().isOk());
+        mockMvc.perform(delete("/api/applications/{id}", application.getId())
+                .header("Authorization", authHeader))
+        .andExpect(status().isNoContent());
 
         boolean applicationStillExists =
                 jobApplicationRepository.existsById(application.getId());
@@ -192,17 +198,16 @@ class JobApplicationIntegrationTest {
                         "Datacom",
                         "Systems Engineer",
                         "Wellington",
-                        "Interview",
+                        "First Interview",
                         "Infrastructure role",
                         LocalDate.of(2026, 8, 30),
                         testUser
                 )
         );
+mockMvc.perform(get("/api/applications")
+                .header("Authorization", authHeader))
+        .andExpect(status().isOk())
 
-        mockMvc.perform(get(
-                        "/api/applications/user/{userId}",
-                        testUser.getId()
-                ))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[0].userId").value(testUser.getId()))
@@ -213,11 +218,11 @@ class JobApplicationIntegrationTest {
     void getMissingApplicationReturnsNotFound() throws Exception {
         long missingApplicationId = 999999L;
 
-        mockMvc.perform(get(
-                        "/api/applications/{id}",
-                        missingApplicationId
-                ))
-                .andExpect(status().isNotFound())
+       mockMvc.perform(get(
+                "/api/applications/{id}",
+                missingApplicationId
+        ).header("Authorization", authHeader))
+        .andExpect(status().isNotFound())
                 .andExpect(content().string("Application not found"));
     }
 }

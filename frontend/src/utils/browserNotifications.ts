@@ -2,6 +2,19 @@ import type { Dashboard } from "../types/dashboard";
 
 const NOTIFICATION_HISTORY_KEY =
   "kiwihire-browser-notification-history";
+const NOTIFICATION_PREFERENCE_KEY =
+  "kiwihire-browser-notifications-enabled";
+
+export function getBrowserNotificationsEnabled() {
+  return localStorage.getItem(NOTIFICATION_PREFERENCE_KEY) === "true";
+}
+
+export function setBrowserNotificationsEnabled(enabled: boolean) {
+  localStorage.setItem(
+    NOTIFICATION_PREFERENCE_KEY,
+    String(enabled),
+  );
+}
 
 export function getBrowserNotificationPermission():
   | NotificationPermission
@@ -21,16 +34,18 @@ export async function requestBrowserNotificationPermission() {
 
 export function showDashboardNotifications(dashboard: Dashboard) {
   if (
+    !getBrowserNotificationsEnabled() ||
     !("Notification" in window) ||
     Notification.permission !== "granted"
   ) {
-    return;
+    return 0;
   }
 
   const now = new Date();
   const nextDay = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-  const todayKey = now.toISOString().slice(0, 10);
+  const todayKey = localDateKey(now);
   const shownKeys = loadShownKeys();
+  let notificationCount = 0;
 
   dashboard.followUps.forEach((followUp) => {
     const key = `${todayKey}-follow-up-${followUp.eventId}`;
@@ -45,6 +60,7 @@ export function showDashboardNotifications(dashboard: Dashboard) {
       followUp.applicationId,
     );
     shownKeys.add(key);
+    notificationCount += 1;
   });
 
   dashboard.upcomingReminders.forEach((reminder) => {
@@ -61,12 +77,37 @@ export function showDashboardNotifications(dashboard: Dashboard) {
       reminder.applicationId,
     );
     shownKeys.add(key);
+    notificationCount += 1;
   });
 
   localStorage.setItem(
     NOTIFICATION_HISTORY_KEY,
     JSON.stringify([...shownKeys].slice(-100)),
   );
+
+  return notificationCount;
+}
+
+export function showTestBrowserNotification() {
+  if (
+    !("Notification" in window) ||
+    Notification.permission !== "granted"
+  ) {
+    return false;
+  }
+
+  const notification = new Notification(
+    "KiwiHire reminders are working",
+    {
+      body: "You will receive local alerts while KiwiHire Coach is open.",
+      tag: "kiwihire-notification-test",
+    },
+  );
+  notification.onclick = () => {
+    window.focus();
+    notification.close();
+  };
+  return true;
 }
 
 function showNotification(
@@ -94,4 +135,11 @@ function loadShownKeys() {
   } catch {
     return new Set<string>();
   }
+}
+
+function localDateKey(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }

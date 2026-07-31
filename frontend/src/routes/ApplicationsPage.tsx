@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import ApplicationCard from "../components/ApplicationCard";
 import type {
   Application,
@@ -16,10 +16,16 @@ type SortOption =
   | "Status";
 
 export default function ApplicationsPage() {
+  const [searchParams] = useSearchParams();
+  const requestedStatus = searchParams.get("status");
   const [applications, setApplications] = useState<Application[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] =
-    useState<StatusFilter>("All");
+    useState<StatusFilter>(
+      isApplicationStatus(requestedStatus)
+        ? requestedStatus
+        : "All",
+    );
   const [viewFilter, setViewFilter] =
     useState<ViewFilter>("Active");
   const [sortBy, setSortBy] =
@@ -55,6 +61,9 @@ export default function ApplicationsPage() {
         application.location,
         application.source,
         application.contactPerson,
+        application.careerLevel,
+        application.employmentType,
+        application.industry,
       ]
         .filter(Boolean)
         .join(" ")
@@ -90,6 +99,11 @@ export default function ApplicationsPage() {
       "Work rights requirement",
       "Salary range",
       "Contact person",
+      "Career level",
+      "Employment type",
+      "Graduate friendly",
+      "Visa sponsorship available",
+      "Industry",
       "Closing date",
       "Job URL",
       "Created at",
@@ -105,6 +119,11 @@ export default function ApplicationsPage() {
       application.workRightsRequirement,
       application.salaryRange,
       application.contactPerson,
+      application.careerLevel,
+      application.employmentType,
+      optionalBooleanCsv(application.graduateFriendly),
+      optionalBooleanCsv(application.sponsorshipAvailable),
+      application.industry,
       application.closingDate,
       application.jobUrl,
       application.createdAt,
@@ -284,6 +303,14 @@ export default function ApplicationsPage() {
   );
 }
 
+function optionalBooleanCsv(value: boolean | null) {
+  if (value === null) {
+    return "Unknown";
+  }
+
+  return value ? "Yes" : "No";
+}
+
 function isInterviewStage(status: ApplicationStatus) {
   return [
     "Recruiter Screen",
@@ -292,6 +319,23 @@ function isInterviewStage(status: ApplicationStatus) {
     "Technical Interview",
     "Reference Check",
   ].includes(status);
+}
+
+function isApplicationStatus(
+  value: string | null,
+): value is ApplicationStatus {
+  return [
+    "Saved",
+    "Applied",
+    "Recruiter Screen",
+    "First Interview",
+    "Second Interview",
+    "Technical Interview",
+    "Reference Check",
+    "Offer",
+    "Rejected",
+    "Withdrawn",
+  ].includes(value ?? "");
 }
 
 function applicationSorter(sortBy: SortOption) {

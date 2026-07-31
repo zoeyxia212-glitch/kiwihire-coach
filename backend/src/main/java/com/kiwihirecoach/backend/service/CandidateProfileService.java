@@ -32,6 +32,8 @@ public class CandidateProfileService {
                         "",
                         "",
                         "",
+                        "",
+                        "",
                         null
                 ));
     }
@@ -48,6 +50,8 @@ public class CandidateProfileService {
                         "",
                         "",
                         "",
+                        "",
+                        "",
                         ""
                 ));
 
@@ -55,8 +59,10 @@ public class CandidateProfileService {
                 normalize(request.targetRoles()),
                 normalize(request.workRights()),
                 normalize(request.preferredLocations()),
+                normalize(request.careerStage()),
                 normalize(request.technicalSkills()),
-                normalize(request.experienceSummary())
+                normalize(request.experienceSummary()),
+                normalize(request.starExamples())
         );
 
         return toResponse(candidateProfileRepository.save(profile));
@@ -81,8 +87,10 @@ public class CandidateProfileService {
                 profile.getTargetRoles(),
                 profile.getWorkRights(),
                 profile.getPreferredLocations(),
+                profile.getCareerStage(),
                 profile.getTechnicalSkills(),
                 profile.getExperienceSummary(),
+                profile.getStarExamples(),
                 profile.getUpdatedAt()
         );
     }

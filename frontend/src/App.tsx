@@ -10,11 +10,13 @@ import SavedReviewPage from "./routes/SavedReviewPage";
 import CandidateProfilePage from "./routes/CandidateProfilePage";
 import LearningPlanPage from "./routes/LearningPlanPage";
 import AccountPage from "./routes/AccountPage";
+import FeedbackPage from "./routes/FeedbackPage";
 import NotFoundPage from "./routes/NotFoundPage";
 import LoginPage from "./routes/LoginPage";
 import RegisterPage from "./routes/RegisterPage";
 import EditApplicationPage from "./routes/EditApplicationPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import BrowserReminderMonitor from "./components/BrowserReminderMonitor";
 import {
   clearAuthSession,
   loadAuthSession,
@@ -89,6 +91,12 @@ export default function App() {
                 Learning
               </Link>
               <Link
+                to="/feedback"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Feedback
+              </Link>
+              <Link
                 to="/account"
                 className="nav-user"
                 onClick={() => setIsMenuOpen(false)}
@@ -122,6 +130,8 @@ export default function App() {
         </nav>
       </header>
 
+      {authSession && <BrowserReminderMonitor />}
+
       <main>
         <Routes>
           <Route
@@ -151,6 +161,7 @@ export default function App() {
             <Route path="/reviews/:id" element={<SavedReviewPage />} />
             <Route path="/profile" element={<CandidateProfilePage />} />
             <Route path="/learning" element={<LearningPlanPage />} />
+            <Route path="/feedback" element={<FeedbackPage />} />
             <Route
               path="/account"
               element={

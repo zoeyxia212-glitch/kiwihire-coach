@@ -3,13 +3,16 @@ package com.kiwihirecoach.backend.controller;
 import com.kiwihirecoach.backend.dto.CreateJobApplicationRequest;
 import com.kiwihirecoach.backend.dto.JobApplicationResponse;
 import com.kiwihirecoach.backend.dto.UpdateJobApplicationRequest;
+import com.kiwihirecoach.backend.config.SecurityConfig;
 import com.kiwihirecoach.backend.exception.ResourceNotFoundException;
 import com.kiwihirecoach.backend.service.JobApplicationService;
+import com.kiwihirecoach.backend.service.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -18,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,7 +34,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(JobApplicationController.class)
+@Import(SecurityConfig.class)
 class JobApplicationControllerTest {
+    private static final Long TEST_USER_ID = 1L;
+    private static final String AUTHORIZATION = "Bearer test-token";
 
     @Autowired
     private MockMvc mockMvc;
@@ -38,10 +45,17 @@ class JobApplicationControllerTest {
     @MockitoBean
     private JobApplicationService jobApplicationService;
 
+    @MockitoBean
+    private JwtService jwtService;
+
     private JobApplicationResponse defaultResponse;
 
     @BeforeEach
     void setUp() {
+        when(jwtService.isValid(anyString())).thenReturn(true);
+        when(jwtService.extractUserId(anyString()))
+                .thenReturn(TEST_USER_ID);
+
         defaultResponse = new JobApplicationResponse(
                 1L,
                 "Xero",
@@ -58,10 +72,11 @@ class JobApplicationControllerTest {
 
     @Test
     void getApplicationByIdReturnsApplication() throws Exception {
-        when(jobApplicationService.getApplicationById(1L))
+        when(jobApplicationService.getApplicationById(1L, TEST_USER_ID))
                 .thenReturn(defaultResponse);
 
-        mockMvc.perform(get("/api/applications/1"))
+        mockMvc.perform(get("/api/applications/1")
+                        .header("Authorization", AUTHORIZATION))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.company").value("Xero"))
                 .andExpect(jsonPath("$.roleTitle")
@@ -70,10 +85,12 @@ class JobApplicationControllerTest {
 
     @Test
     void deleteApplicationDeletesApplication() throws Exception {
-        mockMvc.perform(delete("/api/applications/1"))
-                .andExpect(status().isOk());
+        mockMvc.perform(delete("/api/applications/1")
+                        .header("Authorization", AUTHORIZATION))
+                .andExpect(status().isNoContent());
 
-        verify(jobApplicationService).deleteApplication(1L);
+        verify(jobApplicationService)
+                .deleteApplication(1L, TEST_USER_ID);
     }
 
     @Test
@@ -81,7 +98,8 @@ class JobApplicationControllerTest {
         when(jobApplicationService.getApplicationsForUser(1L))
                 .thenReturn(List.of(defaultResponse));
 
-        mockMvc.perform(get("/api/applications/user/1"))
+        mockMvc.perform(get("/api/applications")
+                        .header("Authorization", AUTHORIZATION))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].company").value("Xero"))
                 .andExpect(jsonPath("$[0].status").value("Applied"));
@@ -90,12 +108,13 @@ class JobApplicationControllerTest {
     @Test
     void getApplicationByIdReturnsNotFoundWhenApplicationDoesNotExist()
             throws Exception {
-        when(jobApplicationService.getApplicationById(99L))
+        when(jobApplicationService.getApplicationById(99L, TEST_USER_ID))
                 .thenThrow(new ResourceNotFoundException(
                         "Application not found"
                 ));
 
-        mockMvc.perform(get("/api/applications/99"))
+        mockMvc.perform(get("/api/applications/99")
+                        .header("Authorization", AUTHORIZATION))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string("Application not found"));
     }
@@ -116,7 +135,8 @@ class JobApplicationControllerTest {
         );
 
         when(jobApplicationService.createApplication(
-                any(CreateJobApplicationRequest.class)
+                any(CreateJobApplicationRequest.class),
+                eq(TEST_USER_ID)
         )).thenReturn(response);
 
         String requestJson = """
@@ -132,9 +152,10 @@ class JobApplicationControllerTest {
                 """;
 
         mockMvc.perform(post("/api/applications")
+                        .header("Authorization", AUTHORIZATION)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestJson))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.company").value("Xero"));
     }
@@ -146,7 +167,7 @@ class JobApplicationControllerTest {
                 "Xero",
                 "Software Developer",
                 "Wellington",
-                "Interview",
+                "First Interview",
                 "Updated job description",
                 LocalDate.of(2026, 8, 10),
                 LocalDateTime.of(2026, 7, 24, 10, 0),
@@ -156,7 +177,8 @@ class JobApplicationControllerTest {
 
         when(jobApplicationService.updateApplication(
                 eq(1L),
-                any(UpdateJobApplicationRequest.class)
+                any(UpdateJobApplicationRequest.class),
+                eq(TEST_USER_ID)
         )).thenReturn(response);
 
         String requestJson = """
@@ -164,19 +186,20 @@ class JobApplicationControllerTest {
                   "company": "Xero",
                   "roleTitle": "Software Developer",
                   "location": "Wellington",
-                  "status": "Interview",
+                  "status": "First Interview",
                   "jobDescription": "Updated job description",
                   "closingDate": "2026-08-10"
                 }
                 """;
 
         mockMvc.perform(put("/api/applications/1")
+                        .header("Authorization", AUTHORIZATION)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestJson))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.roleTitle")
                         .value("Software Developer"))
                 .andExpect(jsonPath("$.location").value("Wellington"))
-                .andExpect(jsonPath("$.status").value("Interview"));
+                .andExpect(jsonPath("$.status").value("First Interview"));
     }
 }

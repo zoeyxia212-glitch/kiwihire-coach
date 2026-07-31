@@ -19,3 +19,11 @@ export type CreateApplicationEventRequest = {
   nextAction: string;
   followUpDueDate: string | null;
 };
+
+export type UpdateApplicationEventRequest =
+  CreateApplicationEventRequest;
+
+export type UpdateFollowUpRequest = {
+  completed?: boolean;
+  followUpDueDate?: string;
+};

@@ -7,6 +7,7 @@ import com.kiwihirecoach.backend.repository.ApplicationEventRepository;
 import com.kiwihirecoach.backend.repository.CandidateProfileRepository;
 import com.kiwihirecoach.backend.repository.JobApplicationRepository;
 import com.kiwihirecoach.backend.repository.LearningGoalRepository;
+import com.kiwihirecoach.backend.repository.ProductFeedbackRepository;
 import com.kiwihirecoach.backend.repository.ResumeRepository;
 import com.kiwihirecoach.backend.repository.ResumeReviewRepository;
 import com.kiwihirecoach.backend.repository.UserRepository;
@@ -22,6 +23,7 @@ public class AccountService {
     private final CandidateProfileRepository candidateProfileRepository;
     private final JobApplicationRepository jobApplicationRepository;
     private final LearningGoalRepository learningGoalRepository;
+    private final ProductFeedbackRepository productFeedbackRepository;
     private final ResumeRepository resumeRepository;
     private final ResumeReviewRepository resumeReviewRepository;
 
@@ -32,6 +34,7 @@ public class AccountService {
             CandidateProfileRepository candidateProfileRepository,
             JobApplicationRepository jobApplicationRepository,
             LearningGoalRepository learningGoalRepository,
+            ProductFeedbackRepository productFeedbackRepository,
             ResumeRepository resumeRepository,
             ResumeReviewRepository resumeReviewRepository
     ) {
@@ -41,6 +44,7 @@ public class AccountService {
         this.candidateProfileRepository = candidateProfileRepository;
         this.jobApplicationRepository = jobApplicationRepository;
         this.learningGoalRepository = learningGoalRepository;
+        this.productFeedbackRepository = productFeedbackRepository;
         this.resumeRepository = resumeRepository;
         this.resumeReviewRepository = resumeReviewRepository;
     }
@@ -82,6 +86,7 @@ public class AccountService {
 
         resumeReviewRepository.deleteByUserId(userId);
         learningGoalRepository.deleteByUserId(userId);
+        productFeedbackRepository.deleteByUserId(userId);
         candidateProfileRepository.deleteByUserId(userId);
         applicationEventRepository.deleteByApplicationUserId(userId);
         jobApplicationRepository.deleteByUserId(userId);

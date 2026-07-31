@@ -351,6 +351,8 @@ export default function ResumeReviewPage() {
               <ReviewResultDisplay
                 analysis={analysis}
                 questions={questions}
+                starExamples={candidateProfile?.starExamples}
+                jobDescription={jobDescription}
               />
             </>
           )}
@@ -525,8 +527,10 @@ function buildCandidateContext(profile: CandidateProfile | null) {
     profile.targetRoles,
     profile.workRights,
     profile.preferredLocations,
+    profile.careerStage,
     profile.technicalSkills,
     profile.experienceSummary,
+    profile.starExamples,
   ]
     .filter(Boolean)
     .join("\n");

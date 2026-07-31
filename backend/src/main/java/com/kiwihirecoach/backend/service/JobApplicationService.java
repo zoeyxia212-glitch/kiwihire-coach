@@ -72,6 +72,11 @@ public class JobApplicationService {
                 normalize(request.getSalaryRange()),
                 normalize(request.getContactPerson()),
                 normalize(request.getJobUrl()),
+                normalize(request.getCareerLevel()),
+                normalize(request.getEmploymentType()),
+                request.getGraduateFriendly(),
+                request.getSponsorshipAvailable(),
+                normalize(request.getIndustry()),
                 user
         );
         JobApplication savedApplication = jobApplicationRepository.save(application);
@@ -104,6 +109,15 @@ public class JobApplicationService {
                 normalize(request.getContactPerson())
         );
         application.setJobUrl(normalize(request.getJobUrl()));
+        application.setCareerLevel(normalize(request.getCareerLevel()));
+        application.setEmploymentType(
+                normalize(request.getEmploymentType())
+        );
+        application.setGraduateFriendly(request.getGraduateFriendly());
+        application.setSponsorshipAvailable(
+                request.getSponsorshipAvailable()
+        );
+        application.setIndustry(normalize(request.getIndustry()));
 
         JobApplication savedApplication = jobApplicationRepository.save(application);
 
@@ -153,6 +167,11 @@ public class JobApplicationService {
                 application.getSalaryRange(),
                 application.getContactPerson(),
                 application.getJobUrl(),
+                application.getCareerLevel(),
+                application.getEmploymentType(),
+                application.getGraduateFriendly(),
+                application.getSponsorshipAvailable(),
+                application.getIndustry(),
                 application.isArchived()
         );
     }

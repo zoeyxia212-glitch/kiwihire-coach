@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import ReviewResultDisplay from "../components/ReviewResultDisplay";
 import ResourceNotFoundState from "../components/ResourceNotFoundState";
+import type { CandidateProfile } from "../types/candidateProfile";
 import type {
   InterviewAnswerStatus,
   ResumeReview,
@@ -11,6 +12,8 @@ import type {
 import {
   createLearningGoal,
   deleteResumeReview,
+  getApplicationById,
+  getCandidateProfile,
   getResumeReviewById,
   updateResumeReviewAnswers,
   updateResumeReviewAnswerStatus,
@@ -23,6 +26,9 @@ export default function SavedReviewPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [review, setReview] = useState<ResumeReview | null>(null);
+  const [candidateProfile, setCandidateProfile] =
+    useState<CandidateProfile | null>(null);
+  const [jobDescription, setJobDescription] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSavingFeedback, setIsSavingFeedback] = useState(false);
@@ -48,7 +54,13 @@ export default function SavedReviewPage() {
 
       try {
         const loadedReview = await getResumeReviewById(id);
+        const [loadedProfile, loadedApplication] = await Promise.all([
+          getCandidateProfile(),
+          getApplicationById(String(loadedReview.applicationId)),
+        ]);
         setReview(loadedReview);
+        setCandidateProfile(loadedProfile);
+        setJobDescription(loadedApplication.jobDescription);
         setFeedbackComment(loadedReview.feedbackComment ?? "");
         setWorkflowIntent(loadedReview.workflowIntent);
       } catch (error) {
@@ -437,6 +449,8 @@ export default function SavedReviewPage() {
         practiceAnswers={review.answers}
         practiceStatuses={review.answerStatuses}
         suggestionStatuses={review.suggestionStatuses}
+        starExamples={candidateProfile?.starExamples}
+        jobDescription={jobDescription}
         onSavePracticeAnswer={handleSaveAnswer}
         onUpdatePracticeStatus={handleUpdateAnswerStatus}
         onUpdateSuggestionStatus={handleUpdateSuggestionStatus}

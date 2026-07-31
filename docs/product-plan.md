@@ -236,26 +236,57 @@ The prototype should be tested with 5-10 target candidates. Findings and resulti
 
 ## Current Product Status
 
-### Working
+### Implemented product workflows
 
-- Application create, read, update, and delete workflow
-- Spring Boot persistence for applications
-- Application loading and error states
-- Local job-description and resume text persistence for the review prototype
-- Keyword-based interview-question generation
+- Registration, login, logout, password hashing, JWT authentication, and
+  protected frontend routes
+- Authenticated-user ownership checks for private records
+- Application CRUD, archive/restore, New Zealand role details, search, filters,
+  sorting, and CSV export
+- Persistent application timeline with stage history, contacts, notes, next
+  actions, completion state, follow-up dates, edit, delete, and reopen
+- Dashboard data for status distribution, deadlines, follow-ups, inactivity,
+  recent applications, recent reviews, answer readiness, and learning goals
+- Candidate Profile containing reusable background context and truthful STAR
+  examples
+- Persistent resume library with create, import, edit, duplicate, delete, and
+  purpose-specific versions
+- Local PDF, DOCX, and TXT extraction for resumes and job descriptions
+- Explainable resume-to-JD analysis for matched, transferable, and missing
+  skills with supporting evidence
+- Evidence-first resume bullet builder with full-resume preview, before/after
+  comparison, undo, and save-as-new-version workflow
+- Categorised interview questions, saved STAR answer drafts, readiness status,
+  local read-aloud, timer, and private in-tab voice recording
+- Transparent Candidate Profile STAR-example recommendations
+- Persistent saved reviews, recommendation decisions, learning actions, and
+  product feedback
+- Private feedback summaries covering usefulness, willingness to reuse,
+  categories, and mentioned workflows
+- Free local browser reminders and downloadable calendar reminders
 
-### Prototype-only or incomplete
+### Implemented with deliberate limitations
 
-- Login and registration
-- User ownership and authorization
-- Candidate profile
-- Resume persistence and resume CRUD
-- Resume-to-JD matched, missing, and transferable-skill analysis
-- Saved review history
-- Real dashboard data
-- Product feedback collection
+- Resume analysis and bullet generation use explainable local rules rather than
+  paid generative-AI APIs. The product does not claim to automatically rewrite
+  a complete resume.
+- Voice practice records and plays audio locally in the current browser tab. It
+  does not upload, transcribe, or score speech.
+- Browser notifications run only while KiwiHire Coach is open. Calendar export
+  is available, but there is no email, SMS, or third-party background push.
+- File import extracts text. Scanned PDFs that contain only images still require
+  OCR outside the current workflow.
 
-Automated testing, typed API access, and infrastructure work support product quality, but they are not substitutes for completing these user workflows.
+### Still requires evidence before being called complete
+
+- Run the full acceptance checklist below
+- Repair any regression found during the test pass
+- Test the workflow with 5-10 target candidates
+- Document candidate findings and resulting product decisions
+- Update screenshots and record a short end-to-end demonstration
+
+Automated testing, typed API access, and infrastructure work support product
+quality, but they are not substitutes for verifying the complete user journey.
 
 ## Product-First Delivery Order
 
@@ -276,6 +307,10 @@ Automated testing, typed API access, and infrastructure work support product qua
 
 Infrastructure work may proceed in small supporting increments, but it must not displace the incomplete core user journey.
 
+Items 1-12 now have implementations in the repository. They remain subject to
+the unified acceptance pass rather than being treated as verified solely
+because code exists.
+
 ## Out of Scope Until the MVP Works
 
 - Automatic AI resume rewriting
@@ -287,6 +322,57 @@ Infrastructure work may proceed in small supporting increments, but it must not 
 - Multi-cloud deployment
 
 These features should be considered only after the core workflow is usable and candidate validation shows a real need.
+
+## Unified Product Acceptance Checklist
+
+The checklist is intentionally unchecked until the dedicated verification
+phase. A feature is accepted only when the user-visible result and persisted
+data are both confirmed.
+
+### Account and isolation
+
+- [ ] A new user can register, log in, refresh the browser, and remain signed in
+- [ ] Invalid credentials and invalid registration data show safe messages
+- [ ] User A cannot read, edit, or delete User B's private records
+- [ ] Logout removes access to protected pages and APIs
+
+### Application workflow
+
+- [ ] Create, view, edit, archive, restore, search, filter, export, and delete an
+  application
+- [ ] Save and reload New Zealand role classification fields
+- [ ] Add, edit, complete, reopen, postpone, and delete timeline events
+- [ ] Confirm timeline changes synchronize the current application status
+- [ ] Confirm Dashboard counts, reminders, inactivity, and status links reflect
+  saved data
+
+### Resume and review workflow
+
+- [ ] Create, edit, duplicate, delete, and select multiple resume versions
+- [ ] Import readable PDF, DOCX, and TXT resume and job-description files
+- [ ] Run an explainable review and inspect matched, transferable, and missing
+  evidence
+- [ ] Save a review and reopen it from Review History, Application Detail, and
+  Dashboard
+- [ ] Accept or ignore resume actions and create learning priorities
+- [ ] Build a truthful bullet, preview insertion, undo it, and save a separate
+  resume version
+
+### Interview preparation
+
+- [ ] Save Candidate Profile context and multiple STAR examples
+- [ ] Confirm a relevant STAR example is recommended without inventing evidence
+- [ ] Draft, clear, save, and change readiness status for interview answers
+- [ ] Use read-aloud, timer, and private voice recording in a supported browser
+- [ ] Confirm recordings remain local and disappear when the page session ends
+
+### Feedback and reminders
+
+- [ ] Save workflow feedback and verify rating, reuse, category, and page
+  summaries
+- [ ] Complete and postpone a follow-up directly from Dashboard
+- [ ] Enable and disable local browser reminders
+- [ ] Export an `.ics` file and import it into a calendar application
 
 ## Portfolio and Interview Evidence
 

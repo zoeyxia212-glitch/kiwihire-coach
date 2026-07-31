@@ -8,8 +8,10 @@ export default function CandidateProfilePage() {
   const [targetRoles, setTargetRoles] = useState("");
   const [workRights, setWorkRights] = useState("");
   const [preferredLocations, setPreferredLocations] = useState("");
+  const [careerStage, setCareerStage] = useState("");
   const [technicalSkills, setTechnicalSkills] = useState("");
   const [experienceSummary, setExperienceSummary] = useState("");
+  const [starExamples, setStarExamples] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
@@ -22,8 +24,10 @@ export default function CandidateProfilePage() {
         setTargetRoles(profile.targetRoles);
         setWorkRights(profile.workRights);
         setPreferredLocations(profile.preferredLocations);
+        setCareerStage(profile.careerStage);
         setTechnicalSkills(profile.technicalSkills);
         setExperienceSummary(profile.experienceSummary);
+        setStarExamples(profile.starExamples);
       } catch {
         setError("Your candidate profile could not be loaded.");
       } finally {
@@ -45,8 +49,10 @@ export default function CandidateProfilePage() {
         targetRoles,
         workRights,
         preferredLocations,
+        careerStage,
         technicalSkills,
         experienceSummary,
+        starExamples,
       });
       setSuccess("Candidate profile saved.");
     } catch {
@@ -65,8 +71,10 @@ export default function CandidateProfilePage() {
     targetRoles,
     workRights,
     preferredLocations,
+    careerStage,
     technicalSkills,
     experienceSummary,
+    starExamples,
     updatedAt: null,
   };
   const progress = getCandidateProfileProgress(currentProfile);
@@ -147,6 +155,28 @@ export default function CandidateProfilePage() {
           </div>
 
           <div className="field">
+            <label htmlFor="career-stage">Career stage</label>
+            <select
+              id="career-stage"
+              value={careerStage}
+              onChange={(event) => setCareerStage(event.target.value)}
+            >
+              <option value="">Not specified</option>
+              <option value="Graduate">Graduate</option>
+              <option value="Junior professional">
+                Junior professional
+              </option>
+              <option value="Career changer">Career changer</option>
+              <option value="Returning to work">
+                Returning to work
+              </option>
+              <option value="Experienced professional">
+                Experienced professional
+              </option>
+            </select>
+          </div>
+
+          <div className="field">
             <label htmlFor="preferred-locations">
               Preferred locations
             </label>
@@ -188,6 +218,28 @@ export default function CandidateProfilePage() {
                 setExperienceSummary(event.target.value)
               }
             />
+          </div>
+
+          <div className="field">
+            <label htmlFor="star-examples">STAR example library</label>
+            <textarea
+              id="star-examples"
+              className="resume-textarea"
+              value={starExamples}
+              maxLength={10000}
+              placeholder={`Example: Solved an API integration problem
+Situation: Our React page could not load Spring Boot data.
+Task: I needed to find where the request failed.
+Action: I checked the browser network panel, API URL, CORS configuration, and backend logs.
+Result: I fixed the incorrect URL and restored the application flow.
+
+Add another real example after a blank line.`}
+              onChange={(event) => setStarExamples(event.target.value)}
+            />
+            <span className="field-help">
+              Use real examples only. Separate examples with a blank
+              line and include Situation, Task, Action, and Result.
+            </span>
           </div>
 
           {error && (

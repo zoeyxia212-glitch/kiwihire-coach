@@ -4,6 +4,9 @@ import com.kiwihirecoach.backend.dto.CreateJobApplicationRequest;
 import com.kiwihirecoach.backend.dto.JobApplicationResponse;
 import com.kiwihirecoach.backend.dto.UpdateJobApplicationRequest;
 import com.kiwihirecoach.backend.service.JobApplicationService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -49,20 +52,25 @@ public class JobApplicationController {
     }
 
     @PostMapping
-    public JobApplicationResponse createApplication(
-            @RequestBody CreateJobApplicationRequest request,
+    public ResponseEntity<JobApplicationResponse> createApplication(
+            @Valid @RequestBody CreateJobApplicationRequest request,
             Authentication authentication
     ) {
-        return jobApplicationService.createApplication(
-                request,
-                currentUserId(authentication)
-        );
+        JobApplicationResponse response =
+                jobApplicationService.createApplication(
+                        request,
+                        currentUserId(authentication)
+                );
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
     }
 
     @PutMapping("/{id}")
     public JobApplicationResponse updateApplication(
             @PathVariable Long id,
-            @RequestBody UpdateJobApplicationRequest request,
+            @Valid @RequestBody UpdateJobApplicationRequest request,
             Authentication authentication
     ) {
         return jobApplicationService.updateApplication(
@@ -86,7 +94,7 @@ public class JobApplicationController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteApplication(
+    public ResponseEntity<Void> deleteApplication(
             @PathVariable Long id,
             Authentication authentication
     ) {
@@ -94,6 +102,7 @@ public class JobApplicationController {
                 id,
                 currentUserId(authentication)
         );
+        return ResponseEntity.noContent().build();
     }
 
     private Long currentUserId(Authentication authentication) {

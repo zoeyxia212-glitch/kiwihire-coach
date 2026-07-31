@@ -99,4 +99,28 @@ public class ApplicationEvent {
     public void setCompleted(boolean completed) {
         this.completed = completed;
     }
+
+    public void setStage(String stage) {
+        this.stage = stage;
+    }
+
+    public void setOccurredAt(LocalDateTime occurredAt) {
+        this.occurredAt = occurredAt;
+    }
+
+    public void setContactPerson(String contactPerson) {
+        this.contactPerson = contactPerson;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
+    public void setNextAction(String nextAction) {
+        this.nextAction = nextAction;
+    }
+
+    public void setFollowUpDueDate(LocalDate followUpDueDate) {
+        this.followUpDueDate = followUpDueDate;
+    }
 }

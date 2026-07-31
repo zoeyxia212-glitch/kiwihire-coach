@@ -3,8 +3,10 @@ export type CandidateProfile = {
   targetRoles: string;
   workRights: string;
   preferredLocations: string;
+  careerStage: string;
   technicalSkills: string;
   experienceSummary: string;
+  starExamples: string;
   updatedAt: string | null;
 };
 

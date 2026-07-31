@@ -226,7 +226,7 @@ describe("updateApplication", () => {
       company: "Xero",
       roleTitle: "Software Developer",
       location: "Wellington",
-      status: "Interview" as const,
+      status: "First Interview" as const,
       jobDescription: "Updated job description",
       closingDate: "2026-08-10",
     };
@@ -271,7 +271,7 @@ describe("updateApplication", () => {
         company: "Xero",
         roleTitle: "Software Developer",
         location: "Wellington",
-        status: "Interview",
+        status: "First Interview",
         jobDescription: "Updated job description",
         closingDate: "2026-08-10",
       }),

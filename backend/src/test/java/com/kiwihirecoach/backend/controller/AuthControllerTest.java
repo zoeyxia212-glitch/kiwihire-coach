@@ -1,5 +1,5 @@
 package com.kiwihirecoach.backend.controller;
-
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import com.kiwihirecoach.backend.dto.RegisterRequest;
 import com.kiwihirecoach.backend.dto.UserResponse;
 import com.kiwihirecoach.backend.exception.DuplicateEmailException;
@@ -12,23 +12,25 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
-
+import com.kiwihirecoach.backend.service.JwtService;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 @WebMvcTest(AuthController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class AuthControllerTest {
+
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockitoBean
     private UserService userService;
-
+@MockitoBean
+private JwtService jwtService;
     @Test
     void registerReturnsCreatedUser() throws Exception {
         UserResponse response = new UserResponse(

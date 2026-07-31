@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type {
   ResumeAnalysis,
   ResumeAnalysisItem,
@@ -8,6 +8,49 @@ import type {
   SavedReviewQuestion,
   SuggestionStatus,
 } from "../types/resumeReview";
+import ResumeBulletOptimizer from "./ResumeBulletOptimizer";
+
+type InterviewQuestionCategory =
+  | "Behavioural"
+  | "Situational"
+  | "Technical";
+
+type QuestionCategoryFilter =
+  | "All categories"
+  | InterviewQuestionCategory;
+
+type QuestionStatusFilter =
+  | "All statuses"
+  | InterviewAnswerStatus;
+
+function questionCategory(
+  question: SavedReviewQuestion,
+): InterviewQuestionCategory {
+  const text = question.question.toLowerCase();
+
+  if (
+    text.includes("what would you") ||
+    text.includes("how would you") ||
+    text.includes("imagine") ||
+    text.includes("suppose") ||
+    text.includes("if you were")
+  ) {
+    return "Situational";
+  }
+
+  if (
+    text.includes("tell me about a time") ||
+    text.includes("describe a time") ||
+    text.includes("give an example") ||
+    text.includes("conflict") ||
+    text.includes("feedback") ||
+    text.includes("worked in a team")
+  ) {
+    return "Behavioural";
+  }
+
+  return "Technical";
+}
 
 type ReviewResultDisplayProps = {
   analysis: ResumeAnalysis;
@@ -16,6 +59,8 @@ type ReviewResultDisplayProps = {
   practiceAnswers?: string[];
   practiceStatuses?: InterviewAnswerStatus[];
   suggestionStatuses?: SuggestionStatus[];
+  starExamples?: string;
+  jobDescription?: string;
   onSavePracticeAnswer?: (
     questionIndex: number,
     answer: string,
@@ -37,10 +82,39 @@ export default function ReviewResultDisplay({
   practiceAnswers = [],
   practiceStatuses = [],
   suggestionStatuses = [],
+  starExamples = "",
+  jobDescription = "",
   onSavePracticeAnswer,
   onUpdatePracticeStatus,
   onUpdateSuggestionStatus,
 }: ReviewResultDisplayProps) {
+  const [categoryFilter, setCategoryFilter] =
+    useState<QuestionCategoryFilter>("All categories");
+  const [statusFilter, setStatusFilter] =
+    useState<QuestionStatusFilter>("All statuses");
+  const indexedQuestions = questions.map((question, index) => ({
+    question,
+    index,
+    category: questionCategory(question),
+    status: practiceStatuses[index] ?? "Not started",
+  }));
+  const visibleQuestions = indexedQuestions.filter((item) => {
+    const categoryMatches =
+      categoryFilter === "All categories" ||
+      item.category === categoryFilter;
+    const statusMatches =
+      statusFilter === "All statuses" ||
+      item.status === statusFilter;
+
+    return categoryMatches && statusMatches;
+  });
+  const readyCount = indexedQuestions.filter(
+    (item) => item.status === "Ready",
+  ).length;
+  const draftedCount = indexedQuestions.filter(
+    (item) => item.status === "Drafted",
+  ).length;
+
   return (
     <div className="review-results">
       <div className="panel">
@@ -78,6 +152,11 @@ export default function ReviewResultDisplay({
           tone="missing"
         />
       </div>
+
+      <ResumeBulletOptimizer
+        analysis={analysis}
+        jobDescription={jobDescription}
+      />
 
       <div className="panel">
         <div className="panel-inner">
@@ -118,16 +197,92 @@ export default function ReviewResultDisplay({
       <div className="panel">
         <div className="panel-inner">
           <h2>Likely interview questions</h2>
-          <div className="list">
-            {questions.map((question, index) => (
-              <InterviewQuestionCard
-                key={`${practiceKey ?? "preview"}-${question.question}-${index}`}
-                question={question}
-                index={index}
-                initialAnswer={practiceAnswers[index] ?? ""}
-                status={
-                  practiceStatuses[index] ?? "Not started"
+          <p className="muted">
+            Questions are grouped using transparent wording rules so
+            you can practise different interview styles.
+          </p>
+
+          {onSavePracticeAnswer && questions.length > 0 && (
+            <div className="interview-progress">
+              <div>
+                <strong>
+                  {readyCount} of {questions.length} answers ready
+                </strong>
+                <p className="muted">
+                  {draftedCount} drafted ·{" "}
+                  {questions.length - readyCount - draftedCount} not
+                  started
+                </p>
+              </div>
+              <progress
+                aria-label="Interview preparation progress"
+                value={readyCount}
+                max={questions.length}
+              />
+            </div>
+          )}
+
+          <div className="grid two no-print">
+            <div className="field">
+              <label htmlFor="question-category-filter">
+                Question category
+              </label>
+              <select
+                id="question-category-filter"
+                value={categoryFilter}
+                onChange={(event) =>
+                  setCategoryFilter(
+                    event.target.value as QuestionCategoryFilter,
+                  )
                 }
+              >
+                <option>All categories</option>
+                <option>Behavioural</option>
+                <option>Situational</option>
+                <option>Technical</option>
+              </select>
+            </div>
+            {onSavePracticeAnswer && (
+              <div className="field">
+                <label htmlFor="question-status-filter">
+                  Preparation status
+                </label>
+                <select
+                  id="question-status-filter"
+                  value={statusFilter}
+                  onChange={(event) =>
+                    setStatusFilter(
+                      event.target.value as QuestionStatusFilter,
+                    )
+                  }
+                >
+                  <option>All statuses</option>
+                  <option>Not started</option>
+                  <option>Drafted</option>
+                  <option>Ready</option>
+                </select>
+              </div>
+            )}
+          </div>
+
+          {visibleQuestions.length === 0 && (
+            <p className="muted">
+              No interview questions match these filters.
+            </p>
+          )}
+          <div className="list">
+            {visibleQuestions.map((item) => (
+              <InterviewQuestionCard
+                key={`${practiceKey ?? "preview"}-${item.question.question}-${item.index}`}
+                question={item.question}
+                category={item.category}
+                index={item.index}
+                initialAnswer={practiceAnswers[item.index] ?? ""}
+                status={item.status}
+                recommendedExample={recommendStarExample(
+                  item.question,
+                  starExamples,
+                )}
                 onSaveAnswer={onSavePracticeAnswer}
                 onUpdateStatus={onUpdatePracticeStatus}
               />
@@ -141,16 +296,20 @@ export default function ReviewResultDisplay({
 
 function InterviewQuestionCard({
   question,
+  category,
   index,
   initialAnswer,
   status,
+  recommendedExample,
   onSaveAnswer,
   onUpdateStatus,
 }: {
   question: SavedReviewQuestion;
+  category: InterviewQuestionCategory;
   index: number;
   initialAnswer: string;
   status: InterviewAnswerStatus;
+  recommendedExample: StarExampleRecommendation | null;
   onSaveAnswer?: (
     questionIndex: number,
     answer: string,
@@ -275,6 +434,30 @@ function InterviewQuestionCard({
         <p>{question.reason}</p>
         <p>{question.answerGuide}</p>
 
+        {recommendedExample && (
+          <div className="star-recommendation">
+            <p className="eyebrow">Recommended real example</p>
+            <strong>{recommendedExample.title}</strong>
+            <p>{recommendedExample.text}</p>
+            <p className="muted">
+              Matched using shared words with this question
+              {recommendedExample.matchedKeywords.length
+                ? `: ${recommendedExample.matchedKeywords.join(", ")}.`
+                : "."}
+            </p>
+            {recommendedExample.missingSections.length > 0 ? (
+              <p className="info-message">
+                Add before practising:{" "}
+                {recommendedExample.missingSections.join(", ")}.
+              </p>
+            ) : (
+              <p className="success-message">
+                This example contains all four STAR sections.
+              </p>
+            )}
+          </div>
+        )}
+
         <div className="mock-interview-tools no-print">
           <button
             className="button compact"
@@ -315,6 +498,8 @@ function InterviewQuestionCard({
             </span>
           )}
         </div>
+
+        <VoiceAnswerRecorder />
 
         {onSaveAnswer && (
           <div className="interview-practice no-print">
@@ -411,10 +596,230 @@ function InterviewQuestionCard({
         )}
       </div>
       <div className="question-statuses">
+        <span className="status">{category}</span>
         <span className="status">{question.relatedSkill}</span>
         {onSaveAnswer && <span className="status">{status}</span>}
       </div>
     </article>
+  );
+}
+
+type StarExampleRecommendation = {
+  title: string;
+  text: string;
+  matchedKeywords: string[];
+  missingSections: string[];
+};
+
+function recommendStarExample(
+  question: SavedReviewQuestion,
+  starExamples: string,
+): StarExampleRecommendation | null {
+  const examples = starExamples
+    .split(/\n\s*\n/)
+    .map((example) => example.trim())
+    .filter(Boolean);
+
+  if (examples.length === 0) {
+    return null;
+  }
+
+  const questionKeywords = keywords(
+    `${question.question} ${question.relatedSkill}`,
+  );
+  const rankedExamples = examples
+    .map((example) => {
+      const exampleKeywords = keywords(example);
+      const matchedKeywords = [...questionKeywords].filter((keyword) =>
+        exampleKeywords.has(keyword),
+      );
+
+      return {
+        example,
+        matchedKeywords,
+        score: matchedKeywords.length,
+      };
+    })
+    .sort((first, second) => second.score - first.score);
+  const bestMatch = rankedExamples[0];
+  const requiredSections = ["Situation", "Task", "Action", "Result"];
+  const missingSections = requiredSections.filter(
+    (section) =>
+      !new RegExp(`\\b${section}\\s*:`, "i").test(bestMatch.example),
+  );
+  const firstLine = bestMatch.example.split("\n")[0].trim();
+
+  return {
+    title:
+      firstLine.length <= 100
+        ? firstLine
+        : `${firstLine.slice(0, 97)}...`,
+    text: bestMatch.example,
+    matchedKeywords: bestMatch.matchedKeywords.slice(0, 5),
+    missingSections,
+  };
+}
+
+function keywords(value: string) {
+  const ignoredWords = new Set([
+    "about",
+    "after",
+    "could",
+    "describe",
+    "example",
+    "have",
+    "how",
+    "that",
+    "the",
+    "this",
+    "time",
+    "what",
+    "when",
+    "with",
+    "would",
+    "your",
+  ]);
+
+  return new Set(
+    value
+      .toLowerCase()
+      .match(/[a-z0-9+#.]{3,}/g)
+      ?.filter((word) => !ignoredWords.has(word)) ?? [],
+  );
+}
+
+function VoiceAnswerRecorder() {
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioUrl, setAudioUrl] = useState("");
+  const [message, setMessage] = useState("");
+
+  useEffect(
+    () => () => {
+      mediaRecorderRef.current?.stop();
+      mediaStreamRef.current
+        ?.getTracks()
+        .forEach((track) => track.stop());
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+      }
+    },
+    [audioUrl],
+  );
+
+  async function startRecording() {
+    if (
+      !navigator.mediaDevices?.getUserMedia ||
+      !("MediaRecorder" in window)
+    ) {
+      setMessage("Audio recording is not supported by this browser.");
+      return;
+    }
+
+    setMessage("");
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+      });
+      const recorder = new MediaRecorder(stream);
+      chunksRef.current = [];
+      mediaStreamRef.current = stream;
+      mediaRecorderRef.current = recorder;
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunksRef.current.push(event.data);
+        }
+      };
+      recorder.onstop = () => {
+        const audio = new Blob(chunksRef.current, {
+          type: recorder.mimeType || "audio/webm",
+        });
+
+        if (audioUrl) {
+          URL.revokeObjectURL(audioUrl);
+        }
+        setAudioUrl(URL.createObjectURL(audio));
+        stream.getTracks().forEach((track) => track.stop());
+        mediaStreamRef.current = null;
+        mediaRecorderRef.current = null;
+        setIsRecording(false);
+        setMessage(
+          "Recording ready for local playback. It has not been uploaded.",
+        );
+      };
+
+      recorder.start();
+      setIsRecording(true);
+      setMessage("Recording locally...");
+    } catch {
+      setMessage(
+        "Microphone access was not available. Check the browser site permission.",
+      );
+    }
+  }
+
+  function stopRecording() {
+    if (mediaRecorderRef.current?.state === "recording") {
+      mediaRecorderRef.current.stop();
+    }
+  }
+
+  function deleteRecording() {
+    if (audioUrl) {
+      URL.revokeObjectURL(audioUrl);
+    }
+    setAudioUrl("");
+    setMessage("Local recording deleted.");
+  }
+
+  return (
+    <div className="voice-answer-recorder no-print">
+      <div>
+        <strong>Private voice practice</strong>
+        <p className="muted">
+          Audio stays in this browser tab and is not uploaded or
+          transcribed.
+        </p>
+      </div>
+      <div className="form-actions">
+        {!isRecording ? (
+          <button
+            className="button compact"
+            type="button"
+            onClick={startRecording}
+          >
+            Record answer
+          </button>
+        ) : (
+          <button
+            className="button compact"
+            type="button"
+            onClick={stopRecording}
+          >
+            Stop recording
+          </button>
+        )}
+        {audioUrl && (
+          <button
+            className="text-button"
+            type="button"
+            onClick={deleteRecording}
+          >
+            Delete recording
+          </button>
+        )}
+      </div>
+      {audioUrl && <audio controls src={audioUrl} />}
+      {message && (
+        <p className="muted" role="status">
+          {message}
+        </p>
+      )}
+    </div>
   );
 }
 

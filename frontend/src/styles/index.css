@@ -814,9 +814,61 @@ p {
   gap: 20px;
 }
 
+.dashboard-follow-up-form {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid #d0d5dd;
+  border-radius: 16px;
+  background: #f8fafc;
+}
+
+.dashboard-insights,
+.dashboard-recent-reviews {
+  margin-top: 16px;
+}
+
+.dashboard-status-list {
+  display: grid;
+  gap: 12px;
+}
+
+.dashboard-status-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 12px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.dashboard-status-row progress {
+  grid-column: 1 / -1;
+  width: 100%;
+  accent-color: #176b58;
+}
+
+.dashboard-status-row:hover span {
+  color: #176b58;
+  text-decoration: underline;
+}
+
+.follow-up-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .browser-reminder-settings h2,
 .browser-reminder-settings p {
   margin-top: 0;
+}
+
+.browser-reminder-settings .form-actions {
+  justify-content: flex-end;
+  min-width: min(100%, 320px);
 }
 
 .profile-progress {
@@ -1013,6 +1065,28 @@ p {
   min-width: 0;
 }
 
+.interview-progress {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 320px);
+  align-items: center;
+  gap: 20px;
+  margin: 16px 0;
+  padding: 16px;
+  border: 1px solid #d1e9ff;
+  border-radius: 12px;
+  background: #f5faff;
+}
+
+.interview-progress p {
+  margin-bottom: 0;
+}
+
+.interview-progress progress {
+  width: 100%;
+  height: 12px;
+  accent-color: #1570ef;
+}
+
 .interview-practice {
   display: grid;
   gap: 8px;
@@ -1041,6 +1115,24 @@ p {
   min-width: 44px;
   color: #101828;
   font-variant-numeric: tabular-nums;
+}
+
+.voice-answer-recorder {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid #d0d5dd;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.voice-answer-recorder p {
+  margin-bottom: 0;
+}
+
+.voice-answer-recorder audio {
+  width: 100%;
 }
 
 .interview-practice .button {
@@ -1093,6 +1185,27 @@ p {
   display: grid;
   justify-items: end;
   gap: 8px;
+}
+
+.resume-bullet-optimizer {
+  border-color: #b2ddff;
+}
+
+.resume-bullet-preview {
+  align-self: stretch;
+  padding: 18px;
+  border: 1px solid #d1e9ff;
+  border-radius: 12px;
+  background: #f5faff;
+}
+
+.resume-bullet-preview div + div {
+  margin-top: 18px;
+}
+
+.resume-bullet-preview ul {
+  padding-left: 20px;
+  color: #475467;
 }
 
 .printed-answer {
@@ -1152,7 +1265,104 @@ p {
   font-weight: 700;
 }
 
+.feedback-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.feedback-metric .panel-inner {
+  display: grid;
+  gap: 6px;
+}
+
+.feedback-metric span,
+.feedback-metric small {
+  color: #667085;
+}
+
+.feedback-metric strong {
+  font-size: 1.75rem;
+}
+
+.feedback-breakdown {
+  margin-top: 20px;
+}
+
+.feedback-count-list {
+  display: grid;
+  gap: 14px;
+}
+
+.feedback-count-list > div > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.feedback-count-list progress {
+  width: 100%;
+  accent-color: #176b58;
+}
+
+.star-recommendation {
+  margin: 14px 0;
+  padding: 14px;
+  border-left: 4px solid #176b58;
+  border-radius: 10px;
+  background: #f0fdf9;
+}
+
+.star-recommendation > p {
+  white-space: pre-wrap;
+}
+
+.star-recommendation .eyebrow {
+  margin-top: 0;
+}
+
+.resume-version-workflow {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #d0d5dd;
+}
+
+.resume-score-comparison {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 14px 0;
+}
+
+.resume-score-comparison span {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #ecfdf3;
+  color: #176b58;
+  font-weight: 700;
+}
+
+.resume-version-preview {
+  max-height: 420px;
+  overflow: auto;
+  padding: 14px;
+  border-radius: 10px;
+  background: #f8fafc;
+  white-space: pre-wrap;
+  font: inherit;
+}
+
 @media (max-width: 760px) {
+  .feedback-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .interview-progress {
+    grid-template-columns: 1fr;
+  }
+
   .browser-reminder-settings .panel-inner {
     align-items: flex-start;
     flex-direction: column;

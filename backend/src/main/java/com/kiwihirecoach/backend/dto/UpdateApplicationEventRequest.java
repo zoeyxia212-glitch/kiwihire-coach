@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-public record CreateApplicationEventRequest(
+public record UpdateApplicationEventRequest(
         @NotBlank(message = "Stage is required")
         @Pattern(
                 regexp = "Saved|Applied|Recruiter Screen|First Interview"

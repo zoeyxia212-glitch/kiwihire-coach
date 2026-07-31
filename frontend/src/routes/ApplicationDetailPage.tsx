@@ -4,9 +4,11 @@ import StatusBadge from "../components/StatusBadge";
 import ApplicationTimeline from "../components/ApplicationTimeline";
 import ResourceNotFoundState from "../components/ResourceNotFoundState";
 import type { Application } from "../types/application";
+import type { ResumeReview } from "../types/resumeReview";
 import {
   deleteApplication,
   getApplicationById,
+  getResumeReviews,
   updateApplicationArchived,
   ResourceNotFoundError,
 } from "../utils/api";
@@ -23,6 +25,11 @@ export default function ApplicationDetailPage() {
   const [application, setApplication] = useState<Application | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [isNotFound, setIsNotFound] = useState(false);
+  const [relatedReviews, setRelatedReviews] = useState<ResumeReview[]>(
+    [],
+  );
+  const [isLoadingReviews, setIsLoadingReviews] = useState(true);
+  const [reviewError, setReviewError] = useState("");
   const [isUpdatingArchive, setIsUpdatingArchive] =
     useState(false);
 
@@ -46,6 +53,30 @@ export default function ApplicationDetailPage() {
     }
 
     fetchApplication();
+  }, [id]);
+
+  useEffect(() => {
+    async function fetchRelatedReviews() {
+      if (!id) {
+        setIsLoadingReviews(false);
+        return;
+      }
+
+      try {
+        const reviews = await getResumeReviews();
+        setRelatedReviews(
+          reviews.filter(
+            (review) => review.applicationId === Number(id),
+          ),
+        );
+      } catch {
+        setReviewError("Related reviews could not be loaded.");
+      } finally {
+        setIsLoadingReviews(false);
+      }
+    }
+
+    fetchRelatedReviews();
   }, [id]);
 
   if (isNotFound) {
@@ -200,6 +231,24 @@ export default function ApplicationDetailPage() {
               Work mode: {application.workMode || "Not specified"}
             </p>
             <p className="muted">
+              Career level: {application.careerLevel || "Not specified"}
+            </p>
+            <p className="muted">
+              Employment type:{" "}
+              {application.employmentType || "Not specified"}
+            </p>
+            <p className="muted">
+              Graduate friendly:{" "}
+              {formatOptionalBoolean(application.graduateFriendly)}
+            </p>
+            <p className="muted">
+              Visa sponsorship:{" "}
+              {formatOptionalBoolean(application.sponsorshipAvailable)}
+            </p>
+            <p className="muted">
+              Industry: {application.industry || "Not recorded"}
+            </p>
+            <p className="muted">
               Work rights:{" "}
               {application.workRightsRequirement || "Not specified"}
             </p>
@@ -226,6 +275,79 @@ export default function ApplicationDetailPage() {
           </div>
         </div>
       </div>
+
+      <section className="detail-section">
+        <div className="panel">
+          <div className="panel-inner">
+            <div className="page-header">
+              <div>
+                <p className="eyebrow">Preparation history</p>
+                <h2>Reviews for this application</h2>
+                <p className="muted">
+                  Compare resume versions and return to saved interview
+                  preparation.
+                </p>
+              </div>
+              {!application.archived && (
+                <Link
+                  className="button primary"
+                  to={`/review?application=${application.id}`}
+                >
+                  Run another review
+                </Link>
+              )}
+            </div>
+
+            {isLoadingReviews && (
+              <p className="muted">Loading related reviews...</p>
+            )}
+            {reviewError && (
+              <p className="error-message" role="alert">
+                {reviewError}
+              </p>
+            )}
+            {!isLoadingReviews &&
+              !reviewError &&
+              relatedReviews.length === 0 && (
+                <p className="muted">
+                  No saved reviews for this application yet.
+                </p>
+              )}
+            <div className="list">
+              {relatedReviews.map((review) => {
+                const readyAnswers = review.answerStatuses.filter(
+                  (status) => status === "Ready",
+                ).length;
+
+                return (
+                  <article className="list-row" key={review.id}>
+                    <div>
+                      <h3>{review.resumeName}</h3>
+                      <p>
+                        {review.score === null
+                          ? "No match score"
+                          : `${review.score}% match`}
+                        {" · "}
+                        {readyAnswers}/{review.questions.length} interview
+                        answers ready
+                      </p>
+                      <p className="muted">
+                        Saved {formatDateTime(review.createdAt)}
+                      </p>
+                    </div>
+                    <Link
+                      className="button compact"
+                      to={`/reviews/${review.id}`}
+                    >
+                      Open review
+                    </Link>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
 
       {application.archived ? (
         <div className="panel">
@@ -254,4 +376,12 @@ export default function ApplicationDetailPage() {
       )}
     </section>
   );
+}
+
+function formatOptionalBoolean(value: boolean | null) {
+  if (value === null) {
+    return "Unknown";
+  }
+
+  return value ? "Yes" : "No";
 }

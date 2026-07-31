@@ -20,16 +20,21 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
+import com.kiwihirecoach.backend.repository.ApplicationEventRepository;
+import com.kiwihirecoach.backend.repository.ResumeReviewRepository;
 @ExtendWith(MockitoExtension.class)
 class JobApplicationServiceTest {
-
+private static final Long TEST_USER_ID = 1L;
     @Mock
     private JobApplicationRepository jobApplicationRepository;
 
     @Mock
     private UserRepository userRepository;
+@Mock
+private ApplicationEventRepository applicationEventRepository;
 
+@Mock
+private ResumeReviewRepository resumeReviewRepository;
     @InjectMocks
     private JobApplicationService jobApplicationService;
 
@@ -41,33 +46,33 @@ class JobApplicationServiceTest {
                 LocalDateTime.now()
         );
 
-        JobApplication application = new JobApplication(
-                "Xero",
-                "Junior Software Developer",
-                "Auckland",
-                "Applied",
-                "Java and React role",
-                LocalDate.of(2026, 8, 1),
-                user
-        );
+JobApplication application = new JobApplication(
+        "Xero",
+        "Junior Software Developer",
+        "Auckland",
+        "Applied",
+        "Java and React role",
+        LocalDate.of(2026, 8, 1),
+        user
+);
 
-        when(jobApplicationRepository.findById(1L))
+        when(jobApplicationRepository.findByIdAndUserId(1L, TEST_USER_ID))
                 .thenReturn(Optional.of(application));
 
         JobApplicationResponse response =
-                jobApplicationService.getApplicationById(1L);
+                jobApplicationService.getApplicationById(1L, TEST_USER_ID);
 
         assertEquals("Xero", response.getCompany());
     }
 
     @Test
     void getApplicationByIdThrowsWhenApplicationDoesNotExist() {
-        when(jobApplicationRepository.findById(99L))
+        when(jobApplicationRepository.findByIdAndUserId(99L,TEST_USER_ID))
                 .thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(
                 ResourceNotFoundException.class,
-                () -> jobApplicationService.getApplicationById(99L)
+                () -> jobApplicationService.getApplicationById(99L,TEST_USER_ID)
         );
 
         assertEquals("Application not found", exception.getMessage());
@@ -77,22 +82,22 @@ class JobApplicationServiceTest {
     void deleteApplicationDeletesExistingApplication() {
         JobApplication application = new JobApplication();
 
-        when(jobApplicationRepository.findById(1L))
+        when(jobApplicationRepository.findByIdAndUserId(1L,TEST_USER_ID))
                 .thenReturn(Optional.of(application));
 
-        jobApplicationService.deleteApplication(1L);
+        jobApplicationService.deleteApplication(1L, TEST_USER_ID);
 
         verify(jobApplicationRepository).delete(application);
     }
 
     @Test
     void deleteApplicationThrowsWhenApplicationDoesNotExist() {
-        when(jobApplicationRepository.findById(99L))
+        when(jobApplicationRepository.findByIdAndUserId(99L,TEST_USER_ID))
                 .thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(
                 ResourceNotFoundException.class,
-                () -> jobApplicationService.deleteApplication(99L)
+                () -> jobApplicationService.deleteApplication(99L,  TEST_USER_ID)
         );
 
         assertEquals("Application not found", exception.getMessage());

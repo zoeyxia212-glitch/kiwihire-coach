@@ -20,6 +20,11 @@ public class JobApplicationResponse {
     private String salaryRange;
     private String contactPerson;
     private String jobUrl;
+    private String careerLevel;
+    private String employmentType;
+    private Boolean graduateFriendly;
+    private Boolean sponsorshipAvailable;
+    private String industry;
     private boolean archived;
 
     public JobApplicationResponse(
@@ -41,6 +46,56 @@ public class JobApplicationResponse {
             String jobUrl,
             boolean archived
     ) {
+        this(
+                id,
+                company,
+                roleTitle,
+                location,
+                status,
+                jobDescription,
+                closingDate,
+                createdAt,
+                userId,
+                userEmail,
+                source,
+                workMode,
+                workRightsRequirement,
+                salaryRange,
+                contactPerson,
+                jobUrl,
+                null,
+                null,
+                null,
+                null,
+                null,
+                archived
+        );
+    }
+
+    public JobApplicationResponse(
+            Long id,
+            String company,
+            String roleTitle,
+            String location,
+            String status,
+            String jobDescription,
+            LocalDate closingDate,
+            LocalDateTime createdAt,
+            Long userId,
+            String userEmail,
+            String source,
+            String workMode,
+            String workRightsRequirement,
+            String salaryRange,
+            String contactPerson,
+            String jobUrl,
+            String careerLevel,
+            String employmentType,
+            Boolean graduateFriendly,
+            Boolean sponsorshipAvailable,
+            String industry,
+            boolean archived
+    ) {
         this.id = id;
         this.company = company;
         this.roleTitle = roleTitle;
@@ -57,9 +112,50 @@ public class JobApplicationResponse {
         this.salaryRange = salaryRange;
         this.contactPerson = contactPerson;
         this.jobUrl = jobUrl;
+        this.careerLevel = careerLevel;
+        this.employmentType = employmentType;
+        this.graduateFriendly = graduateFriendly;
+        this.sponsorshipAvailable = sponsorshipAvailable;
+        this.industry = industry;
         this.archived = archived;
     }
-
+public JobApplicationResponse(
+        Long id,
+        String company,
+        String roleTitle,
+        String location,
+        String status,
+        String jobDescription,
+        LocalDate closingDate,
+        LocalDateTime createdAt,
+        Long userId,
+        String userEmail
+) {
+    this(
+            id,
+            company,
+            roleTitle,
+            location,
+            status,
+            jobDescription,
+            closingDate,
+            createdAt,
+            userId,
+            userEmail,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            false
+    );
+}
     public Long getId() {
         return id;
     }
@@ -122,6 +218,26 @@ public class JobApplicationResponse {
 
     public String getJobUrl() {
         return jobUrl;
+    }
+
+    public String getCareerLevel() {
+        return careerLevel;
+    }
+
+    public String getEmploymentType() {
+        return employmentType;
+    }
+
+    public Boolean getGraduateFriendly() {
+        return graduateFriendly;
+    }
+
+    public Boolean getSponsorshipAvailable() {
+        return sponsorshipAvailable;
+    }
+
+    public String getIndustry() {
+        return industry;
     }
 
     public boolean isArchived() {

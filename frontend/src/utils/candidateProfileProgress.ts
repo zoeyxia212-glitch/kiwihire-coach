@@ -4,8 +4,10 @@ const profileFields = [
   { key: "targetRoles", label: "target roles" },
   { key: "workRights", label: "work rights" },
   { key: "preferredLocations", label: "preferred locations" },
+  { key: "careerStage", label: "career stage" },
   { key: "technicalSkills", label: "technical skills" },
   { key: "experienceSummary", label: "experience summary" },
+  { key: "starExamples", label: "STAR examples" },
 ] as const;
 
 export function getCandidateProfileProgress(

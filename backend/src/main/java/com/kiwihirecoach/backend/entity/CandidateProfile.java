@@ -25,10 +25,14 @@ public class CandidateProfile {
     private String targetRoles;
     private String workRights;
     private String preferredLocations;
+    private String careerStage;
     private String technicalSkills;
 
     @Column(columnDefinition = "TEXT")
     private String experienceSummary;
+
+    @Column(columnDefinition = "TEXT")
+    private String starExamples;
 
     private LocalDateTime updatedAt;
 
@@ -40,16 +44,20 @@ public class CandidateProfile {
             String targetRoles,
             String workRights,
             String preferredLocations,
+            String careerStage,
             String technicalSkills,
-            String experienceSummary
+            String experienceSummary,
+            String starExamples
     ) {
         this.user = user;
         update(
                 targetRoles,
                 workRights,
                 preferredLocations,
+                careerStage,
                 technicalSkills,
-                experienceSummary
+                experienceSummary,
+                starExamples
         );
     }
 
@@ -57,14 +65,18 @@ public class CandidateProfile {
             String targetRoles,
             String workRights,
             String preferredLocations,
+            String careerStage,
             String technicalSkills,
-            String experienceSummary
+            String experienceSummary,
+            String starExamples
     ) {
         this.targetRoles = targetRoles;
         this.workRights = workRights;
         this.preferredLocations = preferredLocations;
+        this.careerStage = careerStage;
         this.technicalSkills = technicalSkills;
         this.experienceSummary = experienceSummary;
+        this.starExamples = starExamples;
         this.updatedAt = LocalDateTime.now();
     }
 
@@ -84,12 +96,20 @@ public class CandidateProfile {
         return preferredLocations;
     }
 
+    public String getCareerStage() {
+        return careerStage;
+    }
+
     public String getTechnicalSkills() {
         return technicalSkills;
     }
 
     public String getExperienceSummary() {
         return experienceSummary;
+    }
+
+    public String getStarExamples() {
+        return starExamples;
     }
 
     public LocalDateTime getUpdatedAt() {

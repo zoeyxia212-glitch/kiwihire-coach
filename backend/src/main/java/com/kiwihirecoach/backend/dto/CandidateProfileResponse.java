@@ -7,8 +7,10 @@ public record CandidateProfileResponse(
         String targetRoles,
         String workRights,
         String preferredLocations,
+        String careerStage,
         String technicalSkills,
         String experienceSummary,
+        String starExamples,
         LocalDateTime updatedAt
 ) {
 }

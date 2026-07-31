@@ -3,7 +3,10 @@ import type { ApplicationEvent } from "../types/applicationEvent";
 import {
   completeApplicationEvent,
   createApplicationEvent,
+  deleteApplicationEvent,
   getApplicationEvents,
+  updateApplicationEvent,
+  updateApplicationFollowUp,
 } from "../utils/api";
 
 const stages = [
@@ -40,6 +43,14 @@ function formatDateTime(value: string) {
   }).format(new Date(value));
 }
 
+function sortEvents(events: ApplicationEvent[]) {
+  return [...events].sort(
+    (first, second) =>
+      new Date(second.occurredAt).getTime()
+      - new Date(first.occurredAt).getTime(),
+  );
+}
+
 export default function ApplicationTimeline({
   applicationId,
   onStageChange,
@@ -56,6 +67,10 @@ export default function ApplicationTimeline({
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [completingEventId, setCompletingEventId] =
+    useState<number | null>(null);
+  const [editingEventId, setEditingEventId] =
+    useState<number | null>(null);
+  const [deletingEventId, setDeletingEventId] =
     useState<number | null>(null);
   const [error, setError] = useState("");
 
@@ -79,23 +94,34 @@ export default function ApplicationTimeline({
     setIsSaving(true);
 
     try {
-      const savedEvent = await createApplicationEvent(
-        applicationId,
-        {
-          stage,
-          occurredAt,
-          contactPerson,
-          notes,
-          nextAction,
-          followUpDueDate: followUpDueDate || null,
-        },
+      const request = {
+        stage,
+        occurredAt,
+        contactPerson,
+        notes,
+        nextAction,
+        followUpDueDate: followUpDueDate || null,
+      };
+      const savedEvent = editingEventId === null
+        ? await createApplicationEvent(applicationId, request)
+        : await updateApplicationEvent(
+            applicationId,
+            editingEventId,
+            request,
+          );
+      const nextEvents = sortEvents(
+        editingEventId === null
+          ? [savedEvent, ...events]
+          : events.map((applicationEvent) =>
+              applicationEvent.id === savedEvent.id
+                ? savedEvent
+                : applicationEvent,
+            ),
       );
 
-      setEvents((currentEvents) => [
-        savedEvent,
-        ...currentEvents,
-      ]);
-      onStageChange(savedEvent.stage);
+      setEvents(nextEvents);
+      onStageChange(nextEvents[0]?.stage ?? "Saved");
+      setEditingEventId(null);
       setContactPerson("");
       setNotes("");
       setNextAction("");
@@ -105,6 +131,53 @@ export default function ApplicationTimeline({
       setError("Failed to save application update.");
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  function handleEdit(applicationEvent: ApplicationEvent) {
+    setEditingEventId(applicationEvent.id);
+    setStage(applicationEvent.stage);
+    setOccurredAt(applicationEvent.occurredAt.slice(0, 16));
+    setContactPerson(applicationEvent.contactPerson ?? "");
+    setNotes(applicationEvent.notes ?? "");
+    setNextAction(applicationEvent.nextAction ?? "");
+    setFollowUpDueDate(applicationEvent.followUpDueDate ?? "");
+    setError("");
+  }
+
+  function cancelEdit() {
+    setEditingEventId(null);
+    setStage("Applied");
+    setOccurredAt(currentLocalDateTime());
+    setContactPerson("");
+    setNotes("");
+    setNextAction("");
+    setFollowUpDueDate("");
+  }
+
+  async function handleDelete(eventId: number) {
+    if (!window.confirm("Delete this timeline update?")) {
+      return;
+    }
+
+    setError("");
+    setDeletingEventId(eventId);
+
+    try {
+      await deleteApplicationEvent(applicationId, eventId);
+      const nextEvents = events.filter(
+        (applicationEvent) => applicationEvent.id !== eventId,
+      );
+      setEvents(nextEvents);
+      onStageChange(nextEvents[0]?.stage ?? "Saved");
+
+      if (editingEventId === eventId) {
+        cancelEdit();
+      }
+    } catch {
+      setError("Failed to delete application update.");
+    } finally {
+      setDeletingEventId(null);
     }
   }
 
@@ -131,6 +204,30 @@ export default function ApplicationTimeline({
     }
   }
 
+  async function handleReopen(eventId: number) {
+    setError("");
+    setCompletingEventId(eventId);
+
+    try {
+      const reopenedEvent = await updateApplicationFollowUp(
+        applicationId,
+        eventId,
+        { completed: false },
+      );
+      setEvents((currentEvents) =>
+        currentEvents.map((applicationEvent) =>
+          applicationEvent.id === eventId
+            ? reopenedEvent
+            : applicationEvent,
+        ),
+      );
+    } catch {
+      setError("Failed to reopen follow-up.");
+    } finally {
+      setCompletingEventId(null);
+    }
+  }
+
   return (
     <section className="detail-section">
       <div className="grid two">
@@ -138,7 +235,11 @@ export default function ApplicationTimeline({
           <div className="panel-inner form-grid">
             <div>
               <p className="eyebrow">Next milestone</p>
-              <h2>Add an update</h2>
+              <h2>
+                {editingEventId === null
+                  ? "Add an update"
+                  : "Edit update"}
+              </h2>
             </div>
 
             <div className="field">
@@ -226,8 +327,22 @@ export default function ApplicationTimeline({
               type="submit"
               disabled={isSaving}
             >
-              {isSaving ? "Saving update..." : "Save update"}
+              {isSaving
+                ? "Saving update..."
+                : editingEventId === null
+                  ? "Save update"
+                  : "Update history"}
             </button>
+            {editingEventId !== null && (
+              <button
+                className="button"
+                type="button"
+                disabled={isSaving}
+                onClick={cancelEdit}
+              >
+                Cancel edit
+              </button>
+            )}
           </div>
         </form>
 
@@ -277,9 +392,23 @@ export default function ApplicationTimeline({
                             ` · Due ${applicationEvent.followUpDueDate}`}
                         </p>
                         {applicationEvent.completed ? (
-                          <span className="completed-label">
-                            Completed
-                          </span>
+                          <div className="form-actions">
+                            <span className="completed-label">
+                              Completed
+                            </span>
+                            <button
+                              className="button compact"
+                              type="button"
+                              disabled={
+                                completingEventId === applicationEvent.id
+                              }
+                              onClick={() =>
+                                handleReopen(applicationEvent.id)
+                              }
+                            >
+                              Reopen
+                            </button>
+                          </div>
                         ) : (
                           <button
                             className="button compact"
@@ -298,6 +427,29 @@ export default function ApplicationTimeline({
                         )}
                       </>
                     )}
+                    <div>
+                      <button
+                        className="button compact"
+                        type="button"
+                        onClick={() => handleEdit(applicationEvent)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="button compact"
+                        type="button"
+                        disabled={
+                          deletingEventId === applicationEvent.id
+                        }
+                        onClick={() =>
+                          handleDelete(applicationEvent.id)
+                        }
+                      >
+                        {deletingEventId === applicationEvent.id
+                          ? "Deleting..."
+                          : "Delete"}
+                      </button>
+                    </div>
                   </div>
                 </article>
               ))}

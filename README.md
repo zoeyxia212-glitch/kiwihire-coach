@@ -60,18 +60,25 @@ This repository is also intended to give recruiters direct evidence of practical
 
 ## Current Features
 
-- Create a job application through a controlled React form
-- View applications belonging to a user
-- Open a single application detail page using a dynamic route
-- Store company, role title, location, status, job description, and closing date
-- Display loading and error states when fetching application data
-- Persist application data through a Spring Boot API and JPA
-- Map entities to request and response DTOs
-- Provide backend endpoints for create, read, update, and delete operations
-- Generate interview questions from job-description keywords
-- Display resume review, keyword, and suggestion interfaces
+- Register, log in, log out, and access protected routes with JWT authentication
+- Hash passwords and enforce authenticated-user ownership in backend services
+- Create, view, edit, archive, and delete job applications
+- Track application stages, notes, next actions, follow-up dates, and interview history
+- Show current-user application totals, upcoming deadlines, overdue follow-ups, recent activity, and inactive applications on the dashboard
+- Save a candidate profile containing target roles, locations, work-rights context, career stage, and transferable experience
+- Create and manage named resume versions from pasted text or supported local documents
+- Compare a saved resume with a job description using explainable matching logic
+- Show matched, missing, and transferable skills, resume evidence, improvement actions, and learning priorities
+- Build evidence-first resume bullet drafts locally from user-provided actions, tools, and truthful results without inventing experience
+- Show saved review history on its related application for quick return to role-specific preparation
+- Generate role-specific interview questions and STAR prompts, classify and filter questions, and track saved-answer preparation progress
+- Practise interview answers with browser text-to-speech, a two-minute timer, and private in-tab audio recording
+- Enable optional browser reminders or export upcoming interviews, follow-ups, and closing dates to a standard calendar file
+- Save review history and collect lightweight usefulness feedback
+- Collect authenticated whole-product feedback by category, usefulness rating, page, and written experience
+- Change a password or permanently delete an account
 
-The frontend supports creating, reading, updating, and deleting applications through a centralised typed API client.
+The React frontend uses a centralised typed API client to communicate with authenticated Spring Boot endpoints. The backend uses DTOs, layered services, JPA repositories, ownership checks, and relational persistence rather than trusting user IDs supplied by the browser.
 
 ## Core Workflow
 
@@ -172,13 +179,23 @@ kiwihire-coach/
 
 | Method | Endpoint | Purpose |
 | --- | --- | --- |
+| `POST` | `/api/auth/register` | Register an account |
+| `POST` | `/api/auth/login` | Log in and receive a JWT |
 | `POST` | `/api/applications` | Create an application |
-| `GET` | `/api/applications/user/{userId}` | List applications for a user |
+| `GET` | `/api/applications` | List the authenticated user's applications |
 | `GET` | `/api/applications/{id}` | Get one application |
 | `PUT` | `/api/applications/{id}` | Update an application |
 | `DELETE` | `/api/applications/{id}` | Delete an application |
+| `GET/POST/PUT/DELETE` | `/api/resumes` | Manage saved resume versions |
+| `GET/POST/PATCH/DELETE` | `/api/reviews` | Create and manage resume-to-job reviews |
+| `GET/POST/PUT/PATCH/DELETE` | `/api/applications/{id}/events` | View, add, edit, complete, and delete timeline events |
+| `GET/PUT` | `/api/profile` | View or update the candidate profile |
+| `GET` | `/api/dashboard` | Load current-user dashboard data |
+| `GET/POST/PATCH/DELETE` | `/api/learning-goals` | Manage learning priorities |
+| `GET/POST` | `/api/feedback` | View and submit authenticated product feedback |
+| `GET/PATCH/DELETE` | `/api/account` | Manage the authenticated account |
 
-The prototype frontend currently uses user ID `1`. Replacing this with authenticated-user context is part of the roadmap.
+Application, resume, review, profile, dashboard, and account endpoints derive ownership from the authenticated JWT principal. The browser does not choose which user's records to access.
 
 ## Running Locally
 
@@ -226,7 +243,28 @@ The current automated test coverage includes Spring service unit tests, Spring M
 
 The resume matching feature uses transparent keyword-based logic rather than AI-generated rewriting. This keeps the matching behaviour explainable and provides clear business logic that can be discussed in a technical interview.
 
-New Zealand-specific application fields are planned to include job source, work-rights requirements, and whether a role is graduate or junior friendly.
+New Zealand-specific application fields include job source, work-rights
+requirements, career level, employment type, industry, graduate suitability,
+and visa sponsorship availability.
+
+Dashboard follow-ups can be created, completed, postponed, and reopened
+without losing the related application timeline history.
+
+The private product-feedback workspace summarizes average usefulness,
+high-value ratings, willingness to reuse, feedback categories, and the
+workflows mentioned by the signed-in user.
+
+Candidate Profile includes a reusable library of truthful STAR examples.
+Interview questions recommend the closest example using transparent keyword
+matching and identify missing Situation, Task, Action, or Result sections.
+
+Evidence-first resume bullets can be inserted into an unsaved full-resume
+preview, compared against the role before and after, undone safely, and saved
+as a separate resume version without overwriting the source.
+
+The authenticated Dashboard summarizes the application pipeline by status,
+recent saved resume reviews, answer readiness, and current learning priorities
+alongside deadlines, inactive applications, and follow-up actions.
 
 The current product hypothesis is to support New Zealand graduates, international candidates, and career changers seeking their first local technology role. A possible differentiator is helping users connect transferable experience from operations, support, data centres, and other previous work to the skills and evidence requested by a job description.
 
@@ -242,19 +280,19 @@ The roadmap prioritises product validation and technical evidence commonly reque
 4. [x] Add full Spring integration tests covering Controller -> Service -> Repository -> H2
 5. [x] Centralise frontend HTTP requests in a typed API client and add Vitest success and failure tests
 6. [x] Add React component tests for loading, success, error, and user interaction states
-7. [ ] Add registration, password hashing, JWT authentication, logout, and protected routes
-8. [ ] Replace the fixed frontend user ID and enforce authenticated-user ownership
-9. [ ] Add application timeline events for Applied, screening, first interview, second interview, technical interview, offer, rejection, and withdrawal
-10. [ ] Add next actions, follow-up due dates, upcoming interview reminders, and overdue indicators
-11. [ ] Replace the static dashboard with current-user application and follow-up data
-12. [ ] Add a candidate profile for target roles, work rights, location preferences, and previous experience
-13. [ ] Add resume file upload, text extraction, and persistent resume CRUD
-14. [ ] Add job-description upload or paste and connect it to a persisted review
-15. [ ] Show matched skills, missing skills, transferable skills, and supporting resume evidence
-16. [ ] Turn review results into resume actions, predicted interview questions, STAR prompts, saved answers, and learning priorities
-17. [ ] Save review history and add a lightweight usefulness feedback prompt
+7. [x] Add registration, password hashing, JWT authentication, logout, and protected routes
+8. [x] Replace the fixed frontend user ID and enforce authenticated-user ownership
+9. [x] Add application timeline events for Applied, screening, first interview, second interview, technical interview, offer, rejection, and withdrawal
+10. [x] Add next actions, follow-up due dates, upcoming interview reminders, and overdue indicators
+11. [x] Replace the static dashboard with current-user application and follow-up data
+12. [x] Add a candidate profile for target roles, work rights, location preferences, and previous experience
+13. [x] Add resume file text extraction and persistent resume CRUD
+14. [x] Add job-description upload or paste and connect it to a persisted review
+15. [x] Show matched skills, missing skills, transferable skills, and supporting resume evidence
+16. [x] Turn review results into resume actions, predicted interview questions, STAR prompts, saved answers, and learning priorities
+17. [x] Save review history and add a lightweight usefulness feedback prompt
 18. [ ] Test the workflow with 5-10 target candidates and document product decisions
-19. [ ] Add New Zealand-specific application fields
+19. [x] Add New Zealand-specific application fields
 20. [ ] Run the application against local PostgreSQL and document the relational model and representative SQL
 21. [ ] Publish the REST contract with OpenAPI/Swagger and document success and error status codes
 22. [ ] Add GitHub Actions for frontend tests/build and backend tests
@@ -262,5 +300,17 @@ The roadmap prioritises product validation and technical evidence commonly reque
 24. [ ] Add metrics, dashboards, centralised logs, and an operations runbook
 25. [ ] Deploy the application and document the deployment flow
 26. [ ] Add project screenshots and a short feature demonstration
+27. [x] Add application follow-up completion, postponement, reopen, and
+    Dashboard quick-create actions
+28. [x] Add private product-feedback summaries and willingness-to-reuse
+    evidence
+29. [x] Connect Candidate Profile STAR examples to interview-question
+    recommendations
+30. [x] Add evidence-first bullet preview, undo, comparison, and resume
+    version saving
+31. [x] Add New Zealand candidate career stage and role-classification
+    context
+32. [ ] Run the unified product acceptance checklist in
+    `docs/product-plan.md`
 
 A third-party API integration will be selected only if candidate validation identifies a real need, rather than being added solely as a portfolio checkbox. The staged containerisation, CI, monitoring, logging, and operations plan is documented in `docs/cloud-native-plan.md`. Kubernetes follows a stable Docker Compose environment rather than being introduced as an isolated portfolio checkbox.

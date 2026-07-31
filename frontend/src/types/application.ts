@@ -27,5 +27,10 @@ export type Application = {
   salaryRange: string | null;
   contactPerson: string | null;
   jobUrl: string | null;
+  careerLevel: string | null;
+  employmentType: string | null;
+  graduateFriendly: boolean | null;
+  sponsorshipAvailable: boolean | null;
+  industry: string | null;
   archived: boolean;
 };

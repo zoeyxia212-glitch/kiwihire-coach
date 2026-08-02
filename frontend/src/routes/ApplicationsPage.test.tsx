@@ -1,11 +1,16 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import { MemoryRouter, useLocation } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 import ApplicationsPage from "./ApplicationsPage";
-import { getApplicationsForUser } from "../utils/api";
+import { getApplications } from "../utils/api";
 
 vi.mock("../utils/api", () => ({
-  getApplicationsForUser: vi.fn(),
+  getApplications: vi.fn(),
 }));
 
 function LocationDisplay() {
@@ -16,11 +21,15 @@ function LocationDisplay() {
 
 describe("ApplicationsPage", () => {
   it("shows a loading message while applications are being fetched", () => {
-    vi.mocked(getApplicationsForUser).mockReturnValue(
+    vi.mocked(getApplications).mockReturnValue(
       new Promise(() => {}),
     );
 
-    render(<ApplicationsPage />);
+    render(
+      <MemoryRouter>
+        <ApplicationsPage />
+      </MemoryRouter>,
+    );
 
     expect(
       screen.getByText("Loading applications..."),
@@ -28,7 +37,7 @@ describe("ApplicationsPage", () => {
   });
 
   it("shows applications after the API request succeeds", async () => {
-    vi.mocked(getApplicationsForUser).mockResolvedValue([
+    vi.mocked(getApplications).mockResolvedValue([
       {
         id: 1,
         company: "Xero",
@@ -40,6 +49,18 @@ describe("ApplicationsPage", () => {
         createdAt: "2026-07-26T10:00:00",
         userId: 1,
         userEmail: "zoey.xia@example.com",
+        source: "SEEK",
+        workMode: "Hybrid",
+        workRightsRequirement: "NZ work rights",
+        salaryRange: "$70,000–$80,000",
+        contactPerson: null,
+        jobUrl: null,
+        careerLevel: "Junior",
+        employmentType: "Full-time",
+        graduateFriendly: true,
+        sponsorshipAvailable: false,
+        industry: "Technology",
+        archived: false,
       },
     ]);
 
@@ -49,19 +70,27 @@ describe("ApplicationsPage", () => {
       </MemoryRouter>,
     );
 
-    expect(await screen.findByText("Xero")).toBeInTheDocument();
-    expect(screen.getByText("Applied")).toBeInTheDocument();
+    const applicationLink = await screen.findByRole("link", {
+      name: /Xero/,
+    });
+    expect(
+      within(applicationLink).getByText("Applied"),
+    ).toBeInTheDocument();
     expect(
       screen.queryByText("Loading applications..."),
     ).not.toBeInTheDocument();
   });
 
   it("shows an error message when the API request fails", async () => {
-    vi.mocked(getApplicationsForUser).mockRejectedValue(
+    vi.mocked(getApplications).mockRejectedValue(
       new Error("Network error"),
     );
 
-    render(<ApplicationsPage />);
+    render(
+      <MemoryRouter>
+        <ApplicationsPage />
+      </MemoryRouter>,
+    );
 
     expect(
       await screen.findByText("Failed to load applications."),
@@ -73,7 +102,7 @@ describe("ApplicationsPage", () => {
   });
 
   it("navigates to the application detail page when a card is clicked", async () => {
-    vi.mocked(getApplicationsForUser).mockResolvedValue([
+    vi.mocked(getApplications).mockResolvedValue([
       {
         id: 1,
         company: "Xero",
@@ -85,6 +114,18 @@ describe("ApplicationsPage", () => {
         createdAt: "2026-07-26T10:00:00",
         userId: 1,
         userEmail: "zoey.xia@example.com",
+        source: "SEEK",
+        workMode: "Hybrid",
+        workRightsRequirement: "NZ work rights",
+        salaryRange: "$70,000–$80,000",
+        contactPerson: null,
+        jobUrl: null,
+        careerLevel: "Junior",
+        employmentType: "Full-time",
+        graduateFriendly: true,
+        sponsorshipAvailable: false,
+        industry: "Technology",
+        archived: false,
       },
     ]);
 

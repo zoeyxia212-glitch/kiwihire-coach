@@ -10,7 +10,7 @@ import {
   createApplication,
   deleteApplication,
   getApplicationById,
-  getApplicationsForUser,
+  getApplications,
   registerUser,
   updateApplication,
 } from "./api";
@@ -98,6 +98,9 @@ describe("getApplicationById", () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       `${API_BASE_URL}/api/applications/1`,
+      {
+        headers: expect.any(Headers),
+      },
     );
     expect(result).toEqual(application);
   });
@@ -115,8 +118,8 @@ describe("getApplicationById", () => {
   });
 });
 
-describe("getApplicationsForUser", () => {
-  it("requests and returns the user's applications", async () => {
+describe("getApplications", () => {
+  it("requests and returns the authenticated user's applications", async () => {
     const applications = [
       {
         id: 1,
@@ -139,10 +142,13 @@ describe("getApplicationsForUser", () => {
 
     vi.stubGlobal("fetch", fetchMock);
 
-    const result = await getApplicationsForUser(1);
+    const result = await getApplications();
 
     expect(fetchMock).toHaveBeenCalledWith(
-      `${API_BASE_URL}/api/applications/user/1`,
+      `${API_BASE_URL}/api/applications`,
+      {
+        headers: expect.any(Headers),
+      },
     );
     expect(result).toEqual(applications);
   });
@@ -155,7 +161,7 @@ describe("getApplicationsForUser", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     await expect(
-      getApplicationsForUser(99),
+      getApplications(),
     ).rejects.toThrow("Failed to load applications.");
   });
 });
@@ -163,18 +169,24 @@ describe("getApplicationsForUser", () => {
 describe("createApplication", () => {
   it("sends a POST request and returns the created application", async () => {
     const request = {
-      userId: 1,
       company: "Xero",
       roleTitle: "Junior Software Developer",
       location: "Auckland",
       status: "Saved" as const,
       jobDescription: "Java and React role",
       closingDate: "2026-08-01",
+      source: "SEEK",
+      workMode: "Hybrid",
+      workRightsRequirement: "NZ work rights",
+      salaryRange: "$70,000–$80,000",
+      contactPerson: "Recruitment team",
+      jobUrl: "https://example.com/jobs/1",
     };
     const application = {
       id: 1,
       ...request,
       createdAt: "2026-07-24T10:00:00",
+      userId: 1,
       userEmail: "zoey.xia@example.com",
     };
     const fetchMock = vi.fn().mockResolvedValue({
@@ -190,9 +202,7 @@ describe("createApplication", () => {
       `${API_BASE_URL}/api/applications`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: expect.any(Headers),
         body: JSON.stringify(request),
       },
     );
@@ -208,13 +218,18 @@ describe("createApplication", () => {
 
     await expect(
       createApplication({
-        userId: 1,
         company: "Xero",
         roleTitle: "Junior Software Developer",
         location: "Auckland",
         status: "Saved",
         jobDescription: "Java and React role",
         closingDate: "2026-08-01",
+        source: "SEEK",
+        workMode: "Hybrid",
+        workRightsRequirement: "NZ work rights",
+        salaryRange: "$70,000–$80,000",
+        contactPerson: "Recruitment team",
+        jobUrl: "https://example.com/jobs/1",
       }),
     ).rejects.toThrow("Failed to create application.");
   });
@@ -229,6 +244,12 @@ describe("updateApplication", () => {
       status: "First Interview" as const,
       jobDescription: "Updated job description",
       closingDate: "2026-08-10",
+      source: "LinkedIn",
+      workMode: "Hybrid",
+      workRightsRequirement: "NZ work rights",
+      salaryRange: "$75,000–$85,000",
+      contactPerson: "Hiring manager",
+      jobUrl: "https://example.com/jobs/1",
     };
     const application = {
       id: 1,
@@ -250,9 +271,7 @@ describe("updateApplication", () => {
       `${API_BASE_URL}/api/applications/1`,
       {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: expect.any(Headers),
         body: JSON.stringify(request),
       },
     );
@@ -274,6 +293,12 @@ describe("updateApplication", () => {
         status: "First Interview",
         jobDescription: "Updated job description",
         closingDate: "2026-08-10",
+        source: "LinkedIn",
+        workMode: "Hybrid",
+        workRightsRequirement: "NZ work rights",
+        salaryRange: "$75,000–$85,000",
+        contactPerson: "Hiring manager",
+        jobUrl: "https://example.com/jobs/99",
       }),
     ).rejects.toThrow("Failed to update application.");
   });
@@ -293,6 +318,7 @@ describe("deleteApplication", () => {
       `${API_BASE_URL}/api/applications/1`,
       {
         method: "DELETE",
+        headers: expect.any(Headers),
       },
     );
   });

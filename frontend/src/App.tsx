@@ -11,6 +11,7 @@ import CandidateProfilePage from "./routes/CandidateProfilePage";
 import LearningPlanPage from "./routes/LearningPlanPage";
 import AccountPage from "./routes/AccountPage";
 import FeedbackPage from "./routes/FeedbackPage";
+import ContactPage from "./routes/ContactPage";
 import NotFoundPage from "./routes/NotFoundPage";
 import LoginPage from "./routes/LoginPage";
 import RegisterPage from "./routes/RegisterPage";
@@ -97,6 +98,12 @@ export default function App() {
                 Feedback
               </Link>
               <Link
+                to="/contact"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Contact
+              </Link>
+              <Link
                 to="/account"
                 className="nav-user"
                 onClick={() => setIsMenuOpen(false)}
@@ -113,6 +120,12 @@ export default function App() {
             </>
           ) : (
             <>
+              <Link
+                to="/contact"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Contact
+              </Link>
               <Link
                 to="/login"
                 onClick={() => setIsMenuOpen(false)}
@@ -139,6 +152,7 @@ export default function App() {
             element={<LoginPage onLogin={handleLogin} />}
           />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/contact" element={<ContactPage />} />
           <Route
             element={
               <ProtectedRoute

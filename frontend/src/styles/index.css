@@ -326,6 +326,24 @@ p {
   text-align: right;
 }
 
+.contact-layout {
+  align-items: start;
+}
+
+.contact-guidance .panel-inner {
+  display: grid;
+  gap: 14px;
+}
+
+.contact-guidance ul {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding-left: 20px;
+  color: #4b5563;
+  line-height: 1.6;
+}
+
 .form-actions {
   display: flex;
   flex-wrap: wrap;

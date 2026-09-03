@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, Route, Routes } from "react-router";
 import DashboardPage from "./routes/DashboardPage";
+import HomePage from "./routes/HomePage";
 import ApplicationsPage from "./routes/ApplicationsPage";
 import ApplicationDetailPage from "./routes/ApplicationDetailPage";
 import NewApplicationPage from "./routes/NewApplicationPage";
@@ -65,7 +66,7 @@ export default function App() {
                 to="/applications"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Applications
+                Job Tracker
               </Link>
               <Link
                 to="/resumes"
@@ -77,7 +78,7 @@ export default function App() {
                 to="/review"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Review Resume
+                CV Review
               </Link>
               <Link
                 to="/profile"
@@ -154,13 +155,16 @@ export default function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route
+            path="/"
+            element={authSession ? <DashboardPage /> : <HomePage />}
+          />
+          <Route
             element={
               <ProtectedRoute
                 isAuthenticated={Boolean(authSession)}
               />
             }
           >
-            <Route path="/" element={<DashboardPage />} />
             <Route path="/applications" element={<ApplicationsPage />} />
             <Route
               path="/applications/new"

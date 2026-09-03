@@ -1,9 +1,11 @@
 package com.kiwihirecoach.backend.integration;
 
 import com.kiwihirecoach.backend.entity.JobApplication;
+import com.kiwihirecoach.backend.entity.EvidenceItem;
 import com.kiwihirecoach.backend.entity.User;
 import com.kiwihirecoach.backend.repository.JobApplicationRepository;
 import com.kiwihirecoach.backend.repository.UserRepository;
+import com.kiwihirecoach.backend.repository.EvidenceItemRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -39,6 +42,9 @@ class JobApplicationIntegrationTest {
 
     @Autowired
     private JobApplicationRepository jobApplicationRepository;
+
+    @Autowired
+    private EvidenceItemRepository evidenceItemRepository;
 
     private User testUser;
 @Autowired
@@ -224,5 +230,48 @@ mockMvc.perform(get("/api/applications")
         ).header("Authorization", authHeader))
         .andExpect(status().isNotFound())
                 .andExpect(content().string("Application not found"));
+    }
+
+    @Test
+    void applicationPackSavesDecisionAndOwnedEvidence() throws Exception {
+        JobApplication application = jobApplicationRepository.save(
+                new JobApplication(
+                        "Xero", "Graduate Developer", "Auckland", "Saved",
+                        "Java and React role", LocalDate.of(2026, 10, 1), testUser
+                )
+        );
+        EvidenceItem evidence = evidenceItemRepository.save(
+                new EvidenceItem(
+                        testUser,
+                        "KiwiHire API",
+                        "Built a job coaching platform",
+                        "Designed secured REST endpoints",
+                        "Delivered tested CRUD workflows",
+                        "Java, Spring Boot"
+                )
+        );
+
+        mockMvc.perform(patch("/api/applications/{id}/decision", application.getId())
+                        .header("Authorization", authHeader)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "decision": "Pursue",
+                                  "decisionReason": "Strong graduate fit",
+                                  "strongestFit": "Java API experience",
+                                  "mainConcern": "Commercial experience"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.decision").value("Pursue"))
+                .andExpect(jsonPath("$.strongestFit")
+                        .value("Java API experience"));
+
+        mockMvc.perform(patch("/api/applications/{id}/evidence", application.getId())
+                        .header("Authorization", authHeader)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"evidenceItemIds\":[%d]}".formatted(evidence.getId())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.evidenceItemIds[0]").value(evidence.getId()));
     }
 }

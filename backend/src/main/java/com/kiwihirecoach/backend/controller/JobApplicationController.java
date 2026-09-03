@@ -3,6 +3,8 @@ package com.kiwihirecoach.backend.controller;
 import com.kiwihirecoach.backend.dto.CreateJobApplicationRequest;
 import com.kiwihirecoach.backend.dto.JobApplicationResponse;
 import com.kiwihirecoach.backend.dto.UpdateJobApplicationRequest;
+import com.kiwihirecoach.backend.dto.UpdateApplicationDecisionRequest;
+import com.kiwihirecoach.backend.dto.UpdateApplicationEvidenceRequest;
 import com.kiwihirecoach.backend.service.JobApplicationService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -90,6 +92,28 @@ public class JobApplicationController {
                 id,
                 archived,
                 currentUserId(authentication)
+        );
+    }
+
+    @PatchMapping("/{id}/decision")
+    public JobApplicationResponse updateDecision(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateApplicationDecisionRequest request,
+            Authentication authentication
+    ) {
+        return jobApplicationService.updateDecision(
+                id, request, currentUserId(authentication)
+        );
+    }
+
+    @PatchMapping("/{id}/evidence")
+    public JobApplicationResponse updateEvidence(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateApplicationEvidenceRequest request,
+            Authentication authentication
+    ) {
+        return jobApplicationService.updateEvidence(
+                id, request, currentUserId(authentication)
         );
     }
 

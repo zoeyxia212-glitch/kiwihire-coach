@@ -32,5 +32,10 @@ export type Application = {
   graduateFriendly: boolean | null;
   sponsorshipAvailable: boolean | null;
   industry: string | null;
+  decision: "Pursue" | "Maybe" | "Skip" | null;
+  decisionReason: string | null;
+  strongestFit: string | null;
+  mainConcern: string | null;
+  evidenceItemIds: number[];
   archived: boolean;
 };

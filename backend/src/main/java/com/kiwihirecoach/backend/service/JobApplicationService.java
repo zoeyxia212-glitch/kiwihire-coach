@@ -3,6 +3,9 @@ package com.kiwihirecoach.backend.service;
 import com.kiwihirecoach.backend.dto.CreateJobApplicationRequest;
 import com.kiwihirecoach.backend.dto.JobApplicationResponse;
 import com.kiwihirecoach.backend.dto.UpdateJobApplicationRequest;
+import com.kiwihirecoach.backend.dto.UpdateApplicationDecisionRequest;
+import com.kiwihirecoach.backend.dto.UpdateApplicationEvidenceRequest;
+import com.kiwihirecoach.backend.entity.EvidenceItem;
 import com.kiwihirecoach.backend.entity.JobApplication;
 import com.kiwihirecoach.backend.entity.User;
 import com.kiwihirecoach.backend.exception.ResourceNotFoundException;
@@ -10,10 +13,12 @@ import com.kiwihirecoach.backend.repository.ApplicationEventRepository;
 import com.kiwihirecoach.backend.repository.JobApplicationRepository;
 import com.kiwihirecoach.backend.repository.ResumeReviewRepository;
 import com.kiwihirecoach.backend.repository.UserRepository;
+import com.kiwihirecoach.backend.repository.EvidenceItemRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.LinkedHashSet;
 
 @Service
 public class JobApplicationService {
@@ -21,17 +26,20 @@ public class JobApplicationService {
     private final UserRepository userRepository;
     private final ApplicationEventRepository applicationEventRepository;
     private final ResumeReviewRepository resumeReviewRepository;
+    private final EvidenceItemRepository evidenceItemRepository;
 
     public JobApplicationService(
             JobApplicationRepository jobApplicationRepository,
             UserRepository userRepository,
             ApplicationEventRepository applicationEventRepository,
-            ResumeReviewRepository resumeReviewRepository
+            ResumeReviewRepository resumeReviewRepository,
+            EvidenceItemRepository evidenceItemRepository
     ) {
         this.jobApplicationRepository = jobApplicationRepository;
         this.userRepository = userRepository;
         this.applicationEventRepository = applicationEventRepository;
         this.resumeReviewRepository = resumeReviewRepository;
+        this.evidenceItemRepository = evidenceItemRepository;
     }
 
     public List<JobApplicationResponse> getApplicationsForUser(Long userId) {
@@ -138,6 +146,40 @@ public class JobApplicationService {
         return toResponse(jobApplicationRepository.save(application));
     }
 
+    public JobApplicationResponse updateDecision(
+            Long id,
+            UpdateApplicationDecisionRequest request,
+            Long userId
+    ) {
+        JobApplication application = findOwnedApplication(id, userId);
+        application.updateDecision(
+                normalize(request.decision()),
+                normalize(request.decisionReason()),
+                normalize(request.strongestFit()),
+                normalize(request.mainConcern())
+        );
+        return toResponse(jobApplicationRepository.save(application));
+    }
+
+    @Transactional
+    public JobApplicationResponse updateEvidence(
+            Long id,
+            UpdateApplicationEvidenceRequest request,
+            Long userId
+    ) {
+        JobApplication application = findOwnedApplication(id, userId);
+        LinkedHashSet<EvidenceItem> selectedItems = new LinkedHashSet<>();
+        request.evidenceItemIds().stream().distinct().forEach(itemId ->
+                selectedItems.add(evidenceItemRepository
+                        .findByIdAndUserId(itemId, userId)
+                        .orElseThrow(() -> new ResourceNotFoundException(
+                                "Evidence item not found"
+                        )))
+        );
+        application.replaceEvidenceItems(selectedItems);
+        return toResponse(jobApplicationRepository.save(application));
+    }
+
     @Transactional
     public void deleteApplication(Long id, Long userId) {
         JobApplication application = jobApplicationRepository
@@ -150,7 +192,7 @@ public class JobApplicationService {
     }
 
     private JobApplicationResponse toResponse(JobApplication application) {
-        return new JobApplicationResponse(
+        JobApplicationResponse response = new JobApplicationResponse(
                 application.getId(),
                 application.getCompany(),
                 application.getRoleTitle(),
@@ -174,6 +216,23 @@ public class JobApplicationService {
                 application.getIndustry(),
                 application.isArchived()
         );
+        response.addApplicationPack(
+                application.getDecision(),
+                application.getDecisionReason(),
+                application.getStrongestFit(),
+                application.getMainConcern(),
+                application.getEvidenceItems().stream()
+                        .map(EvidenceItem::getId)
+                        .toList()
+        );
+        return response;
+    }
+
+    private JobApplication findOwnedApplication(Long id, Long userId) {
+        return jobApplicationRepository.findByIdAndUserId(id, userId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Application not found"
+                ));
     }
 
     private String normalize(String value) {

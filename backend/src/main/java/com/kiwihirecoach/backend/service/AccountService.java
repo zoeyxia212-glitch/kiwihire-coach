@@ -5,6 +5,7 @@ import com.kiwihirecoach.backend.entity.User;
 import com.kiwihirecoach.backend.exception.ResourceNotFoundException;
 import com.kiwihirecoach.backend.repository.ApplicationEventRepository;
 import com.kiwihirecoach.backend.repository.CandidateProfileRepository;
+import com.kiwihirecoach.backend.repository.EvidenceItemRepository;
 import com.kiwihirecoach.backend.repository.JobApplicationRepository;
 import com.kiwihirecoach.backend.repository.LearningGoalRepository;
 import com.kiwihirecoach.backend.repository.ProductFeedbackRepository;
@@ -21,6 +22,7 @@ public class AccountService {
     private final PasswordEncoder passwordEncoder;
     private final ApplicationEventRepository applicationEventRepository;
     private final CandidateProfileRepository candidateProfileRepository;
+    private final EvidenceItemRepository evidenceItemRepository;
     private final JobApplicationRepository jobApplicationRepository;
     private final LearningGoalRepository learningGoalRepository;
     private final ProductFeedbackRepository productFeedbackRepository;
@@ -32,6 +34,7 @@ public class AccountService {
             PasswordEncoder passwordEncoder,
             ApplicationEventRepository applicationEventRepository,
             CandidateProfileRepository candidateProfileRepository,
+            EvidenceItemRepository evidenceItemRepository,
             JobApplicationRepository jobApplicationRepository,
             LearningGoalRepository learningGoalRepository,
             ProductFeedbackRepository productFeedbackRepository,
@@ -42,6 +45,7 @@ public class AccountService {
         this.passwordEncoder = passwordEncoder;
         this.applicationEventRepository = applicationEventRepository;
         this.candidateProfileRepository = candidateProfileRepository;
+        this.evidenceItemRepository = evidenceItemRepository;
         this.jobApplicationRepository = jobApplicationRepository;
         this.learningGoalRepository = learningGoalRepository;
         this.productFeedbackRepository = productFeedbackRepository;
@@ -90,6 +94,7 @@ public class AccountService {
         candidateProfileRepository.deleteByUserId(userId);
         applicationEventRepository.deleteByApplicationUserId(userId);
         jobApplicationRepository.deleteByUserId(userId);
+        evidenceItemRepository.deleteByUserId(userId);
         resumeRepository.deleteByUserId(userId);
         userRepository.delete(user);
     }

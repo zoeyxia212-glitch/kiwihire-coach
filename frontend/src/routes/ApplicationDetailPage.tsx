@@ -5,10 +5,14 @@ import ApplicationTimeline from "../components/ApplicationTimeline";
 import ResourceNotFoundState from "../components/ResourceNotFoundState";
 import type { Application } from "../types/application";
 import type { ResumeReview } from "../types/resumeReview";
+import type { EvidenceItem } from "../types/evidenceItem";
 import {
   deleteApplication,
   getApplicationById,
   getResumeReviews,
+  getEvidenceItems,
+  updateApplicationDecision,
+  updateApplicationEvidence,
   updateApplicationArchived,
   ResourceNotFoundError,
 } from "../utils/api";
@@ -32,6 +36,15 @@ export default function ApplicationDetailPage() {
   const [reviewError, setReviewError] = useState("");
   const [isUpdatingArchive, setIsUpdatingArchive] =
     useState(false);
+  const [evidenceItems, setEvidenceItems] = useState<EvidenceItem[]>([]);
+  const [selectedEvidenceIds, setSelectedEvidenceIds] = useState<number[]>([]);
+  const [decision, setDecision] = useState<"Pursue" | "Maybe" | "Skip">("Pursue");
+  const [decisionReason, setDecisionReason] = useState("");
+  const [strongestFit, setStrongestFit] = useState("");
+  const [mainConcern, setMainConcern] = useState("");
+  const [packMessage, setPackMessage] = useState("");
+  const [isSavingDecision, setIsSavingDecision] = useState(false);
+  const [isSavingEvidence, setIsSavingEvidence] = useState(false);
 
   useEffect(() => {
     async function fetchApplication() {
@@ -43,6 +56,11 @@ export default function ApplicationDetailPage() {
       try {
         const data = await getApplicationById(id);
         setApplication(data);
+        setDecision(data.decision || "Pursue");
+        setDecisionReason(data.decisionReason || "");
+        setStrongestFit(data.strongestFit || "");
+        setMainConcern(data.mainConcern || "");
+        setSelectedEvidenceIds(data.evidenceItemIds || []);
       } catch (error) {
         if (error instanceof ResourceNotFoundError) {
           setIsNotFound(true);
@@ -78,6 +96,12 @@ export default function ApplicationDetailPage() {
 
     fetchRelatedReviews();
   }, [id]);
+
+  useEffect(() => {
+    getEvidenceItems()
+      .then(setEvidenceItems)
+      .catch(() => setPackMessage("Evidence Bank could not be loaded."));
+  }, []);
 
   if (isNotFound) {
     return (
@@ -134,6 +158,42 @@ export default function ApplicationDetailPage() {
       setErrorMessage("Failed to update the application archive.");
     } finally {
       setIsUpdatingArchive(false);
+    }
+  }
+
+  async function handleDecisionSave(event: React.FormEvent) {
+    event.preventDefault();
+    if (!application) return;
+    setIsSavingDecision(true);
+    setPackMessage("");
+    try {
+      setApplication(await updateApplicationDecision(application.id, {
+        decision,
+        decisionReason,
+        strongestFit,
+        mainConcern,
+      }));
+      setPackMessage("Decision saved to this application pack.");
+    } catch {
+      setPackMessage("The decision could not be saved.");
+    } finally {
+      setIsSavingDecision(false);
+    }
+  }
+
+  async function handleEvidenceSave() {
+    if (!application) return;
+    setIsSavingEvidence(true);
+    setPackMessage("");
+    try {
+      setApplication(
+        await updateApplicationEvidence(application.id, selectedEvidenceIds),
+      );
+      setPackMessage("Evidence selection saved.");
+    } catch {
+      setPackMessage("The evidence selection could not be saved.");
+    } finally {
+      setIsSavingEvidence(false);
     }
   }
   if (!application) {
@@ -275,6 +335,95 @@ export default function ApplicationDetailPage() {
           </div>
         </div>
       </div>
+
+      <section className="detail-section application-pack">
+        <div className="panel">
+          <div className="panel-inner">
+            <p className="eyebrow">Application pack</p>
+            <h2>Keep every decision and preparation asset together</h2>
+            <p className="muted">
+              Record why this role is worth your time, then attach reusable
+              evidence before tailoring your CV and interview answers.
+            </p>
+
+            <div className="pack-summary">
+              <span><strong>Decision</strong>{application.decision || "Not decided"}</span>
+              <span><strong>Evidence</strong>{application.evidenceItemIds.length} selected</span>
+              <span><strong>CV reviews</strong>{relatedReviews.length} saved</span>
+              <span><strong>Timeline</strong>{application.status}</span>
+            </div>
+
+            {packMessage && <p className="muted" role="status">{packMessage}</p>}
+
+            <div className="grid two pack-editors">
+              <form onSubmit={handleDecisionSave}>
+                <h3>1. Decide whether to pursue</h3>
+                <label>
+                  Decision
+                  <select
+                    value={decision}
+                    onChange={(event) => setDecision(event.target.value as typeof decision)}
+                    disabled={application.archived}
+                  >
+                    <option value="Pursue">Pursue</option>
+                    <option value="Maybe">Maybe</option>
+                    <option value="Skip">Skip</option>
+                  </select>
+                </label>
+                <label>
+                  Why this decision?
+                  <textarea value={decisionReason} onChange={(event) => setDecisionReason(event.target.value)} maxLength={2000} />
+                </label>
+                <label>
+                  Strongest fit
+                  <textarea value={strongestFit} onChange={(event) => setStrongestFit(event.target.value)} maxLength={2000} />
+                </label>
+                <label>
+                  Main concern or gap
+                  <textarea value={mainConcern} onChange={(event) => setMainConcern(event.target.value)} maxLength={2000} />
+                </label>
+                <button className="button primary" disabled={application.archived || isSavingDecision}>
+                  {isSavingDecision ? "Saving..." : "Save decision"}
+                </button>
+              </form>
+
+              <div>
+                <h3>2. Select evidence for this role</h3>
+                <p className="muted">Choose achievements that prove the JD requirements.</p>
+                {evidenceItems.length === 0 ? (
+                  <p className="muted">No evidence yet. <Link to="/profile">Add evidence in your profile</Link>.</p>
+                ) : (
+                  <div className="evidence-picker">
+                    {evidenceItems.map((item) => (
+                      <label className="evidence-choice" key={item.id}>
+                        <input
+                          type="checkbox"
+                          checked={selectedEvidenceIds.includes(item.id)}
+                          disabled={application.archived}
+                          onChange={() => setSelectedEvidenceIds((current) =>
+                            current.includes(item.id)
+                              ? current.filter((id) => id !== item.id)
+                              : [...current, item.id]
+                          )}
+                        />
+                        <span><strong>{item.title}</strong><small>{item.skills || item.result}</small></span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+                <button
+                  className="button"
+                  type="button"
+                  disabled={application.archived || isSavingEvidence || evidenceItems.length === 0}
+                  onClick={handleEvidenceSave}
+                >
+                  {isSavingEvidence ? "Saving..." : "Save selected evidence"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section className="detail-section">
         <div className="panel">

@@ -2,6 +2,7 @@ package com.kiwihirecoach.backend.dto;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class JobApplicationResponse {
     private Long id;
@@ -25,6 +26,11 @@ public class JobApplicationResponse {
     private Boolean graduateFriendly;
     private Boolean sponsorshipAvailable;
     private String industry;
+    private String decision;
+    private String decisionReason;
+    private String strongestFit;
+    private String mainConcern;
+    private List<Long> evidenceItemIds = List.of();
     private boolean archived;
 
     public JobApplicationResponse(
@@ -242,5 +248,25 @@ public JobApplicationResponse(
 
     public boolean isArchived() {
         return archived;
+    }
+
+    public String getDecision() { return decision; }
+    public String getDecisionReason() { return decisionReason; }
+    public String getStrongestFit() { return strongestFit; }
+    public String getMainConcern() { return mainConcern; }
+    public List<Long> getEvidenceItemIds() { return evidenceItemIds; }
+
+    public void addApplicationPack(
+            String decision,
+            String decisionReason,
+            String strongestFit,
+            String mainConcern,
+            List<Long> evidenceItemIds
+    ) {
+        this.decision = decision;
+        this.decisionReason = decisionReason;
+        this.strongestFit = strongestFit;
+        this.mainConcern = mainConcern;
+        this.evidenceItemIds = List.copyOf(evidenceItemIds);
     }
 }

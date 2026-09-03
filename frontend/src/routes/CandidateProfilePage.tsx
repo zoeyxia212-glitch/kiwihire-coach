@@ -1,8 +1,24 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { getCandidateProfile, saveCandidateProfile } from "../utils/api";
+import {
+  createEvidenceItem,
+  deleteEvidenceItem,
+  getCandidateProfile,
+  getEvidenceItems,
+  saveCandidateProfile,
+  updateEvidenceItem,
+} from "../utils/api";
 import { getCandidateProfileProgress } from "../utils/candidateProfileProgress";
 import type { CandidateProfile } from "../types/candidateProfile";
+import type { EvidenceItem } from "../types/evidenceItem";
+
+const emptyEvidenceForm = {
+  title: "",
+  context: "",
+  action: "",
+  result: "",
+  skills: "",
+};
 
 export default function CandidateProfilePage() {
   const [targetRoles, setTargetRoles] = useState("");
@@ -16,11 +32,19 @@ export default function CandidateProfilePage() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [evidenceItems, setEvidenceItems] = useState<EvidenceItem[]>([]);
+  const [evidenceForm, setEvidenceForm] = useState(emptyEvidenceForm);
+  const [editingEvidenceId, setEditingEvidenceId] = useState<number | null>(null);
+  const [isSavingEvidence, setIsSavingEvidence] = useState(false);
+  const [evidenceMessage, setEvidenceMessage] = useState("");
 
   useEffect(() => {
     async function loadProfile() {
       try {
-        const profile = await getCandidateProfile();
+        const [profile, items] = await Promise.all([
+          getCandidateProfile(),
+          getEvidenceItems(),
+        ]);
         setTargetRoles(profile.targetRoles);
         setWorkRights(profile.workRights);
         setPreferredLocations(profile.preferredLocations);
@@ -28,6 +52,7 @@ export default function CandidateProfilePage() {
         setTechnicalSkills(profile.technicalSkills);
         setExperienceSummary(profile.experienceSummary);
         setStarExamples(profile.starExamples);
+        setEvidenceItems(items);
       } catch {
         setError("Your candidate profile could not be loaded.");
       } finally {
@@ -59,6 +84,72 @@ export default function CandidateProfilePage() {
       setError("Your candidate profile could not be saved.");
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  function updateEvidenceField(
+    field: keyof typeof emptyEvidenceForm,
+    value: string,
+  ) {
+    setEvidenceForm((current) => ({ ...current, [field]: value }));
+  }
+
+  function startEditingEvidence(item: EvidenceItem) {
+    setEditingEvidenceId(item.id);
+    setEvidenceForm({
+      title: item.title,
+      context: item.context,
+      action: item.action,
+      result: item.result,
+      skills: item.skills,
+    });
+    setEvidenceMessage("");
+  }
+
+  function resetEvidenceForm() {
+    setEditingEvidenceId(null);
+    setEvidenceForm(emptyEvidenceForm);
+  }
+
+  async function handleEvidenceSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsSavingEvidence(true);
+    setEvidenceMessage("");
+
+    try {
+      const savedItem = editingEvidenceId
+        ? await updateEvidenceItem(editingEvidenceId, evidenceForm)
+        : await createEvidenceItem(evidenceForm);
+      setEvidenceItems((current) => [
+        savedItem,
+        ...current.filter((item) => item.id !== savedItem.id),
+      ]);
+      resetEvidenceForm();
+      setEvidenceMessage(
+        editingEvidenceId ? "Evidence updated." : "Evidence added.",
+      );
+    } catch {
+      setEvidenceMessage("Evidence could not be saved.");
+    } finally {
+      setIsSavingEvidence(false);
+    }
+  }
+
+  async function handleDeleteEvidence(itemId: number) {
+    if (!window.confirm("Delete this evidence item?")) {
+      return;
+    }
+    try {
+      await deleteEvidenceItem(itemId);
+      setEvidenceItems((current) =>
+        current.filter((item) => item.id !== itemId),
+      );
+      if (editingEvidenceId === itemId) {
+        resetEvidenceForm();
+      }
+      setEvidenceMessage("Evidence deleted.");
+    } catch {
+      setEvidenceMessage("Evidence could not be deleted.");
     }
   }
 
@@ -120,6 +211,108 @@ export default function CandidateProfilePage() {
           </p>
         </div>
       </div>
+
+      <section className="evidence-library" aria-labelledby="evidence-heading">
+        <div className="dashboard-section-heading">
+          <div>
+            <p className="eyebrow">Reusable proof</p>
+            <h2 id="evidence-heading">Evidence bank</h2>
+          </div>
+          <p>
+            Store real examples once, then reuse them when tailoring a CV
+            or preparing an interview answer.
+          </p>
+        </div>
+
+        <div className="grid two evidence-layout">
+          <form className="panel" onSubmit={handleEvidenceSubmit}>
+            <div className="panel-inner form-grid">
+              <div>
+                <p className="eyebrow">
+                  {editingEvidenceId ? "Edit evidence" : "Add evidence"}
+                </p>
+                <h3>{editingEvidenceId ? "Improve this example" : "Capture a real example"}</h3>
+              </div>
+              <div className="field">
+                <label htmlFor="evidence-title">Short title</label>
+                <input id="evidence-title" required maxLength={160}
+                  value={evidenceForm.title}
+                  placeholder="Fixed a frontend-to-backend API failure"
+                  onChange={(event) => updateEvidenceField("title", event.target.value)} />
+              </div>
+              <div className="field">
+                <label htmlFor="evidence-context">Situation and task</label>
+                <textarea id="evidence-context" required maxLength={1000}
+                  value={evidenceForm.context}
+                  placeholder="What was happening, and what did you need to achieve?"
+                  onChange={(event) => updateEvidenceField("context", event.target.value)} />
+              </div>
+              <div className="field">
+                <label htmlFor="evidence-action">Your action</label>
+                <textarea id="evidence-action" required maxLength={3000}
+                  value={evidenceForm.action}
+                  placeholder="Explain what you personally investigated, decided, and changed."
+                  onChange={(event) => updateEvidenceField("action", event.target.value)} />
+              </div>
+              <div className="field">
+                <label htmlFor="evidence-result">Result</label>
+                <textarea id="evidence-result" required maxLength={2000}
+                  value={evidenceForm.result}
+                  placeholder="What improved? Add a number or observable outcome when possible."
+                  onChange={(event) => updateEvidenceField("result", event.target.value)} />
+              </div>
+              <div className="field">
+                <label htmlFor="evidence-skills">Skills demonstrated</label>
+                <input id="evidence-skills" required maxLength={1000}
+                  value={evidenceForm.skills}
+                  placeholder="Java, REST API, debugging, communication"
+                  onChange={(event) => updateEvidenceField("skills", event.target.value)} />
+              </div>
+              <div className="form-actions">
+                <button className="button primary" type="submit" disabled={isSavingEvidence}>
+                  {isSavingEvidence ? "Saving..." : editingEvidenceId ? "Update evidence" : "Add evidence"}
+                </button>
+                {editingEvidenceId && (
+                  <button className="button" type="button" onClick={resetEvidenceForm}>Cancel</button>
+                )}
+              </div>
+              {evidenceMessage && <p className="muted" role="status">{evidenceMessage}</p>}
+            </div>
+          </form>
+
+          <div className="evidence-list">
+            {evidenceItems.length === 0 ? (
+              <div className="panel"><div className="panel-inner">
+                <p className="eyebrow">No evidence yet</p>
+                <h3>Start with one project problem you solved.</h3>
+                <p className="muted">A strong example explains your decision and its result, not only the technology used.</p>
+              </div></div>
+            ) : evidenceItems.map((item) => (
+              <article className="panel evidence-card" key={item.id}>
+                <div className="panel-inner">
+                  <div className="evidence-card-heading">
+                    <div><p className="eyebrow">Evidence</p><h3>{item.title}</h3></div>
+                    <div className="form-actions">
+                      <button className="button small" type="button" onClick={() => startEditingEvidence(item)}>Edit</button>
+                      <button className="button small danger" type="button" onClick={() => handleDeleteEvidence(item.id)}>Delete</button>
+                    </div>
+                  </div>
+                  <dl className="evidence-details">
+                    <div><dt>Situation and task</dt><dd>{item.context}</dd></div>
+                    <div><dt>Your action</dt><dd>{item.action}</dd></div>
+                    <div><dt>Result</dt><dd>{item.result}</dd></div>
+                  </dl>
+                  <div className="keyword-pills">
+                    {item.skills.split(",").map((skill) => skill.trim()).filter(Boolean).map((skill) => (
+                      <span className="pill" key={skill}>{skill}</span>
+                    ))}
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <form className="panel" onSubmit={handleSubmit}>
         <div className="panel-inner form-grid">

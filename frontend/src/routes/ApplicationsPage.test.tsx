@@ -60,7 +60,12 @@ describe("ApplicationsPage", () => {
         graduateFriendly: true,
         sponsorshipAvailable: false,
         industry: "Technology",
-        archived: false,
+      archived: false,
+      decision: null,
+      decisionReason: null,
+      strongestFit: null,
+      mainConcern: null,
+      evidenceItemIds: [],
       },
     ]);
 
@@ -125,7 +130,12 @@ describe("ApplicationsPage", () => {
         graduateFriendly: true,
         sponsorshipAvailable: false,
         industry: "Technology",
-        archived: false,
+      archived: false,
+      decision: null,
+      decisionReason: null,
+      strongestFit: null,
+      mainConcern: null,
+      evidenceItemIds: [],
       },
     ]);
 

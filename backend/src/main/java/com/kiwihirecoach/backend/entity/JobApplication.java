@@ -5,11 +5,16 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Column;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "applications")
@@ -34,13 +39,28 @@ public class JobApplication {
     private Boolean graduateFriendly;
     private Boolean sponsorshipAvailable;
     private String industry;
-@Column(nullable = false, columnDefinition = "boolean default false")
-private boolean archived;
+    private String decision;
+    @Lob
+    private String decisionReason;
+    @Lob
+    private String strongestFit;
+    @Lob
+    private String mainConcern;
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean archived;
     @Lob
     private String jobDescription;
 
     @ManyToOne
     private User user;
+
+    @ManyToMany
+    @JoinTable(
+            name = "application_evidence",
+            joinColumns = @JoinColumn(name = "application_id"),
+            inverseJoinColumns = @JoinColumn(name = "evidence_item_id")
+    )
+    private Set<EvidenceItem> evidenceItems = new LinkedHashSet<>();
 
     public JobApplication() {
     }
@@ -183,6 +203,29 @@ private boolean archived;
 
     public String getIndustry() {
         return industry;
+    }
+
+    public String getDecision() { return decision; }
+    public String getDecisionReason() { return decisionReason; }
+    public String getStrongestFit() { return strongestFit; }
+    public String getMainConcern() { return mainConcern; }
+    public Set<EvidenceItem> getEvidenceItems() { return evidenceItems; }
+
+    public void updateDecision(
+            String decision,
+            String decisionReason,
+            String strongestFit,
+            String mainConcern
+    ) {
+        this.decision = decision;
+        this.decisionReason = decisionReason;
+        this.strongestFit = strongestFit;
+        this.mainConcern = mainConcern;
+    }
+
+    public void replaceEvidenceItems(Set<EvidenceItem> evidenceItems) {
+        this.evidenceItems.clear();
+        this.evidenceItems.addAll(evidenceItems);
     }
 
     public boolean isArchived() {

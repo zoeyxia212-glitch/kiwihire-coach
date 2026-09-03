@@ -11,6 +11,10 @@ import type {
   SaveCandidateProfileRequest,
 } from "../types/candidateProfile";
 import type {
+  EvidenceItem,
+  SaveEvidenceItemRequest,
+} from "../types/evidenceItem";
+import type {
   CreateLearningGoalRequest,
   LearningGoal,
   LearningGoalStatus,
@@ -387,6 +391,51 @@ export async function updateApplicationArchived(
   return response.json();
 }
 
+export async function updateApplicationDecision(
+  id: number,
+  request: {
+    decision: "Pursue" | "Maybe" | "Skip";
+    decisionReason: string;
+    strongestFit: string;
+    mainConcern: string;
+  },
+): Promise<Application> {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/applications/${id}/decision`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to save application decision.");
+  }
+
+  return response.json();
+}
+
+export async function updateApplicationEvidence(
+  id: number,
+  evidenceItemIds: number[],
+): Promise<Application> {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/applications/${id}/evidence`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ evidenceItemIds }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to save application evidence.");
+  }
+
+  return response.json();
+}
+
 export async function deleteApplication(
   id: string,
 ): Promise<void> {
@@ -566,6 +615,68 @@ export async function saveCandidateProfile(
   }
 
   return response.json();
+}
+
+export async function getEvidenceItems(): Promise<EvidenceItem[]> {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/evidence`,
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to load evidence library.");
+  }
+
+  return response.json();
+}
+
+export async function createEvidenceItem(
+  request: SaveEvidenceItemRequest,
+): Promise<EvidenceItem> {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/evidence`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to save evidence item.");
+  }
+
+  return response.json();
+}
+
+export async function updateEvidenceItem(
+  itemId: number,
+  request: SaveEvidenceItemRequest,
+): Promise<EvidenceItem> {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/evidence/${itemId}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to update evidence item.");
+  }
+
+  return response.json();
+}
+
+export async function deleteEvidenceItem(itemId: number): Promise<void> {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/evidence/${itemId}`,
+    { method: "DELETE" },
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to delete evidence item.");
+  }
 }
 
 export async function getLearningGoals(): Promise<LearningGoal[]> {

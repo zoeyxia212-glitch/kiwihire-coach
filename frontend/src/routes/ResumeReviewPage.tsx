@@ -4,6 +4,7 @@ import { Link, useSearchParams } from "react-router";
 import ReviewResultDisplay from "../components/ReviewResultDisplay";
 import type { Application } from "../types/application";
 import type { CandidateProfile } from "../types/candidateProfile";
+import type { EvidenceItem } from "../types/evidenceItem";
 import type { InterviewQuestion } from "../types/interview";
 import type { Resume } from "../types/resume";
 import type { ResumeReview } from "../types/resumeReview";
@@ -12,6 +13,7 @@ import {
   createResumeReview,
   getApplications,
   getCandidateProfile,
+  getEvidenceItems,
   getResumes,
   getResumeReviews,
 } from "../utils/api";
@@ -32,6 +34,7 @@ export default function ResumeReviewPage() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [candidateProfile, setCandidateProfile] =
     useState<CandidateProfile | null>(null);
+  const [evidenceItems, setEvidenceItems] = useState<EvidenceItem[]>([]);
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [applicationId, setApplicationId] = useState("");
   const [resumeId, setResumeId] = useState("");
@@ -58,12 +61,14 @@ export default function ResumeReviewPage() {
           loadedResumes,
           loadedReviews,
           loadedProfile,
+          loadedEvidence,
         ] =
           await Promise.all([
             getApplications(),
             getResumes(),
             getResumeReviews(),
             getCandidateProfile(),
+            getEvidenceItems(),
           ]);
 
         const activeApplications = loadedApplications.filter(
@@ -73,6 +78,7 @@ export default function ResumeReviewPage() {
         setResumes(loadedResumes);
         setReviews(loadedReviews);
         setCandidateProfile(loadedProfile);
+        setEvidenceItems(loadedEvidence);
 
         const selectedApplication =
           activeApplications.find(
@@ -137,7 +143,10 @@ export default function ResumeReviewPage() {
       return;
     }
 
-    const candidateContext = buildCandidateContext(candidateProfile);
+    const candidateContext = buildCandidateContext(
+      candidateProfile,
+      evidenceItems,
+    );
 
     setAnalysis(
       analyzeResume(
@@ -251,18 +260,20 @@ export default function ResumeReviewPage() {
           <div>
             <p className="eyebrow">Candidate context</p>
             <h2>
-              {hasCandidateContext(candidateProfile)
-                ? "Candidate Profile will support this review"
-                : "Add your Candidate Profile for better context"}
+              {evidenceItems.length > 0
+                ? `${evidenceItems.length} evidence ${evidenceItems.length === 1 ? "example" : "examples"} will support this review`
+                : hasCandidateContext(candidateProfile)
+                  ? "Candidate Profile will support this review"
+                  : "Add your Candidate Profile for better context"}
             </h2>
             <p className="muted">
-              Profile skills count only as transferable context until
-              your resume contains clear supporting evidence.
+              Profile and evidence-bank skills count as transferable
+              context until your resume contains clear supporting proof.
             </p>
           </div>
           <Link className="button" to="/profile">
-            {hasCandidateContext(candidateProfile)
-              ? "Update profile"
+            {hasCandidateContext(candidateProfile, evidenceItems)
+              ? "Update evidence"
               : "Create profile"}
           </Link>
         </div>
@@ -351,7 +362,10 @@ export default function ResumeReviewPage() {
               <ReviewResultDisplay
                 analysis={analysis}
                 questions={questions}
-                starExamples={candidateProfile?.starExamples}
+                starExamples={buildEvidenceExamples(
+                  candidateProfile,
+                  evidenceItems,
+                )}
                 jobDescription={jobDescription}
               />
             </>
@@ -518,26 +532,46 @@ function formatReviewDate(value: string) {
   }).format(new Date(value));
 }
 
-function buildCandidateContext(profile: CandidateProfile | null) {
-  if (!profile) {
-    return "";
-  }
-
+function buildCandidateContext(
+  profile: CandidateProfile | null,
+  evidenceItems: EvidenceItem[] = [],
+) {
   return [
-    profile.targetRoles,
-    profile.workRights,
-    profile.preferredLocations,
-    profile.careerStage,
-    profile.technicalSkills,
-    profile.experienceSummary,
-    profile.starExamples,
+    profile?.targetRoles,
+    profile?.workRights,
+    profile?.preferredLocations,
+    profile?.careerStage,
+    profile?.technicalSkills,
+    profile?.experienceSummary,
+    buildEvidenceExamples(profile, evidenceItems),
   ]
     .filter(Boolean)
     .join("\n");
 }
 
-function hasCandidateContext(profile: CandidateProfile | null) {
-  return Boolean(buildCandidateContext(profile).trim());
+function hasCandidateContext(
+  profile: CandidateProfile | null,
+  evidenceItems: EvidenceItem[] = [],
+) {
+  return Boolean(buildCandidateContext(profile, evidenceItems).trim());
+}
+
+function buildEvidenceExamples(
+  profile: CandidateProfile | null,
+  evidenceItems: EvidenceItem[],
+) {
+  return [
+    profile?.starExamples,
+    ...evidenceItems.map((item) => [
+      item.title,
+      `Situation and task: ${item.context}`,
+      `Action: ${item.action}`,
+      `Result: ${item.result}`,
+      `Skills: ${item.skills}`,
+    ].join("\n")),
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 }
 
 function calculateScoreChange(

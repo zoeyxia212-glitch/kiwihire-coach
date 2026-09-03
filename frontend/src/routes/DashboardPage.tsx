@@ -25,6 +25,10 @@ import {
 } from "../utils/browserNotifications";
 import { getCandidateProfileProgress } from "../utils/candidateProfileProgress";
 import { downloadReminderCalendar } from "../utils/reminderCalendar";
+import candidateOne from "../assets/kiwihire-hero-candidate.png";
+import candidateTwo from "../assets/kiwihire-hero-candidate-pasifika.png";
+import candidateThree from "../assets/kiwihire-hero-candidate-asian.png";
+import candidateFour from "../assets/kiwihire-hero-candidate-black.png";
 
 export default function DashboardPage() {
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
@@ -263,22 +267,135 @@ export default function DashboardPage() {
   const priorityLearningGoals = learningGoals
     .filter((goal) => goal.status !== "Completed")
     .slice(0, 3);
+  const profileIsReady = Boolean(
+    profileProgress && profileProgress.percentage === 100,
+  );
+  const hasApplications = applications.length > 0;
+  const hasReviews = reviews.length > 0;
+  const hasInterviewPreparation = totalInterviewQuestions > 0;
+  const nextStep = getNextStep({
+    profileIsReady,
+    hasApplications,
+    hasReviews,
+    overdue: dashboard.overdue,
+  });
+  const workflowSteps = [
+    {
+      number: "01",
+      label: "Build your evidence",
+      description: "Add the experience and skills you can defend in an interview.",
+      to: "/profile",
+      state: profileIsReady ? "Complete" : "Next",
+    },
+    {
+      number: "02",
+      label: "Choose a role",
+      description: "Save the job description, requirements and closing date.",
+      to: "/applications/new",
+      state: hasApplications ? "Complete" : profileIsReady ? "Next" : "Later",
+    },
+    {
+      number: "03",
+      label: "Review the match",
+      description: "Compare your CV evidence with the role before applying.",
+      to: "/review",
+      state: hasReviews ? "Complete" : hasApplications ? "Next" : "Later",
+    },
+    {
+      number: "04",
+      label: "Prepare your story",
+      description: "Practise likely questions using evidence from your own work.",
+      to: "/review",
+      state: hasInterviewPreparation ? "In progress" : hasReviews ? "Next" : "Later",
+    },
+    {
+      number: "05",
+      label: "Track the outcome",
+      description: "Record each stage, follow-up and decision in one timeline.",
+      to: "/applications",
+      state: hasApplications ? "In progress" : "Later",
+    },
+  ];
 
   return (
-    <section className="page">
-      <div className="page-header">
-        <div>
-          <p className="eyebrow">Your job search workspace</p>
-          <h1>What needs your attention?</h1>
-          <p className="muted">
-            Review today&apos;s follow-ups and keep each application moving.
+    <section className="page dashboard-page">
+      <div className="dashboard-hero">
+        <div className="dashboard-hero-copy">
+          <p className="eyebrow">Your focused job-search workspace</p>
+          <h1>Build a stronger case for the roles worth pursuing.</h1>
+          <p>
+            Keep the job brief, your real evidence, CV review, interview
+            preparation and follow-ups connected from start to finish.
           </p>
+          <div className="dashboard-hero-actions">
+            <Link className="button primary" to={nextStep.to}>
+              {nextStep.action}
+            </Link>
+            <Link className="button dashboard-secondary-action" to="/applications">
+              View application pipeline
+            </Link>
+          </div>
         </div>
-        <Link className="button primary" to="/applications/new">
-          New application
-        </Link>
+
+        <aside className="dashboard-character-stage" aria-label="Your current job search progress">
+          <img className="dashboard-candidate dashboard-candidate-one" src={candidateOne} alt="A diverse group of job seekers representing the KiwiHire community" />
+          <img className="dashboard-candidate dashboard-candidate-two" src={candidateTwo} alt="" />
+          <img className="dashboard-candidate dashboard-candidate-three" src={candidateThree} alt="" />
+          <img className="dashboard-candidate dashboard-candidate-four" src={candidateFour} alt="" />
+          <span className="dashboard-live-stat stat-applications">
+            <i /> {applications.length} active application{applications.length === 1 ? "" : "s"}
+          </span>
+          <span className="dashboard-live-stat stat-follow-ups">
+            <i /> {dashboard.dueToday + dashboard.overdue} follow-up{dashboard.dueToday + dashboard.overdue === 1 ? "" : "s"} need attention
+          </span>
+          <span className="dashboard-live-stat stat-interviews">
+            <i /> {readyInterviewAnswers} interview answer{readyInterviewAnswers === 1 ? "" : "s"} ready
+          </span>
+          <div className="dashboard-next-step">
+            <span>Recommended next step</span>
+            <strong>{nextStep.title}</strong>
+            <p>{nextStep.description}</p>
+          </div>
+        </aside>
       </div>
 
+      <div className="dashboard-workflow" aria-label="Job search workflow">
+        <div className="dashboard-section-heading">
+          <div>
+            <p className="eyebrow">One connected workflow</p>
+            <h2>Know what you are doing—and why.</h2>
+          </div>
+          <p>
+            Move from evidence to application without losing the context
+            you will need later in an interview.
+          </p>
+        </div>
+        <div className="workflow-step-list">
+          {workflowSteps.map((step) => (
+            <Link className="workflow-step" to={step.to} key={step.number}>
+              <div className="workflow-step-heading">
+                <span className="workflow-step-number">{step.number}</span>
+                <span className={`workflow-step-state workflow-state-${step.state.toLowerCase().replace(" ", "-")}`}>
+                  {step.state}
+                </span>
+              </div>
+              <strong>{step.label}</strong>
+              <p>{step.description}</p>
+              <span className="workflow-step-link">Open step →</span>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      <div className="dashboard-section-heading dashboard-overview-heading">
+        <div>
+          <p className="eyebrow">Search health</p>
+          <h2>What needs your attention?</h2>
+        </div>
+        <Link className="button" to="/applications/new">
+          Add a new role
+        </Link>
+      </div>
       <DashboardStats
         totalApplications={dashboard.totalApplications}
         interviewApplications={dashboard.interviewApplications}
@@ -812,6 +929,59 @@ export default function DashboardPage() {
       </div>
     </section>
   );
+}
+
+type NextStepInput = {
+  profileIsReady: boolean;
+  hasApplications: boolean;
+  hasReviews: boolean;
+  overdue: number;
+};
+
+function getNextStep({
+  profileIsReady,
+  hasApplications,
+  hasReviews,
+  overdue,
+}: NextStepInput) {
+  if (!profileIsReady) {
+    return {
+      title: "Complete your evidence profile",
+      description: "Better recommendations start with skills and examples that are genuinely yours.",
+      action: "Complete profile",
+      to: "/profile",
+    };
+  }
+  if (!hasApplications) {
+    return {
+      title: "Add your first target role",
+      description: "Save the job brief so every later decision stays tied to a real opportunity.",
+      action: "Add target role",
+      to: "/applications/new",
+    };
+  }
+  if (!hasReviews) {
+    return {
+      title: "Review your CV against a role",
+      description: "Find the strongest evidence, missing skills and interview risks before applying.",
+      action: "Start CV review",
+      to: "/review",
+    };
+  }
+  if (overdue > 0) {
+    return {
+      title: `Resolve ${overdue} overdue follow-up${overdue === 1 ? "" : "s"}`,
+      description: "Close the loop, postpone the action or record the latest application outcome.",
+      action: "Review follow-ups",
+      to: "/applications",
+    };
+  }
+  return {
+    title: "Keep your active applications moving",
+    description: "Review upcoming actions and prepare evidence for the next interview stage.",
+    action: "Open applications",
+    to: "/applications",
+  };
 }
 
 function formatReminderDate(value: string) {

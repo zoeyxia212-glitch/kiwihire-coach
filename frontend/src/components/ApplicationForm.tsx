@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { ApplicationStatus } from "../types/application";
 import { parseDocumentFile } from "../utils/documentFileParser";
+import { useUnsavedChangesWarning } from "../hooks/useUnsavedChangesWarning";
 
 export type ApplicationFormValues = {
   company: string;
@@ -80,7 +81,11 @@ export default function ApplicationForm({
   );
   const [errorMessage, setErrorMessage] = useState("");
   const [isParsingJobFile, setIsParsingJobFile] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [jobFileMessage, setJobFileMessage] = useState("");
+
+  useUnsavedChangesWarning(hasUnsavedChanges);
 
   async function handleJobFileChange(
     event: React.ChangeEvent<HTMLInputElement>,
@@ -108,6 +113,7 @@ export default function ApplicationForm({
     try {
       const parsedFile = await parseDocumentFile(file);
       setJobDescription(parsedFile.text);
+      setHasUnsavedChanges(true);
       setJobFileMessage(
         `Extracted ${parsedFile.text.length.toLocaleString()} characters from ${file.name}. Review the text before saving.`,
       );
@@ -166,18 +172,29 @@ export default function ApplicationForm({
       industry,
     };
 
+    setIsSubmitting(true);
+    setHasUnsavedChanges(false);
+
     try {
       await onSubmit(formValues);
     } catch (error) {
+      setHasUnsavedChanges(true);
       setErrorMessage(
         error instanceof Error
           ? error.message
           : "Failed to save application. Please try again.",
       );
+    } finally {
+      setIsSubmitting(false);
     }
   }
   return (
-    <form className="panel" onSubmit={handleSubmit}>
+    <form
+      className="panel"
+      onSubmit={handleSubmit}
+      onChange={() => setHasUnsavedChanges(true)}
+      aria-busy={isParsingJobFile || isSubmitting}
+    >
       <div className="panel-inner form-grid">
         <div className="field">
           <label>Company</label>
@@ -388,7 +405,11 @@ export default function ApplicationForm({
                 PDF, DOCX, or TXT · Maximum 10 MB · Processed locally
               </span>
             </div>
-            <label className="button compact" htmlFor="job-file">
+            <label
+              className="button compact"
+              htmlFor="job-file"
+              aria-disabled={isParsingJobFile}
+            >
               {isParsingJobFile ? "Reading file..." : "Choose file"}
             </label>
             <input
@@ -413,8 +434,16 @@ export default function ApplicationForm({
         </div>
         {errorMessage && <p className="error-message">{errorMessage}</p>}
 
-        <button className="button primary" type="submit">
-          {submitLabel}
+        <button
+          className="button primary"
+          type="submit"
+          disabled={isParsingJobFile || isSubmitting}
+        >
+          {isParsingJobFile
+            ? "Reading file..."
+            : isSubmitting
+              ? "Saving application..."
+              : submitLabel}
         </button>
       </div>
     </form>

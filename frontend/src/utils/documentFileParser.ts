@@ -1,9 +1,3 @@
-import mammoth from "mammoth";
-import * as pdfjs from "pdfjs-dist";
-import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
-
-pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
-
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 export type ParsedDocumentFile = {
@@ -24,6 +18,7 @@ export async function parseDocumentFile(
   if (extension === "txt") {
     text = await file.text();
   } else if (extension === "docx") {
+    const { default: mammoth } = await import("mammoth");
     const result = await mammoth.extractRawText({
       arrayBuffer: await file.arrayBuffer(),
     });
@@ -53,6 +48,12 @@ export async function parseDocumentFile(
 }
 
 async function extractPdfText(arrayBuffer: ArrayBuffer) {
+  const [pdfjs, workerModule] = await Promise.all([
+    import("pdfjs-dist"),
+    import("pdfjs-dist/build/pdf.worker.min.mjs?url"),
+  ]);
+  pdfjs.GlobalWorkerOptions.workerSrc = workerModule.default;
+
   const document = await pdfjs.getDocument({ data: arrayBuffer }).promise;
   const pages: string[] = [];
 

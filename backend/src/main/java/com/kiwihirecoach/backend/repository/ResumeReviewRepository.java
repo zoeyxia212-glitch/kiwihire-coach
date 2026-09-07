@@ -13,6 +13,11 @@ public interface ResumeReviewRepository
 
     Optional<ResumeReview> findByIdAndUserId(Long id, Long userId);
 
+    Optional<ResumeReview> findFirstByApplicationIdAndUserIdOrderByCreatedAtDesc(
+            Long applicationId,
+            Long userId
+    );
+
     void deleteByApplicationId(Long applicationId);
 
     void deleteByResumeId(Long resumeId);

@@ -43,4 +43,17 @@ export type Dashboard = {
   upcomingReminders: DashboardReminder[];
   inactiveApplications: DashboardInactiveApplication[];
   recentApplications: DashboardApplication[];
+  savedRoles: number;
+  submittedApplications: number;
+  reachedInterview: number;
+  reachedOffer: number;
+  sourceConversions: DashboardConversion[];
+  careerLevelConversions: DashboardConversion[];
+};
+
+export type DashboardConversion = {
+  label: string;
+  submitted: number;
+  reachedInterview: number;
+  interviewRate: number;
 };

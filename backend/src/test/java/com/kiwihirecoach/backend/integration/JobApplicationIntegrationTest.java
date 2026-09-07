@@ -1,11 +1,18 @@
 package com.kiwihirecoach.backend.integration;
 
-import com.kiwihirecoach.backend.entity.JobApplication;
+import com.kiwihirecoach.backend.entity.ApplicationEvent;
 import com.kiwihirecoach.backend.entity.EvidenceItem;
+import com.kiwihirecoach.backend.entity.JobApplication;
+import com.kiwihirecoach.backend.entity.Resume;
+import com.kiwihirecoach.backend.entity.ResumeReview;
 import com.kiwihirecoach.backend.entity.User;
-import com.kiwihirecoach.backend.repository.JobApplicationRepository;
-import com.kiwihirecoach.backend.repository.UserRepository;
+import com.kiwihirecoach.backend.repository.ApplicationEventRepository;
 import com.kiwihirecoach.backend.repository.EvidenceItemRepository;
+import com.kiwihirecoach.backend.repository.JobApplicationRepository;
+import com.kiwihirecoach.backend.repository.ResumeRepository;
+import com.kiwihirecoach.backend.repository.ResumeReviewRepository;
+import com.kiwihirecoach.backend.repository.UserRepository;
+import com.kiwihirecoach.backend.service.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,9 +25,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import com.kiwihirecoach.backend.service.JwtService;
+import java.util.Set;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -29,6 +39,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -46,12 +57,21 @@ class JobApplicationIntegrationTest {
     @Autowired
     private EvidenceItemRepository evidenceItemRepository;
 
+    @Autowired
+    private ResumeRepository resumeRepository;
+
+    @Autowired
+    private ResumeReviewRepository resumeReviewRepository;
+
+    @Autowired
+    private ApplicationEventRepository applicationEventRepository;
+
+    @Autowired
+    private JwtService jwtService;
+
     private User testUser;
-@Autowired
-private JwtService jwtService;
 
-
-private String authHeader;
+    private String authHeader;
 
     @BeforeEach
     void setUp() {
@@ -273,5 +293,75 @@ mockMvc.perform(get("/api/applications")
                         .content("{\"evidenceItemIds\":[%d]}".formatted(evidence.getId())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.evidenceItemIds[0]").value(evidence.getId()));
+    }
+
+    @Test
+    void submissionSnapshotFreezesApplicationPackAndCreatesTimelineEvent()
+            throws Exception {
+        JobApplication application = jobApplicationRepository.save(
+                new JobApplication(
+                        "Datacom", "Graduate Developer", "Auckland", "Saved",
+                        "Java, Spring Boot and React", LocalDate.of(2026, 10, 15),
+                        testUser
+                )
+        );
+        Resume resume = resumeRepository.save(
+                new Resume(
+                        "Graduate CV",
+                        "Software engineering roles",
+                        "Java and React project experience",
+                        testUser
+                )
+        );
+        resumeReviewRepository.save(
+                new ResumeReview(
+                        testUser,
+                        application,
+                        resume,
+                        78,
+                        "[]",
+                        "[]",
+                        "[]",
+                        "[]",
+                        "[]"
+                )
+        );
+        EvidenceItem evidence = evidenceItemRepository.save(
+                new EvidenceItem(
+                        testUser,
+                        "KiwiHire API",
+                        "Candidates needed one place to manage applications",
+                        "Designed secured REST endpoints",
+                        "Delivered tested CRUD workflows",
+                        "Java, Spring Boot"
+                )
+        );
+        application.replaceEvidenceItems(Set.of(evidence));
+        jobApplicationRepository.save(application);
+
+        mockMvc.perform(post(
+                        "/api/applications/{id}/submission-snapshot",
+                        application.getId()
+                ).header("Authorization", authHeader))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status").value("Applied"))
+                .andExpect(jsonPath("$.submittedResumeName").value("Graduate CV"))
+                .andExpect(jsonPath("$.submittedJobDescription")
+                        .value("Java, Spring Boot and React"))
+                .andExpect(jsonPath("$.submittedEvidence")
+                        .value(org.hamcrest.Matchers.containsString("KiwiHire API")));
+
+        JobApplication submitted = jobApplicationRepository
+                .findById(application.getId())
+                .orElseThrow();
+        assertNotNull(submitted.getSubmittedAt());
+        assertTrue(submitted.getSubmittedEvidence()
+                .contains("Designed secured REST endpoints"));
+
+        List<ApplicationEvent> timeline = applicationEventRepository
+                .findByApplicationIdOrderByOccurredAtDesc(application.getId());
+        assertEquals(1, timeline.size());
+        assertEquals("Applied", timeline.get(0).getStage());
+        assertEquals(submitted.getSubmittedAt(), timeline.get(0).getOccurredAt());
     }
 }

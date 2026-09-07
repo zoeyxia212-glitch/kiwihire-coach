@@ -10,6 +10,12 @@ public record DashboardResponse(
         List<DashboardFollowUpResponse> followUps,
         List<DashboardReminderResponse> upcomingReminders,
         List<DashboardInactiveApplicationResponse> inactiveApplications,
-        List<DashboardApplicationResponse> recentApplications
+        List<DashboardApplicationResponse> recentApplications,
+        long savedRoles,
+        long submittedApplications,
+        long reachedInterview,
+        long reachedOffer,
+        List<DashboardConversionResponse> sourceConversions,
+        List<DashboardConversionResponse> careerLevelConversions
 ) {
 }

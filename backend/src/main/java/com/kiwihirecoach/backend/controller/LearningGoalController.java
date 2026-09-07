@@ -2,6 +2,7 @@ package com.kiwihirecoach.backend.controller;
 
 import com.kiwihirecoach.backend.dto.CreateLearningGoalRequest;
 import com.kiwihirecoach.backend.dto.LearningGoalResponse;
+import com.kiwihirecoach.backend.dto.SkillGapInsightResponse;
 import com.kiwihirecoach.backend.dto.UpdateLearningGoalRequest;
 import com.kiwihirecoach.backend.service.LearningGoalService;
 import jakarta.validation.Valid;
@@ -35,6 +36,15 @@ public class LearningGoalController {
             Authentication authentication
     ) {
         return learningGoalService.getGoals(currentUserId(authentication));
+    }
+
+    @GetMapping("/skill-gaps")
+    public List<SkillGapInsightResponse> getSkillGaps(
+            Authentication authentication
+    ) {
+        return learningGoalService.getSkillGaps(
+                currentUserId(authentication)
+        );
     }
 
     @PostMapping

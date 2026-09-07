@@ -12,6 +12,7 @@ import {
   getApplicationById,
   getApplications,
   registerUser,
+  restoreAccountBackup,
   updateApplication,
 } from "./api";
 
@@ -68,6 +69,58 @@ describe("registerUser", () => {
       }),
     ).rejects.toThrow(
       "An account already exists for this email.",
+    );
+  });
+});
+
+describe("restoreAccountBackup", () => {
+  it("sends the complete backup in one authenticated request", async () => {
+    const data = {
+      applications: [],
+      timelines: [],
+      resumes: [],
+      reviews: [],
+      evidence: [],
+      applicationAnswers: [],
+      learningGoals: [],
+      feedback: [],
+    };
+    const restored = {
+      applications: 0,
+      resumes: 0,
+      reviews: 0,
+      timelineEvents: 0,
+      restoredSubmissionSnapshots: 0,
+      skippedSubmissionSnapshots: 0,
+    };
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => restored,
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await restoreAccountBackup(data);
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith(
+      `${API_BASE_URL}/api/account/restore`,
+      {
+        method: "POST",
+        headers: expect.any(Headers),
+        body: JSON.stringify({ data }),
+      },
+    );
+    expect(result).toEqual(restored);
+  });
+
+  it("shows the backend restore error", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: false,
+      text: async () => "Restore is only available for an empty account.",
+    }));
+
+    await expect(restoreAccountBackup({})).rejects.toThrow(
+      "Restore is only available for an empty account.",
     );
   });
 });

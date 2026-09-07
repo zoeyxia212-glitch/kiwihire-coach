@@ -5,6 +5,9 @@ import com.kiwihirecoach.backend.dto.JobApplicationResponse;
 import com.kiwihirecoach.backend.dto.UpdateJobApplicationRequest;
 import com.kiwihirecoach.backend.dto.UpdateApplicationDecisionRequest;
 import com.kiwihirecoach.backend.dto.UpdateApplicationEvidenceRequest;
+import com.kiwihirecoach.backend.dto.UpdateApplicationAnswersRequest;
+import com.kiwihirecoach.backend.entity.ApplicationAnswer;
+import com.kiwihirecoach.backend.entity.ApplicationEvent;
 import com.kiwihirecoach.backend.entity.EvidenceItem;
 import com.kiwihirecoach.backend.entity.JobApplication;
 import com.kiwihirecoach.backend.entity.User;
@@ -14,9 +17,11 @@ import com.kiwihirecoach.backend.repository.JobApplicationRepository;
 import com.kiwihirecoach.backend.repository.ResumeReviewRepository;
 import com.kiwihirecoach.backend.repository.UserRepository;
 import com.kiwihirecoach.backend.repository.EvidenceItemRepository;
+import com.kiwihirecoach.backend.repository.ApplicationAnswerRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.LinkedHashSet;
 
@@ -27,19 +32,22 @@ public class JobApplicationService {
     private final ApplicationEventRepository applicationEventRepository;
     private final ResumeReviewRepository resumeReviewRepository;
     private final EvidenceItemRepository evidenceItemRepository;
+    private final ApplicationAnswerRepository applicationAnswerRepository;
 
     public JobApplicationService(
             JobApplicationRepository jobApplicationRepository,
             UserRepository userRepository,
             ApplicationEventRepository applicationEventRepository,
             ResumeReviewRepository resumeReviewRepository,
-            EvidenceItemRepository evidenceItemRepository
+            EvidenceItemRepository evidenceItemRepository,
+            ApplicationAnswerRepository applicationAnswerRepository
     ) {
         this.jobApplicationRepository = jobApplicationRepository;
         this.userRepository = userRepository;
         this.applicationEventRepository = applicationEventRepository;
         this.resumeReviewRepository = resumeReviewRepository;
         this.evidenceItemRepository = evidenceItemRepository;
+        this.applicationAnswerRepository = applicationAnswerRepository;
     }
 
     public List<JobApplicationResponse> getApplicationsForUser(Long userId) {
@@ -181,6 +189,90 @@ public class JobApplicationService {
     }
 
     @Transactional
+    public JobApplicationResponse updateAnswers(
+            Long id,
+            UpdateApplicationAnswersRequest request,
+            Long userId
+    ) {
+        JobApplication application = findOwnedApplication(id, userId);
+        LinkedHashSet<ApplicationAnswer> selectedAnswers = new LinkedHashSet<>();
+        request.applicationAnswerIds().stream().distinct().forEach(answerId ->
+                selectedAnswers.add(applicationAnswerRepository
+                        .findByIdAndUserId(answerId, userId)
+                        .orElseThrow(() -> new ResourceNotFoundException(
+                                "Application answer not found"
+                        )))
+        );
+        application.replaceApplicationAnswers(selectedAnswers);
+        return toResponse(jobApplicationRepository.save(application));
+    }
+
+    @Transactional
+    public JobApplicationResponse createSubmissionSnapshot(Long id, Long userId) {
+        JobApplication application = findOwnedApplication(id, userId);
+        var latestReview = resumeReviewRepository
+                .findFirstByApplicationIdAndUserIdOrderByCreatedAtDesc(id, userId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Save a role-specific CV review before marking this application as submitted."
+                ));
+        String submittedAnswers = application.getApplicationAnswers().stream()
+                .map(answer -> answer.getQuestion() + "\n" + answer.getAnswer())
+                .collect(java.util.stream.Collectors.joining("\n\n---\n\n"));
+        String submittedEvidence = application.getEvidenceItems().stream()
+                .map(evidence -> String.join("\n",
+                        evidence.getTitle(),
+                        "Situation and task: " + evidence.getContext(),
+                        "Action: " + evidence.getAction(),
+                        "Result: " + evidence.getResult(),
+                        "Skills: " + evidence.getSkills()
+                ))
+                .collect(java.util.stream.Collectors.joining("\n\n---\n\n"));
+        application.createSubmissionSnapshot(
+                latestReview.getResume().getName(),
+                latestReview.getResume().getContent(),
+                submittedAnswers,
+                submittedEvidence
+        );
+        JobApplication savedApplication =
+                jobApplicationRepository.save(application);
+        applicationEventRepository.save(new ApplicationEvent(
+                savedApplication,
+                "Applied",
+                savedApplication.getSubmittedAt(),
+                savedApplication.getContactPerson(),
+                "Submission snapshot created with the selected CV, answers, and evidence.",
+                null,
+                null
+        ));
+        return toResponse(savedApplication);
+    }
+
+    public JobApplicationResponse restoreSubmissionSnapshot(
+            Long id,
+            LocalDateTime submittedAt,
+            String resumeName,
+            String jobDescription,
+            String resumeContent,
+            String answers,
+            String evidence,
+            Long userId
+    ) {
+        if (submittedAt == null) {
+            throw new IllegalArgumentException("Submission time is required");
+        }
+        JobApplication application = findOwnedApplication(id, userId);
+        application.restoreSubmissionSnapshot(
+                submittedAt,
+                normalize(resumeName),
+                normalize(jobDescription),
+                normalize(resumeContent),
+                normalize(answers),
+                normalize(evidence)
+        );
+        return toResponse(jobApplicationRepository.save(application));
+    }
+
+    @Transactional
     public void deleteApplication(Long id, Long userId) {
         JobApplication application = jobApplicationRepository
                 .findByIdAndUserId(id, userId)
@@ -224,6 +316,19 @@ public class JobApplicationService {
                 application.getEvidenceItems().stream()
                         .map(EvidenceItem::getId)
                         .toList()
+        );
+        response.addApplicationAnswerIds(
+                application.getApplicationAnswers().stream()
+                        .map(ApplicationAnswer::getId)
+                        .toList()
+        );
+        response.addSubmissionSnapshot(
+                application.getSubmittedAt(),
+                application.getSubmittedResumeName(),
+                application.getSubmittedJobDescription(),
+                application.getSubmittedResumeContent(),
+                application.getSubmittedAnswers(),
+                application.getSubmittedEvidence()
         );
         return response;
     }

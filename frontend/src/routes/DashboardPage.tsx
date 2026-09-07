@@ -76,7 +76,10 @@ export default function DashboardPage() {
         setApplications(
           loadedApplications.filter((application) => !application.archived),
         );
-        showDashboardNotifications(loadedDashboard);
+        showDashboardNotifications(
+          loadedDashboard,
+          loadedLearningGoals,
+        );
       } catch {
         setError("Failed to load your dashboard.");
       }
@@ -187,7 +190,7 @@ export default function DashboardPage() {
       setBrowserNotificationsEnabled(true);
       setNotificationsEnabled(true);
       const notificationCount =
-        showDashboardNotifications(dashboard);
+        showDashboardNotifications(dashboard, learningGoals);
       setNotificationStatus(
         notificationCount
           ? `${notificationCount} reminder notification${notificationCount === 1 ? "" : "s"} sent.`
@@ -264,8 +267,9 @@ export default function DashboardPage() {
         - new Date(first.createdAt).getTime(),
     )
     .slice(0, 3);
-  const priorityLearningGoals = learningGoals
+  const priorityLearningGoals = [...learningGoals]
     .filter((goal) => goal.status !== "Completed")
+    .sort(compareLearningGoalPriority)
     .slice(0, 3);
   const profileIsReady = Boolean(
     profileProgress && profileProgress.percentage === 100,
@@ -343,10 +347,10 @@ export default function DashboardPage() {
           <img className="dashboard-candidate dashboard-candidate-three" src={candidateThree} alt="" />
           <img className="dashboard-candidate dashboard-candidate-four" src={candidateFour} alt="" />
           <span className="dashboard-live-stat stat-applications">
-            <i /> {applications.length} active application{applications.length === 1 ? "" : "s"}
+            <i /> {applications.length} active
           </span>
           <span className="dashboard-live-stat stat-follow-ups">
-            <i /> {dashboard.dueToday + dashboard.overdue} follow-up{dashboard.dueToday + dashboard.overdue === 1 ? "" : "s"} need attention
+            <i /> {dashboard.dueToday + dashboard.overdue} follow-up{dashboard.dueToday + dashboard.overdue === 1 ? "" : "s"}
           </span>
           <span className="dashboard-live-stat stat-interviews">
             <i /> {readyInterviewAnswers} interview answer{readyInterviewAnswers === 1 ? "" : "s"} ready
@@ -402,6 +406,59 @@ export default function DashboardPage() {
         dueToday={dashboard.dueToday}
         overdue={dashboard.overdue}
       />
+
+      <div className="panel application-funnel">
+        <div className="panel-inner">
+          <div className="dashboard-section-heading">
+            <div>
+              <p className="eyebrow">Outcome feedback loop</p>
+              <h2>Your application funnel</h2>
+            </div>
+            <p>
+              Each stage counts applications that reached that point, even if
+              their current status later changed.
+            </p>
+          </div>
+          <div className="funnel-stage-list">
+            {[
+              { label: "Roles saved", value: dashboard.savedRoles, previous: null },
+              { label: "Applications submitted", value: dashboard.submittedApplications, previous: dashboard.savedRoles },
+              { label: "Reached interview", value: dashboard.reachedInterview, previous: dashboard.submittedApplications },
+              { label: "Reached offer", value: dashboard.reachedOffer, previous: dashboard.reachedInterview },
+            ].map((stage, index) => (
+              <div className="funnel-stage" key={stage.label}>
+                <span className="funnel-step-number">0{index + 1}</span>
+                <strong>{stage.value}</strong>
+                <span>{stage.label}</span>
+                <small>
+                  {stage.previous === null
+                    ? "Starting pool"
+                    : `${conversionRate(stage.value, stage.previous)}% from previous stage`}
+                </small>
+              </div>
+            ))}
+          </div>
+          <p className="funnel-guidance">
+            {dashboard.submittedApplications < 10
+              ? "Keep recording outcomes. At least 10 submitted applications are recommended before treating conversion patterns as meaningful."
+              : dashboard.reachedInterview === 0
+                ? "No interviews are recorded yet. Review role fit, evidence and submitted CV versions before increasing application volume."
+              : "You now have enough submitted applications to compare which role types and channels produce stronger outcomes."}
+          </p>
+          <div className="conversion-breakdowns">
+            <ConversionBreakdown
+              title="By application source"
+              emptyMessage="Record where you found each role to compare channels."
+              items={dashboard.sourceConversions}
+            />
+            <ConversionBreakdown
+              title="By career level"
+              emptyMessage="Add a career level to each role to compare role categories."
+              items={dashboard.careerLevelConversions}
+            />
+          </div>
+        </div>
+      </div>
 
       {profileProgress && profileProgress.percentage < 100 && (
         <div className="panel dashboard-profile-prompt">
@@ -508,9 +565,26 @@ export default function DashboardPage() {
                   >
                     <div>
                       <h3>{goal.skill}</h3>
-                      <p>{goal.reason}</p>
+                      <p>
+                        {goal.nextAction || "Add a practical next action."}
+                      </p>
+                      {goal.targetDate && (
+                        <p className="learning-goal-due-date">
+                          Target: {formatLearningTargetDate(goal.targetDate)}
+                        </p>
+                      )}
                     </div>
-                    <span className="status">{goal.status}</span>
+                    <span
+                      className={
+                        isLearningGoalOverdue(goal)
+                          ? "status status-overdue"
+                          : "status"
+                      }
+                    >
+                      {isLearningGoalOverdue(goal)
+                        ? "Overdue"
+                        : goal.status}
+                    </span>
                   </Link>
                 ))}
               </div>
@@ -938,6 +1012,42 @@ type NextStepInput = {
   overdue: number;
 };
 
+function ConversionBreakdown({
+  title,
+  emptyMessage,
+  items,
+}: {
+  title: string;
+  emptyMessage: string;
+  items: Dashboard["sourceConversions"];
+}) {
+  return (
+    <section className="conversion-breakdown">
+      <h3>{title}</h3>
+      {items.length === 0 ? (
+        <p className="muted">{emptyMessage}</p>
+      ) : (
+        <div className="conversion-list">
+          {items.map((item) => (
+            <div className="conversion-row" key={item.label}>
+              <div>
+                <strong>{item.label}</strong>
+                <span>
+                  {item.reachedInterview} interview{item.reachedInterview === 1 ? "" : "s"}
+                  {` from ${item.submitted} submitted`}
+                </span>
+              </div>
+              <span className={item.submitted >= 3 ? "conversion-rate" : "conversion-rate insufficient"}>
+                {item.submitted >= 3 ? `${item.interviewRate}%` : "More data needed"}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function getNextStep({
   profileIsReady,
   hasApplications,
@@ -989,6 +1099,53 @@ function formatReminderDate(value: string) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
+}
+
+function formatLearningTargetDate(value: string) {
+  return new Intl.DateTimeFormat("en-NZ", {
+    dateStyle: "medium",
+  }).format(new Date(`${value}T00:00:00`));
+}
+
+function isLearningGoalOverdue(goal: LearningGoal) {
+  if (!goal.targetDate || goal.status === "Completed") {
+    return false;
+  }
+
+  const today = new Date();
+  const localDate = [
+    today.getFullYear(),
+    String(today.getMonth() + 1).padStart(2, "0"),
+    String(today.getDate()).padStart(2, "0"),
+  ].join("-");
+
+  return goal.targetDate < localDate;
+}
+
+function compareLearningGoalPriority(
+  first: LearningGoal,
+  second: LearningGoal,
+) {
+  if (first.targetDate && second.targetDate) {
+    return first.targetDate.localeCompare(second.targetDate);
+  }
+  if (first.targetDate) {
+    return -1;
+  }
+  if (second.targetDate) {
+    return 1;
+  }
+  if (first.status === "In progress" && second.status !== "In progress") {
+    return -1;
+  }
+  if (second.status === "In progress" && first.status !== "In progress") {
+    return 1;
+  }
+  return 0;
+}
+
+function conversionRate(current: number, previous: number) {
+  return previous === 0 ? 0 : Math.round((current / previous) * 100);
 }
 
 function notificationMessage(

@@ -1,5 +1,9 @@
 import type { Application } from "../types/application";
 import type {
+  ApplicationAnswer,
+  SaveApplicationAnswerRequest,
+} from "../types/applicationAnswer";
+import type {
   ApplicationEvent,
   CreateApplicationEventRequest,
   UpdateApplicationEventRequest,
@@ -17,7 +21,8 @@ import type {
 import type {
   CreateLearningGoalRequest,
   LearningGoal,
-  LearningGoalStatus,
+  SkillGapInsight,
+  UpdateLearningGoalRequest,
 } from "../types/learningGoal";
 import type {
   Resume,
@@ -47,6 +52,53 @@ export class ResourceNotFoundError extends Error {
     super(message);
     this.name = "ResourceNotFoundError";
   }
+}
+
+export async function getApplicationAnswers(): Promise<ApplicationAnswer[]> {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/application-answers`,
+  );
+  if (!response.ok) throw new Error("Failed to load application answers.");
+  return response.json();
+}
+
+export async function createApplicationAnswer(
+  request: SaveApplicationAnswerRequest,
+): Promise<ApplicationAnswer> {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/application-answers`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    },
+  );
+  if (!response.ok) throw new Error("Failed to save application answer.");
+  return response.json();
+}
+
+export async function updateApplicationAnswer(
+  answerId: number,
+  request: SaveApplicationAnswerRequest,
+): Promise<ApplicationAnswer> {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/application-answers/${answerId}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    },
+  );
+  if (!response.ok) throw new Error("Failed to update application answer.");
+  return response.json();
+}
+
+export async function deleteApplicationAnswer(answerId: number): Promise<void> {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/application-answers/${answerId}`,
+    { method: "DELETE" },
+  );
+  if (!response.ok) throw new Error("Failed to delete application answer.");
 }
 
 export type CreateApplicationRequest = {
@@ -176,6 +228,32 @@ export async function getAccount(): Promise<UserResponse> {
     throw new Error("Failed to load account.");
   }
 
+  return response.json();
+}
+
+export type AccountRestoreResult = {
+  applications: number;
+  resumes: number;
+  reviews: number;
+  timelineEvents: number;
+  restoredSubmissionSnapshots: number;
+  skippedSubmissionSnapshots: number;
+};
+
+export async function restoreAccountBackup(
+  data: unknown,
+): Promise<AccountRestoreResult> {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/account/restore`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data }),
+    },
+  );
+  if (!response.ok) {
+    throw new Error((await response.text()) || "Failed to restore backup.");
+  }
   return response.json();
 }
 
@@ -436,6 +514,35 @@ export async function updateApplicationEvidence(
   return response.json();
 }
 
+export async function updateApplicationAnswers(
+  id: number,
+  applicationAnswerIds: number[],
+): Promise<Application> {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/applications/${id}/answers`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ applicationAnswerIds }),
+    },
+  );
+  if (!response.ok) throw new Error("Failed to save application answers.");
+  return response.json();
+}
+
+export async function createSubmissionSnapshot(id: number): Promise<Application> {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/applications/${id}/submission-snapshot`,
+    { method: "POST" },
+  );
+  if (!response.ok) {
+    throw new Error(
+      (await response.text()) || "Failed to create submission snapshot.",
+    );
+  }
+  return response.json();
+}
+
 export async function deleteApplication(
   id: string,
 ): Promise<void> {
@@ -648,6 +755,21 @@ export async function createEvidenceItem(
   return response.json();
 }
 
+export async function createEvidenceFromLearningGoal(
+  goalId: number,
+): Promise<EvidenceItem> {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/evidence/from-learning-goal/${goalId}`,
+    { method: "POST" },
+  );
+
+  if (!response.ok) {
+    throw new Error(await response.text());
+  }
+
+  return response.json();
+}
+
 export async function updateEvidenceItem(
   itemId: number,
   request: SaveEvidenceItemRequest,
@@ -691,6 +813,18 @@ export async function getLearningGoals(): Promise<LearningGoal[]> {
   return response.json();
 }
 
+export async function getSkillGapInsights(): Promise<SkillGapInsight[]> {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/learning-goals/skill-gaps`,
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to load skill gap insights.");
+  }
+
+  return response.json();
+}
+
 export async function createLearningGoal(
   request: CreateLearningGoalRequest,
 ): Promise<LearningGoal> {
@@ -714,7 +848,7 @@ export async function createLearningGoal(
 
 export async function updateLearningGoal(
   goalId: number,
-  status: LearningGoalStatus,
+  request: UpdateLearningGoalRequest,
 ): Promise<LearningGoal> {
   const response = await authenticatedFetch(
     `${API_BASE_URL}/api/learning-goals/${goalId}`,
@@ -723,7 +857,7 @@ export async function updateLearningGoal(
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ status }),
+      body: JSON.stringify(request),
     },
   );
 
@@ -925,6 +1059,26 @@ export async function updateResumeReviewAnswerStatus(
 
   if (!response.ok) {
     throw new Error("Failed to update answer status.");
+  }
+
+  return response.json();
+}
+
+export async function updateMockInterviewSessions(
+  reviewId: number,
+  sessions: import("../types/resumeReview").MockInterviewSession[],
+): Promise<ResumeReview> {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/reviews/${reviewId}/mock-interviews`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessions }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to save mock interview session.");
   }
 
   return response.json();

@@ -4,6 +4,7 @@ import com.kiwihirecoach.backend.dto.UserResponse;
 import com.kiwihirecoach.backend.entity.User;
 import com.kiwihirecoach.backend.exception.ResourceNotFoundException;
 import com.kiwihirecoach.backend.repository.ApplicationEventRepository;
+import com.kiwihirecoach.backend.repository.ApplicationAnswerRepository;
 import com.kiwihirecoach.backend.repository.CandidateProfileRepository;
 import com.kiwihirecoach.backend.repository.EvidenceItemRepository;
 import com.kiwihirecoach.backend.repository.JobApplicationRepository;
@@ -21,6 +22,7 @@ public class AccountService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final ApplicationEventRepository applicationEventRepository;
+    private final ApplicationAnswerRepository applicationAnswerRepository;
     private final CandidateProfileRepository candidateProfileRepository;
     private final EvidenceItemRepository evidenceItemRepository;
     private final JobApplicationRepository jobApplicationRepository;
@@ -33,6 +35,7 @@ public class AccountService {
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
             ApplicationEventRepository applicationEventRepository,
+            ApplicationAnswerRepository applicationAnswerRepository,
             CandidateProfileRepository candidateProfileRepository,
             EvidenceItemRepository evidenceItemRepository,
             JobApplicationRepository jobApplicationRepository,
@@ -44,6 +47,7 @@ public class AccountService {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.applicationEventRepository = applicationEventRepository;
+        this.applicationAnswerRepository = applicationAnswerRepository;
         this.candidateProfileRepository = candidateProfileRepository;
         this.evidenceItemRepository = evidenceItemRepository;
         this.jobApplicationRepository = jobApplicationRepository;
@@ -94,6 +98,7 @@ public class AccountService {
         candidateProfileRepository.deleteByUserId(userId);
         applicationEventRepository.deleteByApplicationUserId(userId);
         jobApplicationRepository.deleteByUserId(userId);
+        applicationAnswerRepository.deleteByUserId(userId);
         evidenceItemRepository.deleteByUserId(userId);
         resumeRepository.deleteByUserId(userId);
         userRepository.delete(user);

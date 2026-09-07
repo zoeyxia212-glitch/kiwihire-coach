@@ -274,8 +274,14 @@ export default function SavedReviewPage() {
           </p>
         </div>
         <div className="form-actions no-print">
-          <button
+          <Link
             className="button primary"
+            to={`/reviews/${review.id}/mock-interview`}
+          >
+            Start mock interview
+          </Link>
+          <button
+            className="button"
             type="button"
             onClick={() => window.print()}
           >

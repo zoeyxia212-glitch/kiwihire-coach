@@ -4,6 +4,7 @@ import com.kiwihirecoach.backend.dto.CreateResumeReviewRequest;
 import com.kiwihirecoach.backend.dto.ResumeReviewResponse;
 import com.kiwihirecoach.backend.dto.ReviewFeedbackRequest;
 import com.kiwihirecoach.backend.dto.SaveReviewAnswersRequest;
+import com.kiwihirecoach.backend.dto.SaveMockInterviewSessionsRequest;
 import com.kiwihirecoach.backend.dto.UpdateReviewAnswerStatusRequest;
 import com.kiwihirecoach.backend.dto.UpdateReviewSuggestionStatusRequest;
 import com.kiwihirecoach.backend.service.ResumeReviewService;
@@ -103,6 +104,19 @@ public class ResumeReviewController {
                 reviewId,
                 request.questionIndex(),
                 request.status(),
+                (Long) authentication.getPrincipal()
+        );
+    }
+
+    @PatchMapping("/{reviewId}/mock-interviews")
+    public ResumeReviewResponse updateMockInterviewSessions(
+            @PathVariable Long reviewId,
+            @Valid @RequestBody SaveMockInterviewSessionsRequest request,
+            Authentication authentication
+    ) {
+        return resumeReviewService.updateMockInterviewSessions(
+                reviewId,
+                request.sessions(),
                 (Long) authentication.getPrincipal()
         );
     }

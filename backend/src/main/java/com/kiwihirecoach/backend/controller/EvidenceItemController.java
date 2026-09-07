@@ -42,6 +42,19 @@ public class EvidenceItemController {
         );
     }
 
+    @PostMapping("/from-learning-goal/{goalId}")
+    public ResponseEntity<EvidenceItemResponse> createFromLearningGoal(
+            @PathVariable Long goalId,
+            Authentication authentication
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                evidenceItemService.createFromLearningGoal(
+                        goalId,
+                        currentUserId(authentication)
+                )
+        );
+    }
+
     @PutMapping("/{itemId}")
     public EvidenceItemResponse updateItem(
             @PathVariable Long itemId,

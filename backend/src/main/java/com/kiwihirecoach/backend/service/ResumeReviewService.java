@@ -7,6 +7,7 @@ import com.kiwihirecoach.backend.dto.CreateResumeReviewRequest;
 import com.kiwihirecoach.backend.dto.ResumeReviewResponse;
 import com.kiwihirecoach.backend.dto.ReviewAnalysisItem;
 import com.kiwihirecoach.backend.dto.ReviewQuestion;
+import com.kiwihirecoach.backend.dto.MockInterviewSession;
 import com.kiwihirecoach.backend.entity.JobApplication;
 import com.kiwihirecoach.backend.entity.Resume;
 import com.kiwihirecoach.backend.entity.ResumeReview;
@@ -145,6 +146,16 @@ public class ResumeReviewService {
         return toResponse(resumeReviewRepository.save(review));
     }
 
+    public ResumeReviewResponse updateMockInterviewSessions(
+            Long reviewId,
+            List<MockInterviewSession> sessions,
+            Long userId
+    ) {
+        ResumeReview review = findOwnedReview(reviewId, userId);
+        review.setMockInterviewSessionsJson(writeJson(sessions));
+        return toResponse(resumeReviewRepository.save(review));
+    }
+
     public ResumeReviewResponse updateSuggestionStatus(
             Long reviewId,
             int suggestionIndex,
@@ -255,6 +266,10 @@ public class ResumeReviewService {
                 readJson(
                         review.getAnswerStatusesJson(),
                         new TypeReference<List<String>>() {}
+                ),
+                readJson(
+                        review.getMockInterviewSessionsJson(),
+                        new TypeReference<List<MockInterviewSession>>() {}
                 ),
                 review.getHelpful(),
                 review.getFeedbackComment(),

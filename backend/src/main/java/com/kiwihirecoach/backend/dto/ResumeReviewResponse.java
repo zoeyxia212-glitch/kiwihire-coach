@@ -19,6 +19,7 @@ public record ResumeReviewResponse(
         List<ReviewQuestion> questions,
         List<String> answers,
         List<String> answerStatuses,
+        List<MockInterviewSession> mockInterviewSessions,
         Boolean helpful,
         String feedbackComment,
         String workflowIntent,

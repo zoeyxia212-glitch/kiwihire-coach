@@ -52,6 +52,9 @@ public class ResumeReview {
     @Column(columnDefinition = "TEXT")
     private String answerStatusesJson;
 
+    @Column(columnDefinition = "TEXT")
+    private String mockInterviewSessionsJson;
+
     private Boolean helpful;
 
     @Column(length = 2000)
@@ -87,6 +90,7 @@ public class ResumeReview {
         this.questionsJson = questionsJson;
         this.answersJson = "[]";
         this.answerStatusesJson = "[]";
+        this.mockInterviewSessionsJson = "[]";
         this.createdAt = LocalDateTime.now();
     }
 
@@ -148,6 +152,14 @@ public class ResumeReview {
 
     public void setAnswerStatusesJson(String answerStatusesJson) {
         this.answerStatusesJson = answerStatusesJson;
+    }
+
+    public String getMockInterviewSessionsJson() {
+        return mockInterviewSessionsJson;
+    }
+
+    public void setMockInterviewSessionsJson(String mockInterviewSessionsJson) {
+        this.mockInterviewSessionsJson = mockInterviewSessionsJson;
     }
 
     public Boolean getHelpful() {

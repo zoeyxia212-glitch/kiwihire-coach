@@ -14,6 +14,8 @@ public interface ApplicationEventRepository
             Long applicationId
     );
 
+    List<ApplicationEvent> findByApplicationUserIdOrderByOccurredAtDesc(Long userId);
+
     Optional<ApplicationEvent> findByIdAndApplicationUserId(
             Long id,
             Long userId

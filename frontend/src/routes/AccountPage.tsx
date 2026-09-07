@@ -5,6 +5,12 @@ import {
   deleteAccount,
   getAccount,
 } from "../utils/api";
+import { downloadAccountDataExport } from "../utils/accountDataExport";
+import {
+  inspectAccountDataBackup,
+  restoreAccountDataBackup,
+  type AccountBackupPreview,
+} from "../utils/accountDataImport";
 
 type AccountPageProps = {
   onAccountDeleted: () => void;
@@ -21,6 +27,11 @@ export default function AccountPage({
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [backupPreview, setBackupPreview] =
+    useState<AccountBackupPreview | null>(null);
+  const [isInspectingBackup, setIsInspectingBackup] = useState(false);
+  const [isRestoringBackup, setIsRestoringBackup] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -100,6 +111,62 @@ export default function AccountPage({
     }
   }
 
+  async function handleExport() {
+    setIsExporting(true);
+    setError("");
+    setSuccess("");
+    try {
+      await downloadAccountDataExport();
+      setSuccess("Your private KiwiHire data backup was downloaded.");
+    } catch {
+      setError("Your data backup could not be created. No partial file was downloaded.");
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
+  async function handleBackupSelection(file: File | undefined) {
+    setBackupPreview(null);
+    setError("");
+    setSuccess("");
+    if (!file) return;
+
+    setIsInspectingBackup(true);
+    try {
+      setBackupPreview(await inspectAccountDataBackup(file));
+      setSuccess("Backup validated. No data has been imported or changed.");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "The backup could not be read.");
+    } finally {
+      setIsInspectingBackup(false);
+    }
+  }
+
+  async function handleRestore() {
+    if (!backupPreview) return;
+    if (!window.confirm(
+      "Restore this backup into the current empty account? Existing data will never be overwritten.",
+    )) return;
+
+    setIsRestoringBackup(true);
+    setError("");
+    setSuccess("");
+    try {
+      const result = await restoreAccountDataBackup(backupPreview.data);
+      const snapshotMessage = result.restoredSubmissionSnapshots > 0
+        ? ` ${result.restoredSubmissionSnapshots} frozen submission snapshot(s) restored.`
+        : "";
+      setSuccess(
+        `Restore complete: ${result.applications} applications, ${result.resumes} resumes, ${result.reviews} reviews, and ${result.timelineEvents} timeline events created.${snapshotMessage}`,
+      );
+      setBackupPreview(null);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "The backup could not be restored.");
+    } finally {
+      setIsRestoringBackup(false);
+    }
+  }
+
   return (
     <section className="page account-page">
       <div className="page-header">
@@ -170,6 +237,76 @@ export default function AccountPage({
           </div>
         </form>
       </div>
+
+      <section className="panel account-data-export">
+        <div className="panel-inner">
+          <div>
+            <p className="eyebrow">Your data</p>
+            <h2>Download a private backup</h2>
+            <p className="muted">
+              Export your profile, applications, timelines, resumes, reviews,
+              evidence, saved answers, learning goals, and feedback as JSON.
+              The file may contain sensitive CV and job-search information.
+            </p>
+          </div>
+          <button
+            className="button primary"
+            type="button"
+            disabled={isExporting}
+            onClick={handleExport}
+          >
+            {isExporting ? "Preparing backup..." : "Download my data"}
+          </button>
+        </div>
+      </section>
+
+      <section className="panel account-backup-import">
+        <div className="panel-inner">
+          <div>
+            <p className="eyebrow">Safe restore preview</p>
+            <h2>Inspect a backup before importing</h2>
+            <p className="muted">
+              KiwiHire validates the file locally first. Selecting a file does
+              not create, replace, or delete any records.
+            </p>
+          </div>
+          <label className="button backup-file-button">
+            {isInspectingBackup ? "Checking backup..." : "Choose backup file"}
+            <input
+              className="visually-hidden"
+              type="file"
+              accept="application/json,.json"
+              disabled={isInspectingBackup}
+              onChange={(event) => void handleBackupSelection(event.target.files?.[0])}
+            />
+          </label>
+          {backupPreview && (
+            <div className="backup-preview" aria-label="Backup contents">
+              <div>
+                <strong>{backupPreview.accountEmail}</strong>
+                <span>Exported {formatBackupDate(backupPreview.exportedAt)}</span>
+              </div>
+              {Object.entries(backupPreview.counts).map(([label, count]) => (
+                <span key={label}><strong>{count}</strong>{humanizeBackupLabel(label)}</span>
+              ))}
+              <p>
+                Restore creates new record IDs and never overwrites existing
+                workspace data, including frozen submission snapshots.
+              </p>
+              <button
+                className="button primary"
+                type="button"
+                disabled={isRestoringBackup}
+                onClick={handleRestore}
+              >
+                {isRestoringBackup
+                  ? "Restoring backup..."
+                  : "Restore into empty account"}
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
 
       <form className="panel danger-zone" onSubmit={handleDelete}>
         <div className="panel-inner form-grid">
@@ -246,4 +383,18 @@ function formatAccountDate(value: string) {
   return new Intl.DateTimeFormat("en-NZ", {
     dateStyle: "long",
   }).format(new Date(value));
+}
+
+function formatBackupDate(value: string) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? value
+    : new Intl.DateTimeFormat("en-NZ", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }).format(date);
+}
+
+function humanizeBackupLabel(value: string) {
+  return value.replace(/([A-Z])/g, " $1").toLowerCase();
 }

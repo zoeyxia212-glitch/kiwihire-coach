@@ -1,4 +1,5 @@
 import type { DashboardReminder } from "../types/dashboard";
+import type { LearningGoal } from "../types/learningGoal";
 
 export function downloadReminderCalendar(
   reminders: DashboardReminder[],
@@ -24,6 +25,21 @@ export function downloadReminderCalendar(
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
+}
+
+export function downloadLearningGoalCalendar(goals: LearningGoal[]) {
+  const scheduledGoals = goals.filter(
+    (goal) => goal.status !== "Completed" && goal.targetDate,
+  );
+  const calendarLines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//KiwiHire Coach//Learning Plan//EN",
+    "CALSCALE:GREGORIAN",
+    ...scheduledGoals.flatMap(learningGoalEventLines),
+    "END:VCALENDAR",
+  ];
+  downloadCalendar(calendarLines, "kiwihire-learning-plan.ics");
 }
 
 function calendarEventLines(
@@ -52,6 +68,36 @@ function calendarEventLines(
     `URL:${window.location.origin}/applications/${reminder.applicationId}`,
     "END:VEVENT",
   ];
+}
+
+function learningGoalEventLines(goal: LearningGoal) {
+  const date = goal.targetDate!.replace(/-/g, "");
+  const timestamp = formatCalendarDate(new Date());
+
+  return [
+    "BEGIN:VEVENT",
+    `UID:learning-goal-${goal.id}-${date}@kiwihire`,
+    `DTSTAMP:${timestamp}`,
+    `DTSTART;VALUE=DATE:${date}`,
+    `SUMMARY:${escapeCalendarText(`Learning goal: ${goal.skill}`)}`,
+    `DESCRIPTION:${escapeCalendarText(goal.nextAction || goal.reason)}`,
+    `URL:${window.location.origin}/learning`,
+    "END:VEVENT",
+  ];
+}
+
+function downloadCalendar(lines: string[], filename: string) {
+  const blob = new Blob([lines.join("\r\n")], {
+    type: "text/calendar;charset=utf-8",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }
 
 function formatCalendarDate(date: Date) {

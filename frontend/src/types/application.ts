@@ -37,5 +37,12 @@ export type Application = {
   strongestFit: string | null;
   mainConcern: string | null;
   evidenceItemIds: number[];
+  applicationAnswerIds: number[];
+  submittedAt?: string | null;
+  submittedResumeName?: string | null;
+  submittedJobDescription?: string | null;
+  submittedResumeContent?: string | null;
+  submittedAnswers?: string | null;
+  submittedEvidence?: string | null;
   archived: boolean;
 };

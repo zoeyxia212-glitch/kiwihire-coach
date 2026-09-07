@@ -31,6 +31,13 @@ public class JobApplicationResponse {
     private String strongestFit;
     private String mainConcern;
     private List<Long> evidenceItemIds = List.of();
+    private List<Long> applicationAnswerIds = List.of();
+    private LocalDateTime submittedAt;
+    private String submittedResumeName;
+    private String submittedJobDescription;
+    private String submittedResumeContent;
+    private String submittedAnswers;
+    private String submittedEvidence;
     private boolean archived;
 
     public JobApplicationResponse(
@@ -255,6 +262,33 @@ public JobApplicationResponse(
     public String getStrongestFit() { return strongestFit; }
     public String getMainConcern() { return mainConcern; }
     public List<Long> getEvidenceItemIds() { return evidenceItemIds; }
+    public List<Long> getApplicationAnswerIds() { return applicationAnswerIds; }
+    public LocalDateTime getSubmittedAt() { return submittedAt; }
+    public String getSubmittedResumeName() { return submittedResumeName; }
+    public String getSubmittedJobDescription() { return submittedJobDescription; }
+    public String getSubmittedResumeContent() { return submittedResumeContent; }
+    public String getSubmittedAnswers() { return submittedAnswers; }
+    public String getSubmittedEvidence() { return submittedEvidence; }
+
+    public void addApplicationAnswerIds(List<Long> applicationAnswerIds) {
+        this.applicationAnswerIds = List.copyOf(applicationAnswerIds);
+    }
+
+    public void addSubmissionSnapshot(
+            LocalDateTime submittedAt,
+            String submittedResumeName,
+            String submittedJobDescription,
+            String submittedResumeContent,
+            String submittedAnswers,
+            String submittedEvidence
+    ) {
+        this.submittedAt = submittedAt;
+        this.submittedResumeName = submittedResumeName;
+        this.submittedJobDescription = submittedJobDescription;
+        this.submittedResumeContent = submittedResumeContent;
+        this.submittedAnswers = submittedAnswers;
+        this.submittedEvidence = submittedEvidence;
+    }
 
     public void addApplicationPack(
             String decision,

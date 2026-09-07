@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { useParams, useSearchParams } from "react-router";
 import ApplicationForm, {
   type ApplicationFormValues,
 } from "../components/ApplicationForm";
@@ -12,6 +12,8 @@ import {
 
 export default function EditApplicationPage() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const isDuplicatedCopy = searchParams.get("duplicated") === "true";
   const [initialValues, setInitialValues] =
     useState<ApplicationFormValues | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
@@ -99,6 +101,14 @@ export default function EditApplicationPage() {
           </p>
         </div>
       </div>
+
+      {isDuplicatedCopy && (
+        <div className="info-message" role="status">
+          A new Saved application was created. Review the copied details before
+          saving; submission history, selected evidence, answers, and timeline
+          events were not copied.
+        </div>
+      )}
 
       <ApplicationForm
         initialValues={initialValues}

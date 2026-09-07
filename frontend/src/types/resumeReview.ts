@@ -29,7 +29,15 @@ export type ResumeReview = CreateResumeReviewRequest & {
   suggestionStatuses: SuggestionStatus[];
   answers: string[];
   answerStatuses: InterviewAnswerStatus[];
+  mockInterviewSessions: MockInterviewSession[];
   createdAt: string;
+};
+
+export type MockInterviewSession = {
+  completedAt: string;
+  questionCount: number;
+  confidence: number;
+  improvementNotes: string;
 };
 
 export type SuggestionStatus = "To do" | "Accepted" | "Ignored";

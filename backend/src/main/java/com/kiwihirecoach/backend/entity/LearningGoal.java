@@ -9,6 +9,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "learning_goals")
@@ -26,6 +27,13 @@ public class LearningGoal {
     private String reason;
 
     private String status;
+    private String nextAction;
+    private LocalDate targetDate;
+
+    @Column(columnDefinition = "TEXT")
+    private String outcomeEvidence;
+
+    private LocalDateTime completedAt;
     private Long sourceReviewId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -44,6 +52,8 @@ public class LearningGoal {
         this.reason = reason;
         this.sourceReviewId = sourceReviewId;
         this.status = "To learn";
+        this.nextAction = "";
+        this.outcomeEvidence = "";
         this.createdAt = LocalDateTime.now();
         this.updatedAt = this.createdAt;
     }
@@ -68,6 +78,22 @@ public class LearningGoal {
         return sourceReviewId;
     }
 
+    public String getNextAction() {
+        return nextAction;
+    }
+
+    public LocalDate getTargetDate() {
+        return targetDate;
+    }
+
+    public String getOutcomeEvidence() {
+        return outcomeEvidence;
+    }
+
+    public LocalDateTime getCompletedAt() {
+        return completedAt;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -78,6 +104,26 @@ public class LearningGoal {
 
     public void setStatus(String status) {
         this.status = status;
+        if ("Completed".equals(status) && completedAt == null) {
+            completedAt = LocalDateTime.now();
+        } else if (!"Completed".equals(status)) {
+            completedAt = null;
+        }
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void setNextAction(String nextAction) {
+        this.nextAction = nextAction;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void setTargetDate(LocalDate targetDate) {
+        this.targetDate = targetDate;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void setOutcomeEvidence(String outcomeEvidence) {
+        this.outcomeEvidence = outcomeEvidence;
         this.updatedAt = LocalDateTime.now();
     }
 }

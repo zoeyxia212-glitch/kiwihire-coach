@@ -10,5 +10,9 @@ public interface EvidenceItemRepository
         extends JpaRepository<EvidenceItem, Long> {
     List<EvidenceItem> findByUserIdOrderByUpdatedAtDesc(Long userId);
     Optional<EvidenceItem> findByIdAndUserId(Long id, Long userId);
+    Optional<EvidenceItem> findByUserIdAndSourceLearningGoalId(
+            Long userId,
+            Long sourceLearningGoalId
+    );
     void deleteByUserId(Long userId);
 }

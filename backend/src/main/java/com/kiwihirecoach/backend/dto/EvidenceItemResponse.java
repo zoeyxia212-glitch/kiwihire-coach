@@ -9,6 +9,7 @@ public record EvidenceItemResponse(
         String action,
         String result,
         String skills,
+        Long sourceLearningGoalId,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {

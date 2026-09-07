@@ -5,6 +5,7 @@ import com.kiwihirecoach.backend.dto.DashboardFollowUpResponse;
 import com.kiwihirecoach.backend.dto.DashboardResponse;
 import com.kiwihirecoach.backend.dto.DashboardReminderResponse;
 import com.kiwihirecoach.backend.dto.DashboardInactiveApplicationResponse;
+import com.kiwihirecoach.backend.dto.DashboardConversionResponse;
 import com.kiwihirecoach.backend.entity.ApplicationEvent;
 import com.kiwihirecoach.backend.entity.JobApplication;
 import com.kiwihirecoach.backend.repository.ApplicationEventRepository;
@@ -17,6 +18,9 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.function.Function;
+import java.util.Map;
 
 @Service
 public class DashboardService {
@@ -56,6 +60,11 @@ public class DashboardService {
                 .stream()
                 .filter(event -> !event.getApplication().isArchived())
                 .toList();
+        List<ApplicationEvent> applicationHistory = applicationEventRepository
+                .findByApplicationUserIdOrderByOccurredAtDesc(userId)
+                .stream()
+                .filter(event -> !event.getApplication().isArchived())
+                .toList();
 
         List<ApplicationEvent> actionableFollowUps = activeOpenFollowUps
                 .stream()
@@ -77,6 +86,31 @@ public class DashboardService {
                 )
                 .count();
         long overdue = actionableFollowUps.size() - dueToday;
+        long submittedApplications = applications.stream()
+                .filter(application ->
+                        application.getSubmittedAt() != null
+                                || !"Saved".equals(application.getStatus())
+                )
+                .count();
+        Set<Long> interviewApplicationIds = applicationHistory.stream()
+                .filter(event -> INTERVIEW_STAGES.contains(event.getStage()))
+                .map(event -> event.getApplication().getId())
+                .collect(Collectors.toSet());
+        applications.stream()
+                .filter(application ->
+                        INTERVIEW_STAGES.contains(application.getStatus())
+                                || "Offer".equals(application.getStatus())
+                )
+                .map(JobApplication::getId)
+                .forEach(interviewApplicationIds::add);
+        Set<Long> offerApplicationIds = applicationHistory.stream()
+                .filter(event -> "Offer".equals(event.getStage()))
+                .map(event -> event.getApplication().getId())
+                .collect(Collectors.toSet());
+        applications.stream()
+                .filter(application -> "Offer".equals(application.getStatus()))
+                .map(JobApplication::getId)
+                .forEach(offerApplicationIds::add);
         List<DashboardReminderResponse> upcomingReminders =
                 buildUpcomingReminders(
                         applications,
@@ -114,8 +148,66 @@ public class DashboardService {
                         ).reversed())
                         .limit(5)
                         .map(this::toApplication)
-                        .toList()
+                        .toList(),
+                applications.size(),
+                submittedApplications,
+                interviewApplicationIds.size(),
+                offerApplicationIds.size(),
+                buildConversionGroups(
+                        applications,
+                        interviewApplicationIds,
+                        JobApplication::getSource,
+                        "Not recorded"
+                ),
+                buildConversionGroups(
+                        applications,
+                        interviewApplicationIds,
+                        JobApplication::getCareerLevel,
+                        "Not specified"
+                )
         );
+    }
+
+    private List<DashboardConversionResponse> buildConversionGroups(
+            List<JobApplication> applications,
+            Set<Long> interviewApplicationIds,
+            Function<JobApplication, String> labelSelector,
+            String missingLabel
+    ) {
+        Map<String, List<JobApplication>> groups = applications.stream()
+                .filter(application ->
+                        application.getSubmittedAt() != null
+                                || !"Saved".equals(application.getStatus())
+                )
+                .collect(Collectors.groupingBy(application -> {
+                    String label = labelSelector.apply(application);
+                    return label == null || label.isBlank()
+                            ? missingLabel
+                            : label.trim();
+                }));
+
+        return groups.entrySet().stream()
+                .map(entry -> {
+                    long submitted = entry.getValue().size();
+                    long interviewed = entry.getValue().stream()
+                            .filter(application ->
+                                    interviewApplicationIds.contains(application.getId())
+                            )
+                            .count();
+                    return new DashboardConversionResponse(
+                            entry.getKey(),
+                            submitted,
+                            interviewed,
+                            submitted == 0
+                                    ? 0
+                                    : (int) Math.round(interviewed * 100.0 / submitted)
+                    );
+                })
+                .sorted(Comparator
+                        .comparingLong(DashboardConversionResponse::submitted)
+                        .reversed()
+                        .thenComparing(DashboardConversionResponse::label))
+                .toList();
     }
 
     private DashboardInactiveApplicationResponse toInactiveApplication(

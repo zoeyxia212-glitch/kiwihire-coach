@@ -30,6 +30,7 @@ public class EvidenceItem {
     private String result;
 
     private String skills;
+    private Long sourceLearningGoalId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -70,6 +71,10 @@ public class EvidenceItem {
     public String getAction() { return action; }
     public String getResult() { return result; }
     public String getSkills() { return skills; }
+    public Long getSourceLearningGoalId() { return sourceLearningGoalId; }
+    public void setSourceLearningGoalId(Long sourceLearningGoalId) {
+        this.sourceLearningGoalId = sourceLearningGoalId;
+    }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

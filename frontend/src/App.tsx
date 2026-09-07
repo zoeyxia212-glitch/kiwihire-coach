@@ -1,22 +1,5 @@
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { Link, Route, Routes } from "react-router";
-import DashboardPage from "./routes/DashboardPage";
-import HomePage from "./routes/HomePage";
-import ApplicationsPage from "./routes/ApplicationsPage";
-import ApplicationDetailPage from "./routes/ApplicationDetailPage";
-import NewApplicationPage from "./routes/NewApplicationPage";
-import ResumesPage from "./routes/ResumesPage";
-import ResumeReviewPage from "./routes/ResumeReviewPage";
-import SavedReviewPage from "./routes/SavedReviewPage";
-import CandidateProfilePage from "./routes/CandidateProfilePage";
-import LearningPlanPage from "./routes/LearningPlanPage";
-import AccountPage from "./routes/AccountPage";
-import FeedbackPage from "./routes/FeedbackPage";
-import ContactPage from "./routes/ContactPage";
-import NotFoundPage from "./routes/NotFoundPage";
-import LoginPage from "./routes/LoginPage";
-import RegisterPage from "./routes/RegisterPage";
-import EditApplicationPage from "./routes/EditApplicationPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import BrowserReminderMonitor from "./components/BrowserReminderMonitor";
 import {
@@ -25,6 +8,32 @@ import {
   saveAuthSession,
 } from "./utils/auth";
 import type { AuthSession } from "./utils/auth";
+
+const DashboardPage = lazy(() => import("./routes/DashboardPage"));
+const HomePage = lazy(() => import("./routes/HomePage"));
+const ApplicationsPage = lazy(() => import("./routes/ApplicationsPage"));
+const ApplicationDetailPage = lazy(
+  () => import("./routes/ApplicationDetailPage"),
+);
+const NewApplicationPage = lazy(() => import("./routes/NewApplicationPage"));
+const ResumesPage = lazy(() => import("./routes/ResumesPage"));
+const ResumeReviewPage = lazy(() => import("./routes/ResumeReviewPage"));
+const SavedReviewPage = lazy(() => import("./routes/SavedReviewPage"));
+const CandidateProfilePage = lazy(
+  () => import("./routes/CandidateProfilePage"),
+);
+const LearningPlanPage = lazy(() => import("./routes/LearningPlanPage"));
+const AccountPage = lazy(() => import("./routes/AccountPage"));
+const FeedbackPage = lazy(() => import("./routes/FeedbackPage"));
+const ContactPage = lazy(() => import("./routes/ContactPage"));
+const NotFoundPage = lazy(() => import("./routes/NotFoundPage"));
+const LoginPage = lazy(() => import("./routes/LoginPage"));
+const RegisterPage = lazy(() => import("./routes/RegisterPage"));
+const EditApplicationPage = lazy(() => import("./routes/EditApplicationPage"));
+const ApplicationAnswersPage = lazy(
+  () => import("./routes/ApplicationAnswersPage"),
+);
+const MockInterviewPage = lazy(() => import("./routes/MockInterviewPage"));
 
 export default function App() {
   const [authSession, setAuthSession] = useState<AuthSession | null>(
@@ -93,6 +102,12 @@ export default function App() {
                 Learning
               </Link>
               <Link
+                to="/answers"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Answers
+              </Link>
+              <Link
                 to="/feedback"
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -147,7 +162,14 @@ export default function App() {
       {authSession && <BrowserReminderMonitor />}
 
       <main>
-        <Routes>
+        <Suspense
+          fallback={
+            <section className="page">
+              <p className="muted">Loading page...</p>
+            </section>
+          }
+        >
+          <Routes>
           <Route
             path="/login"
             element={<LoginPage onLogin={handleLogin} />}
@@ -177,8 +199,10 @@ export default function App() {
             <Route path="/resumes" element={<ResumesPage />} />
             <Route path="/review" element={<ResumeReviewPage />} />
             <Route path="/reviews/:id" element={<SavedReviewPage />} />
+            <Route path="/reviews/:id/mock-interview" element={<MockInterviewPage />} />
             <Route path="/profile" element={<CandidateProfilePage />} />
             <Route path="/learning" element={<LearningPlanPage />} />
+            <Route path="/answers" element={<ApplicationAnswersPage />} />
             <Route path="/feedback" element={<FeedbackPage />} />
             <Route
               path="/account"
@@ -192,7 +216,8 @@ export default function App() {
             />
           </Route>
           <Route path="*" element={<NotFoundPage />} />
-        </Routes>
+          </Routes>
+        </Suspense>
       </main>
     </div>
   );

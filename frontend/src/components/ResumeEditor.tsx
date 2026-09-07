@@ -8,6 +8,7 @@ import {
   updateResume,
 } from "../utils/api";
 import { parseDocumentFile } from "../utils/documentFileParser";
+import { useUnsavedChangesWarning } from "../hooks/useUnsavedChangesWarning";
 
 type ResumeSortOption =
   | "Recently updated"
@@ -25,12 +26,15 @@ export default function ResumeEditor() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isParsingFile, setIsParsingFile] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [fileMessage, setFileMessage] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] =
     useState<ResumeSortOption>("Recently updated");
+
+  useUnsavedChangesWarning(hasUnsavedChanges);
 
   useEffect(() => {
     async function loadResumes() {
@@ -62,26 +66,50 @@ export default function ResumeEditor() {
     loadResumes();
   }, [requestedResumeId]);
 
-  function resetEditor() {
+  function clearEditor() {
     setEditingId(null);
     setName("");
     setPurpose("");
     setContent("");
     setError("");
     setSuccess("");
+    setHasUnsavedChanges(false);
+  }
+
+  function confirmDiscardChanges() {
+    return !hasUnsavedChanges || window.confirm(
+      "Discard your unsaved resume changes?",
+    );
+  }
+
+  function resetEditor() {
+    if (!confirmDiscardChanges()) {
+      return;
+    }
+
+    clearEditor();
   }
 
   function startEditing(resume: Resume) {
+    if (!confirmDiscardChanges()) {
+      return;
+    }
+
     setEditingId(resume.id);
     setName(resume.name);
     setPurpose(resume.purpose ?? "");
     setContent(resume.content);
     setError("");
     setSuccess("");
+    setHasUnsavedChanges(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function duplicateResume(resume: Resume) {
+    if (!confirmDiscardChanges()) {
+      return;
+    }
+
     setEditingId(null);
     setName(`${resume.name} copy`);
     setPurpose(resume.purpose ?? "");
@@ -91,6 +119,7 @@ export default function ResumeEditor() {
     setFileMessage(
       `Created an unsaved copy of "${resume.name}". Rename or edit it, then save as a new version.`,
     );
+    setHasUnsavedChanges(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -124,6 +153,7 @@ export default function ResumeEditor() {
       setName(parsedFile.suggestedName);
       setPurpose("");
       setContent(parsedFile.text);
+      setHasUnsavedChanges(true);
       setFileMessage(
         `Extracted ${parsedFile.text.length.toLocaleString()} characters from ${file.name}. Review the text before saving.`,
       );
@@ -157,6 +187,7 @@ export default function ResumeEditor() {
         ),
       ]);
       setEditingId(savedResume.id);
+      setHasUnsavedChanges(false);
       setSuccess(
         editingId
           ? "Resume updated."
@@ -187,7 +218,7 @@ export default function ResumeEditor() {
       );
 
       if (editingId === resume.id) {
-        resetEditor();
+        clearEditor();
       }
     } catch {
       setError("Failed to delete your resume.");
@@ -207,7 +238,12 @@ export default function ResumeEditor() {
 
   return (
     <div className="grid two">
-      <form className="panel" onSubmit={handleSubmit}>
+      <form
+        className="panel"
+        onSubmit={handleSubmit}
+        onChange={() => setHasUnsavedChanges(true)}
+        aria-busy={isParsingFile || isSaving}
+      >
         <div className="panel-inner form-grid">
           <div>
             <p className="eyebrow">
@@ -226,7 +262,11 @@ export default function ResumeEditor() {
                 in your browser
               </p>
             </div>
-            <label className="button" htmlFor="resume-file">
+            <label
+              className="button"
+              htmlFor="resume-file"
+              aria-disabled={isParsingFile}
+            >
               {isParsingFile ? "Reading file..." : "Choose file"}
             </label>
             <input
@@ -301,9 +341,11 @@ export default function ResumeEditor() {
             <button
               className="button primary"
               type="submit"
-              disabled={isSaving}
+              disabled={isSaving || isParsingFile}
             >
-              {isSaving
+              {isParsingFile
+                ? "Reading file..."
+                : isSaving
                 ? "Saving resume..."
                 : editingId
                   ? "Update resume"

@@ -5,11 +5,12 @@ export type EvidenceItem = {
   action: string;
   result: string;
   skills: string;
+  sourceLearningGoalId: number | null;
   createdAt: string;
   updatedAt: string;
 };
 
 export type SaveEvidenceItemRequest = Omit<
   EvidenceItem,
-  "id" | "createdAt" | "updatedAt"
+  "id" | "createdAt" | "updatedAt" | "sourceLearningGoalId"
 >;

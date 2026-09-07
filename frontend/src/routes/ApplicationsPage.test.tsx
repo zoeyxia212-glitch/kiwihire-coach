@@ -66,6 +66,7 @@ describe("ApplicationsPage", () => {
       strongestFit: null,
       mainConcern: null,
       evidenceItemIds: [],
+      applicationAnswerIds: [],
       },
     ]);
 
@@ -136,6 +137,7 @@ describe("ApplicationsPage", () => {
       strongestFit: null,
       mainConcern: null,
       evidenceItemIds: [],
+      applicationAnswerIds: [],
       },
     ]);
 

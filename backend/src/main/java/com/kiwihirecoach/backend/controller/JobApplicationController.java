@@ -5,6 +5,7 @@ import com.kiwihirecoach.backend.dto.JobApplicationResponse;
 import com.kiwihirecoach.backend.dto.UpdateJobApplicationRequest;
 import com.kiwihirecoach.backend.dto.UpdateApplicationDecisionRequest;
 import com.kiwihirecoach.backend.dto.UpdateApplicationEvidenceRequest;
+import com.kiwihirecoach.backend.dto.UpdateApplicationAnswersRequest;
 import com.kiwihirecoach.backend.service.JobApplicationService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -114,6 +115,30 @@ public class JobApplicationController {
     ) {
         return jobApplicationService.updateEvidence(
                 id, request, currentUserId(authentication)
+        );
+    }
+
+    @PatchMapping("/{id}/answers")
+    public JobApplicationResponse updateAnswers(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateApplicationAnswersRequest request,
+            Authentication authentication
+    ) {
+        return jobApplicationService.updateAnswers(
+                id, request, currentUserId(authentication)
+        );
+    }
+
+    @PostMapping("/{id}/submission-snapshot")
+    public ResponseEntity<JobApplicationResponse> createSubmissionSnapshot(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                jobApplicationService.createSubmissionSnapshot(
+                        id,
+                        currentUserId(authentication)
+                )
         );
     }
 

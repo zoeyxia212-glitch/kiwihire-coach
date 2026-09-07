@@ -50,6 +50,16 @@ public class JobApplication {
     private boolean archived;
     @Lob
     private String jobDescription;
+    private LocalDateTime submittedAt;
+    private String submittedResumeName;
+    @Lob
+    private String submittedJobDescription;
+    @Lob
+    private String submittedResumeContent;
+    @Lob
+    private String submittedAnswers;
+    @Lob
+    private String submittedEvidence;
 
     @ManyToOne
     private User user;
@@ -61,6 +71,14 @@ public class JobApplication {
             inverseJoinColumns = @JoinColumn(name = "evidence_item_id")
     )
     private Set<EvidenceItem> evidenceItems = new LinkedHashSet<>();
+
+    @ManyToMany
+    @JoinTable(
+            name = "job_application_answers",
+            joinColumns = @JoinColumn(name = "application_id"),
+            inverseJoinColumns = @JoinColumn(name = "application_answer_id")
+    )
+    private Set<ApplicationAnswer> applicationAnswers = new LinkedHashSet<>();
 
     public JobApplication() {
     }
@@ -210,6 +228,13 @@ public class JobApplication {
     public String getStrongestFit() { return strongestFit; }
     public String getMainConcern() { return mainConcern; }
     public Set<EvidenceItem> getEvidenceItems() { return evidenceItems; }
+    public Set<ApplicationAnswer> getApplicationAnswers() { return applicationAnswers; }
+    public LocalDateTime getSubmittedAt() { return submittedAt; }
+    public String getSubmittedResumeName() { return submittedResumeName; }
+    public String getSubmittedJobDescription() { return submittedJobDescription; }
+    public String getSubmittedResumeContent() { return submittedResumeContent; }
+    public String getSubmittedAnswers() { return submittedAnswers; }
+    public String getSubmittedEvidence() { return submittedEvidence; }
 
     public void updateDecision(
             String decision,
@@ -226,6 +251,48 @@ public class JobApplication {
     public void replaceEvidenceItems(Set<EvidenceItem> evidenceItems) {
         this.evidenceItems.clear();
         this.evidenceItems.addAll(evidenceItems);
+    }
+
+    public void replaceApplicationAnswers(Set<ApplicationAnswer> applicationAnswers) {
+        this.applicationAnswers.clear();
+        this.applicationAnswers.addAll(applicationAnswers);
+    }
+
+    public void createSubmissionSnapshot(
+            String resumeName,
+            String resumeContent,
+            String answers,
+            String evidence
+    ) {
+        if (submittedAt != null) {
+            throw new IllegalArgumentException("A submission snapshot already exists.");
+        }
+        this.submittedAt = LocalDateTime.now();
+        this.submittedJobDescription = jobDescription;
+        this.submittedResumeName = resumeName;
+        this.submittedResumeContent = resumeContent;
+        this.submittedAnswers = answers;
+        this.submittedEvidence = evidence;
+        this.status = "Applied";
+    }
+
+    public void restoreSubmissionSnapshot(
+            LocalDateTime submittedAt,
+            String resumeName,
+            String jobDescription,
+            String resumeContent,
+            String answers,
+            String evidence
+    ) {
+        if (this.submittedAt != null) {
+            throw new IllegalArgumentException("A submission snapshot already exists.");
+        }
+        this.submittedAt = submittedAt;
+        this.submittedResumeName = resumeName;
+        this.submittedJobDescription = jobDescription;
+        this.submittedResumeContent = resumeContent;
+        this.submittedAnswers = answers;
+        this.submittedEvidence = evidence;
     }
 
     public boolean isArchived() {

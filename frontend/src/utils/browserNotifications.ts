@@ -1,4 +1,5 @@
 import type { Dashboard } from "../types/dashboard";
+import type { LearningGoal } from "../types/learningGoal";
 
 const NOTIFICATION_HISTORY_KEY =
   "kiwihire-browser-notification-history";
@@ -32,7 +33,10 @@ export async function requestBrowserNotificationPermission() {
   return Notification.requestPermission();
 }
 
-export function showDashboardNotifications(dashboard: Dashboard) {
+export function showDashboardNotifications(
+  dashboard: Dashboard,
+  learningGoals: LearningGoal[] = [],
+) {
   if (
     !getBrowserNotificationsEnabled() ||
     !("Notification" in window) ||
@@ -57,7 +61,7 @@ export function showDashboardNotifications(dashboard: Dashboard) {
     showNotification(
       followUp.overdue ? "Overdue follow-up" : "Follow-up due today",
       `${followUp.company} · ${followUp.roleTitle}: ${followUp.nextAction || "Follow up"}`,
-      followUp.applicationId,
+      `/applications/${followUp.applicationId}`,
     );
     shownKeys.add(key);
     notificationCount += 1;
@@ -74,7 +78,32 @@ export function showDashboardNotifications(dashboard: Dashboard) {
     showNotification(
       `${reminder.type} coming up`,
       `${reminder.company} · ${reminder.roleTitle}: ${reminder.title}`,
-      reminder.applicationId,
+      `/applications/${reminder.applicationId}`,
+    );
+    shownKeys.add(key);
+    notificationCount += 1;
+  });
+
+  learningGoals.forEach((goal) => {
+    if (
+      goal.status === "Completed"
+      || !goal.targetDate
+      || goal.targetDate > todayKey
+    ) {
+      return;
+    }
+
+    const key = `${todayKey}-learning-goal-${goal.id}`;
+    if (shownKeys.has(key)) {
+      return;
+    }
+
+    showNotification(
+      goal.targetDate < todayKey
+        ? "Learning goal overdue"
+        : "Learning goal due today",
+      `${goal.skill}: ${goal.nextAction || "Choose your next practical action"}`,
+      "/learning",
     );
     shownKeys.add(key);
     notificationCount += 1;
@@ -113,16 +142,16 @@ export function showTestBrowserNotification() {
 function showNotification(
   title: string,
   body: string,
-  applicationId: number,
+  destination: string,
 ) {
   const notification = new Notification(title, {
     body,
-    tag: `application-${applicationId}-${title}`,
+    tag: `kiwihire-${destination}-${title}`,
   });
 
   notification.onclick = () => {
     window.focus();
-    window.location.assign(`/applications/${applicationId}`);
+    window.location.assign(destination);
     notification.close();
   };
 }

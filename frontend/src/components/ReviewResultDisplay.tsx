@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type {
   ResumeAnalysis,
   ResumeAnalysisItem,
@@ -9,7 +9,9 @@ import type {
   SuggestionStatus,
 } from "../types/resumeReview";
 import ResumeBulletOptimizer from "./ResumeBulletOptimizer";
+import ReviewChecklist from "./ReviewChecklist";
 import VoiceAnswerRecorder from "./VoiceAnswerRecorder";
+import { suggestResumeTrims } from "../utils/resumeTrimSuggestions";
 
 type InterviewQuestionCategory =
   | "Behavioural"
@@ -62,6 +64,7 @@ type ReviewResultDisplayProps = {
   suggestionStatuses?: SuggestionStatus[];
   starExamples?: string;
   jobDescription?: string;
+  resumeText?: string;
   onSavePracticeAnswer?: (
     questionIndex: number,
     answer: string,
@@ -85,14 +88,26 @@ export default function ReviewResultDisplay({
   suggestionStatuses = [],
   starExamples = "",
   jobDescription = "",
+  resumeText = "",
   onSavePracticeAnswer,
   onUpdatePracticeStatus,
   onUpdateSuggestionStatus,
 }: ReviewResultDisplayProps) {
+  const trimSuggestions = useMemo(
+    () =>
+      resumeText.trim()
+        ? suggestResumeTrims(resumeText, [
+            ...analysis.matched,
+            ...analysis.transferable,
+          ])
+        : [],
+    [resumeText, analysis.matched, analysis.transferable],
+  );
   const [categoryFilter, setCategoryFilter] =
     useState<QuestionCategoryFilter>("All categories");
   const [statusFilter, setStatusFilter] =
     useState<QuestionStatusFilter>("All statuses");
+  const [checklistComplete, setChecklistComplete] = useState(false);
   const indexedQuestions = questions.map((question, index) => ({
     question,
     index,
@@ -159,6 +174,12 @@ export default function ReviewResultDisplay({
         jobDescription={jobDescription}
       />
 
+      {onUpdateSuggestionStatus && (
+        <ReviewChecklist
+          onChange={(_, complete) => setChecklistComplete(complete)}
+        />
+      )}
+
       <div className="panel">
         <div className="panel-inner">
           <h2>Resume actions</h2>
@@ -180,10 +201,18 @@ export default function ReviewResultDisplay({
                         }
                       >
                         <option>To do</option>
-                        <option>Accepted</option>
+                        <option disabled={!checklistComplete}>
+                          Accepted
+                        </option>
                         <option>Ignored</option>
                       </select>
                     </label>
+                    {!checklistComplete && (
+                      <p className="muted no-print">
+                        Complete the checklist above to mark a suggestion
+                        "Accepted".
+                      </p>
+                    )}
                     <span className="print-only">
                       Decision: {suggestionStatuses[index] ?? "To do"}
                     </span>
@@ -194,6 +223,29 @@ export default function ReviewResultDisplay({
           </div>
         </div>
       </div>
+
+      {trimSuggestions.length > 0 && (
+        <div className="panel">
+          <div className="panel-inner">
+            <p className="eyebrow">Local length check</p>
+            <h2>Consider trimming these lines</h2>
+            <p className="muted">
+              These lines don't share wording with any skill this review
+              matched or credited as transferable for this role. This is
+              a heuristic based on your own resume text, not a verdict -
+              check each one yourself before cutting anything.
+            </p>
+            <div className="list">
+              {trimSuggestions.map((suggestion, index) => (
+                <div className="list-row" key={`${suggestion.line}-${index}`}>
+                  <blockquote>{suggestion.line}</blockquote>
+                  <p className="muted">{suggestion.reason}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="panel">
         <div className="panel-inner">

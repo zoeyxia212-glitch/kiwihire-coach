@@ -11,6 +11,7 @@ import {
 import { getCandidateProfileProgress } from "../utils/candidateProfileProgress";
 import type { CandidateProfile } from "../types/candidateProfile";
 import type { EvidenceItem } from "../types/evidenceItem";
+import { useUnsavedChangesWarning } from "../hooks/useUnsavedChangesWarning";
 
 const emptyEvidenceForm = {
   title: "",
@@ -20,7 +21,12 @@ const emptyEvidenceForm = {
   skills: "",
 };
 
+function profileKey(profile: Omit<CandidateProfile, "id" | "updatedAt">) {
+  return JSON.stringify(profile);
+}
+
 export default function CandidateProfilePage() {
+  const [preferredName, setPreferredName] = useState("");
   const [targetRoles, setTargetRoles] = useState("");
   const [workRights, setWorkRights] = useState("");
   const [preferredLocations, setPreferredLocations] = useState("");
@@ -35,8 +41,35 @@ export default function CandidateProfilePage() {
   const [evidenceItems, setEvidenceItems] = useState<EvidenceItem[]>([]);
   const [evidenceForm, setEvidenceForm] = useState(emptyEvidenceForm);
   const [editingEvidenceId, setEditingEvidenceId] = useState<number | null>(null);
+  const [savedEvidenceKey, setSavedEvidenceKey] = useState(
+    JSON.stringify(emptyEvidenceForm),
+  );
   const [isSavingEvidence, setIsSavingEvidence] = useState(false);
   const [evidenceMessage, setEvidenceMessage] = useState("");
+  const [savedProfileKey, setSavedProfileKey] = useState(() => profileKey({
+    preferredName: "",
+    targetRoles: "",
+    workRights: "",
+    preferredLocations: "",
+    careerStage: "",
+    technicalSkills: "",
+    experienceSummary: "",
+    starExamples: "",
+  }));
+  const currentProfileValues = {
+    preferredName,
+    targetRoles,
+    workRights,
+    preferredLocations,
+    careerStage,
+    technicalSkills,
+    experienceSummary,
+    starExamples,
+  };
+  const hasProfileChanges = profileKey(currentProfileValues) !== savedProfileKey;
+  const hasEvidenceChanges = JSON.stringify(evidenceForm) !== savedEvidenceKey;
+
+  useUnsavedChangesWarning(!isLoading && (hasProfileChanges || hasEvidenceChanges));
 
   useEffect(() => {
     async function loadProfile() {
@@ -45,6 +78,7 @@ export default function CandidateProfilePage() {
           getCandidateProfile(),
           getEvidenceItems(),
         ]);
+        setPreferredName(profile.preferredName);
         setTargetRoles(profile.targetRoles);
         setWorkRights(profile.workRights);
         setPreferredLocations(profile.preferredLocations);
@@ -52,6 +86,16 @@ export default function CandidateProfilePage() {
         setTechnicalSkills(profile.technicalSkills);
         setExperienceSummary(profile.experienceSummary);
         setStarExamples(profile.starExamples);
+        setSavedProfileKey(profileKey({
+          preferredName: profile.preferredName,
+          targetRoles: profile.targetRoles,
+          workRights: profile.workRights,
+          preferredLocations: profile.preferredLocations,
+          careerStage: profile.careerStage,
+          technicalSkills: profile.technicalSkills,
+          experienceSummary: profile.experienceSummary,
+          starExamples: profile.starExamples,
+        }));
         setEvidenceItems(items);
       } catch {
         setError("Your candidate profile could not be loaded.");
@@ -70,15 +114,25 @@ export default function CandidateProfilePage() {
     setSuccess("");
 
     try {
-      await saveCandidateProfile({
-        targetRoles,
-        workRights,
-        preferredLocations,
-        careerStage,
-        technicalSkills,
-        experienceSummary,
-        starExamples,
-      });
+      const savedProfile = await saveCandidateProfile(currentProfileValues);
+      setPreferredName(savedProfile.preferredName);
+      setTargetRoles(savedProfile.targetRoles);
+      setWorkRights(savedProfile.workRights);
+      setPreferredLocations(savedProfile.preferredLocations);
+      setCareerStage(savedProfile.careerStage);
+      setTechnicalSkills(savedProfile.technicalSkills);
+      setExperienceSummary(savedProfile.experienceSummary);
+      setStarExamples(savedProfile.starExamples);
+      setSavedProfileKey(profileKey({
+        preferredName: savedProfile.preferredName,
+        targetRoles: savedProfile.targetRoles,
+        workRights: savedProfile.workRights,
+        preferredLocations: savedProfile.preferredLocations,
+        careerStage: savedProfile.careerStage,
+        technicalSkills: savedProfile.technicalSkills,
+        experienceSummary: savedProfile.experienceSummary,
+        starExamples: savedProfile.starExamples,
+      }));
       setSuccess("Candidate profile saved.");
     } catch {
       setError("Your candidate profile could not be saved.");
@@ -95,20 +149,39 @@ export default function CandidateProfilePage() {
   }
 
   function startEditingEvidence(item: EvidenceItem) {
-    setEditingEvidenceId(item.id);
-    setEvidenceForm({
+    if (
+      hasEvidenceChanges
+      && !window.confirm("Discard your unsaved evidence changes?")
+    ) {
+      return;
+    }
+    const itemForm = {
       title: item.title,
       context: item.context,
       action: item.action,
       result: item.result,
       skills: item.skills,
-    });
+    };
+    setEditingEvidenceId(item.id);
+    setEvidenceForm(itemForm);
+    setSavedEvidenceKey(JSON.stringify(itemForm));
     setEvidenceMessage("");
   }
 
   function resetEvidenceForm() {
     setEditingEvidenceId(null);
     setEvidenceForm(emptyEvidenceForm);
+    setSavedEvidenceKey(JSON.stringify(emptyEvidenceForm));
+  }
+
+  function discardEvidenceForm() {
+    if (
+      hasEvidenceChanges
+      && !window.confirm("Discard your unsaved evidence changes?")
+    ) {
+      return;
+    }
+    resetEvidenceForm();
   }
 
   async function handleEvidenceSubmit(event: FormEvent<HTMLFormElement>) {
@@ -159,6 +232,7 @@ export default function CandidateProfilePage() {
 
   const currentProfile: CandidateProfile = {
     id: null,
+    preferredName,
     targetRoles,
     workRights,
     preferredLocations,
@@ -273,7 +347,7 @@ export default function CandidateProfilePage() {
                   {isSavingEvidence ? "Saving..." : editingEvidenceId ? "Update evidence" : "Add evidence"}
                 </button>
                 {editingEvidenceId && (
-                  <button className="button" type="button" onClick={resetEvidenceForm}>Cancel</button>
+                  <button className="button" type="button" onClick={discardEvidenceForm}>Cancel</button>
                 )}
               </div>
               {evidenceMessage && <p className="muted" role="status">{evidenceMessage}</p>}
@@ -316,6 +390,19 @@ export default function CandidateProfilePage() {
 
       <form className="panel" onSubmit={handleSubmit}>
         <div className="panel-inner form-grid">
+          <div className="field">
+            <label htmlFor="preferred-name">Preferred name</label>
+            <input
+              id="preferred-name"
+              value={preferredName}
+              maxLength={120}
+              placeholder="Zoey Xia"
+              autoComplete="name"
+              onChange={(event) => setPreferredName(event.target.value)}
+            />
+            <small>Used to sign generated application documents.</small>
+          </div>
+
           <div className="field">
             <label htmlFor="target-roles">Target roles</label>
             <input
@@ -449,10 +536,15 @@ Add another real example after a blank line.`}
           <button
             className="button primary"
             type="submit"
-            disabled={isSaving}
+            disabled={isSaving || !hasProfileChanges}
           >
             {isSaving ? "Saving profile..." : "Save profile"}
           </button>
+          {hasProfileChanges && (
+            <p className="draft-status is-unsaved" role="status">
+              Candidate Profile has unsaved changes
+            </p>
+          )}
         </div>
       </form>
     </section>

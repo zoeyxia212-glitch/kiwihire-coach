@@ -34,6 +34,7 @@ public class CandidateProfileService {
                         "",
                         "",
                         "",
+                        "",
                         null
                 ));
     }
@@ -52,10 +53,12 @@ public class CandidateProfileService {
                         "",
                         "",
                         "",
+                        "",
                         ""
                 ));
 
         profile.update(
+                normalize(request.preferredName()),
                 normalize(request.targetRoles()),
                 normalize(request.workRights()),
                 normalize(request.preferredLocations()),
@@ -84,6 +87,7 @@ public class CandidateProfileService {
     ) {
         return new CandidateProfileResponse(
                 profile.getId(),
+                profile.getPreferredName(),
                 profile.getTargetRoles(),
                 profile.getWorkRights(),
                 profile.getPreferredLocations(),

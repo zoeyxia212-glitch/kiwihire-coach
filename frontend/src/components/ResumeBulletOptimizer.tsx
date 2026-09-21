@@ -4,6 +4,14 @@ import type { Resume } from "../types/resume";
 import { createResume, getResumes } from "../utils/api";
 import { analyzeResume } from "../utils/resumeAnalysis";
 import { buildResumeBullet } from "../utils/resumeBulletOptimizer";
+import {
+  reviewResumeBullet,
+  type BulletReviewFinding,
+} from "../utils/resumeBulletReviewer";
+import {
+  checkSemanticRelevance,
+  type SemanticRelevanceResult,
+} from "../utils/semanticRelevance";
 
 type ResumeBulletOptimizerProps = {
   analysis: ResumeAnalysis;
@@ -34,6 +42,12 @@ export default function ResumeBulletOptimizer({
   const [result, setResult] = useState("");
   const [draft, setDraft] = useState("");
   const [checks, setChecks] = useState<string[]>([]);
+  const [reviewFindings, setReviewFindings] = useState<BulletReviewFinding[]>(
+    [],
+  );
+  const [semanticCheck, setSemanticCheck] =
+    useState<SemanticRelevanceResult | null>(null);
+  const [isCheckingSemantic, setIsCheckingSemantic] = useState(false);
   const [copyMessage, setCopyMessage] = useState("");
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [selectedResumeId, setSelectedResumeId] = useState("");
@@ -83,7 +97,31 @@ export default function ResumeBulletOptimizer({
     const generated = buildResumeBullet({ action, tools, result });
     setDraft(generated.bullet);
     setChecks(generated.checks);
+    // Review runs as a second, independent pass over the drafted bullet
+    // rather than being folded into generation - see docs/product-plan.md,
+    // "AI Integration Principles".
+    setReviewFindings(
+      generated.bullet
+        ? reviewResumeBullet(generated.bullet, jobDescription)
+        : [],
+    );
     setCopyMessage("");
+
+    // Optional third pass: a real (small) AI model running locally in the
+    // browser, on top of the deterministic checks above. This never blocks
+    // the UI and is allowed to fail silently - see semanticRelevance.ts.
+    setSemanticCheck(null);
+    if (generated.bullet && jobDescription.trim()) {
+      const bulletForCheck = generated.bullet;
+      setIsCheckingSemantic(true);
+      checkSemanticRelevance(bulletForCheck, jobDescription)
+        .then((result) => {
+          if (bulletForCheck === generated.bullet) {
+            setSemanticCheck(result);
+          }
+        })
+        .finally(() => setIsCheckingSemantic(false));
+    }
   }
 
   async function copyDraft() {
@@ -287,6 +325,56 @@ export default function ResumeBulletOptimizer({
                         <li key={check}>{check}</li>
                       ))}
                     </ul>
+                  )}
+                  {reviewFindings.length > 0 && (
+                    <div className="resume-bullet-review">
+                      <p className="eyebrow">Local review</p>
+                      <ul>
+                        {reviewFindings.map((finding) => (
+                          <li key={finding.id}>{finding.message}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {jobDescription.trim() && (
+                    <div className="resume-bullet-review">
+                      <p className="eyebrow">
+                        AI-assisted relevance check (runs locally in your
+                        browser)
+                      </p>
+                      {isCheckingSemantic && (
+                        <p className="muted">
+                          Loading a small local model in your browser the
+                          first time this runs may take a moment...
+                        </p>
+                      )}
+                      {!isCheckingSemantic &&
+                        semanticCheck?.available === true && (
+                          <p>
+                            Estimated semantic relevance to this job
+                            description:{" "}
+                            <strong>
+                              {Math.round(semanticCheck.similarity * 100)}%
+                            </strong>
+                            {semanticCheck.similarity < 0.3 && (
+                              <>
+                                {" "}
+                                - this reads as unrelated to the role. Worth
+                                double-checking.
+                              </>
+                            )}
+                          </p>
+                        )}
+                      {!isCheckingSemantic &&
+                        semanticCheck?.available === false && (
+                          <p className="muted">
+                            Local AI check unavailable this time (
+                            {semanticCheck.reason}). The rule-based checks
+                            above still apply.
+                          </p>
+                        )}
+                    </div>
                   )}
                   <div className="form-actions">
                     <button

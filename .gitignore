@@ -8,3 +8,4 @@ spring-backend/target/
 .env.local
 *.db
 .DS_Store
+_to_delete_spring-backend/

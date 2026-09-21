@@ -1,5 +1,6 @@
 export type CandidateProfile = {
   id: number | null;
+  preferredName: string;
   targetRoles: string;
   workRights: string;
   preferredLocations: string;

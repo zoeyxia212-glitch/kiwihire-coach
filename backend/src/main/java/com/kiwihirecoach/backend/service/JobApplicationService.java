@@ -6,6 +6,7 @@ import com.kiwihirecoach.backend.dto.UpdateJobApplicationRequest;
 import com.kiwihirecoach.backend.dto.UpdateApplicationDecisionRequest;
 import com.kiwihirecoach.backend.dto.UpdateApplicationEvidenceRequest;
 import com.kiwihirecoach.backend.dto.UpdateApplicationAnswersRequest;
+import com.kiwihirecoach.backend.dto.UpdateCoverLetterRequest;
 import com.kiwihirecoach.backend.entity.ApplicationAnswer;
 import com.kiwihirecoach.backend.entity.ApplicationEvent;
 import com.kiwihirecoach.backend.entity.EvidenceItem;
@@ -169,6 +170,16 @@ public class JobApplicationService {
         return toResponse(jobApplicationRepository.save(application));
     }
 
+    public JobApplicationResponse updateCoverLetter(
+            Long id,
+            UpdateCoverLetterRequest request,
+            Long userId
+    ) {
+        JobApplication application = findOwnedApplication(id, userId);
+        application.updateCoverLetterDraft(normalize(request.coverLetterDraft()));
+        return toResponse(jobApplicationRepository.save(application));
+    }
+
     @Transactional
     public JobApplicationResponse updateEvidence(
             Long id,
@@ -230,6 +241,7 @@ public class JobApplicationService {
         application.createSubmissionSnapshot(
                 latestReview.getResume().getName(),
                 latestReview.getResume().getContent(),
+                application.getCoverLetterDraft(),
                 submittedAnswers,
                 submittedEvidence
         );
@@ -240,7 +252,7 @@ public class JobApplicationService {
                 "Applied",
                 savedApplication.getSubmittedAt(),
                 savedApplication.getContactPerson(),
-                "Submission snapshot created with the selected CV, answers, and evidence.",
+                "Submission snapshot created with the selected CV, cover letter, answers, and evidence.",
                 null,
                 null
         ));
@@ -253,6 +265,7 @@ public class JobApplicationService {
             String resumeName,
             String jobDescription,
             String resumeContent,
+            String coverLetter,
             String answers,
             String evidence,
             Long userId
@@ -266,6 +279,7 @@ public class JobApplicationService {
                 normalize(resumeName),
                 normalize(jobDescription),
                 normalize(resumeContent),
+                normalize(coverLetter),
                 normalize(answers),
                 normalize(evidence)
         );
@@ -322,11 +336,13 @@ public class JobApplicationService {
                         .map(ApplicationAnswer::getId)
                         .toList()
         );
+        response.addCoverLetterDraft(application.getCoverLetterDraft());
         response.addSubmissionSnapshot(
                 application.getSubmittedAt(),
                 application.getSubmittedResumeName(),
                 application.getSubmittedJobDescription(),
                 application.getSubmittedResumeContent(),
+                application.getSubmittedCoverLetter(),
                 application.getSubmittedAnswers(),
                 application.getSubmittedEvidence()
         );

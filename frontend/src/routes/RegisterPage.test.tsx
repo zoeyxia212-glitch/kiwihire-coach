@@ -30,7 +30,7 @@ describe("RegisterPage", () => {
       target: { value: "zoey@example.com" },
     });
     fireEvent.change(screen.getByLabelText("Password"), {
-      target: { value: "password123" },
+      target: { value: "Password123" },
     });
     fireEvent.click(screen.getByRole("button", {
       name: "Create account",
@@ -38,7 +38,7 @@ describe("RegisterPage", () => {
 
     expect(registerUser).toHaveBeenCalledWith({
       email: "zoey@example.com",
-      password: "password123",
+      password: "Password123",
     });
     expect(
       await screen.findByText(/Account created for zoey@example.com/),
@@ -63,7 +63,7 @@ describe("RegisterPage", () => {
       target: { value: "zoey@example.com" },
     });
     fireEvent.change(screen.getByLabelText("Password"), {
-      target: { value: "password123" },
+      target: { value: "Password123" },
     });
     fireEvent.click(screen.getByRole("button", {
       name: "Create account",

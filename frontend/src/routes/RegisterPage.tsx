@@ -1,6 +1,7 @@
 import { FormEvent, useState } from "react";
 import { Link } from "react-router";
 import { registerUser } from "../utils/api";
+import { PASSWORD_HELP_TEXT, validatePassword } from "../utils/passwordPolicy";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -12,6 +13,13 @@ export default function RegisterPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
+
+    const passwordCheck = validatePassword(password);
+    if (!passwordCheck.isValid) {
+      setError(passwordCheck.message);
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -64,6 +72,7 @@ export default function RegisterPage() {
               minLength={8}
               required
             />
+            <small>{PASSWORD_HELP_TEXT}</small>
           </div>
           {error && (
             <p className="error-message" role="alert">

@@ -45,7 +45,7 @@ private JwtService jwtService;
         String requestJson = """
                 {
                   "email": "zoey@example.com",
-                  "password": "password123"
+                  "password": "Password123"
                 }
                 """;
 
@@ -64,7 +64,7 @@ private JwtService jwtService;
         String requestJson = """
                 {
                   "email": "not-an-email",
-                  "password": "password123"
+                  "password": "Password123"
                 }
                 """;
 
@@ -99,7 +99,7 @@ private JwtService jwtService;
         String requestJson = """
                 {
                   "email": "zoey@example.com",
-                  "password": "password123"
+                  "password": "Password123"
                 }
                 """;
 

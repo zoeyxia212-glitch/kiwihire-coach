@@ -1,46 +1,62 @@
 # Setup Guide
 
-This is the setup flow for the current frontend prototype.
-
-The project currently has one working app:
-
-```text
-frontend
-```
-
-The backend folder is only a placeholder for later work.
+KiwiHire Coach has two services: a Spring Boot backend and a React frontend.
+Both need to be running for the app to work end to end.
 
 ## Requirements
 
 Install:
 
 ```text
-Node.js
+Java 17
+Node.js 22
 npm
 ```
 
-## Frontend Setup
+## Backend setup
+
+```bash
+cd backend
+./mvnw spring-boot:run
+```
+
+The API runs at `http://localhost:8080`. No configuration is required for
+local development - it uses an in-memory H2 database by default. See
+[`backend/README.md`](../backend/README.md) for backend architecture and
+authentication details.
+
+## Frontend setup
+
+In a second terminal:
 
 ```bash
 cd frontend
 npm install
-cp .env.example .env.local
+cp .env.example .env
 npm run dev
 ```
 
-The frontend should run on:
+The frontend runs at `http://localhost:5173` and expects the backend to
+already be running at `http://localhost:8080`.
 
-```text
-http://localhost:5173
+`.env` is only needed for the optional EmailJS contact form - the core
+product works without it. Never commit `.env` (it's gitignored); only
+`.env.example` should be tracked.
+
+## Running the tests
+
+```bash
+cd frontend && npm test && npm run build
+cd ../backend && ./mvnw test
 ```
 
-## Development Order
-
-Recommended order:
+## Development order for new work
 
 ```text
-1. Review the frontend pages
-2. Improve the static forms and layout
-3. Decide the first real user flow
-4. Plan backend and database before coding them
+1. Run the unified acceptance checklist in docs/product-plan.md before
+   trusting that an existing feature still works
+2. Confirm the user-visible result AND the persisted data, not just that
+   code exists
+3. Update docs/product-plan.md and the root README when a feature's status
+   changes
 ```

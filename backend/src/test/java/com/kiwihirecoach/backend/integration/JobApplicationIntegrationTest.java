@@ -337,6 +337,7 @@ mockMvc.perform(get("/api/applications")
                 )
         );
         application.replaceEvidenceItems(Set.of(evidence));
+        application.updateCoverLetterDraft("Dear Datacom hiring team,");
         jobApplicationRepository.save(application);
 
         mockMvc.perform(post(
@@ -348,6 +349,8 @@ mockMvc.perform(get("/api/applications")
                 .andExpect(jsonPath("$.submittedResumeName").value("Graduate CV"))
                 .andExpect(jsonPath("$.submittedJobDescription")
                         .value("Java, Spring Boot and React"))
+                .andExpect(jsonPath("$.submittedCoverLetter")
+                        .value("Dear Datacom hiring team,"))
                 .andExpect(jsonPath("$.submittedEvidence")
                         .value(org.hamcrest.Matchers.containsString("KiwiHire API")));
 
@@ -355,6 +358,7 @@ mockMvc.perform(get("/api/applications")
                 .findById(application.getId())
                 .orElseThrow();
         assertNotNull(submitted.getSubmittedAt());
+        assertEquals("Dear Datacom hiring team,", submitted.getSubmittedCoverLetter());
         assertTrue(submitted.getSubmittedEvidence()
                 .contains("Designed secured REST endpoints"));
 

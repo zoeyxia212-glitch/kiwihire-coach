@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 public record CandidateProfileResponse(
         Long id,
+        String preferredName,
         String targetRoles,
         String workRights,
         String preferredLocations,

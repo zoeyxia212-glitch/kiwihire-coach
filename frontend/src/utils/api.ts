@@ -530,6 +530,24 @@ export async function updateApplicationAnswers(
   return response.json();
 }
 
+export async function updateApplicationCoverLetter(
+  id: number,
+  coverLetterDraft: string,
+): Promise<Application> {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/applications/${id}/cover-letter`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ coverLetterDraft }),
+    },
+  );
+  if (!response.ok) {
+    throw new Error("Failed to save cover letter draft.");
+  }
+  return response.json();
+}
+
 export async function createSubmissionSnapshot(id: number): Promise<Application> {
   const response = await authenticatedFetch(
     `${API_BASE_URL}/api/applications/${id}/submission-snapshot`,

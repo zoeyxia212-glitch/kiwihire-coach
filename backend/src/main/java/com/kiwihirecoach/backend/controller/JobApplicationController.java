@@ -6,6 +6,7 @@ import com.kiwihirecoach.backend.dto.UpdateJobApplicationRequest;
 import com.kiwihirecoach.backend.dto.UpdateApplicationDecisionRequest;
 import com.kiwihirecoach.backend.dto.UpdateApplicationEvidenceRequest;
 import com.kiwihirecoach.backend.dto.UpdateApplicationAnswersRequest;
+import com.kiwihirecoach.backend.dto.UpdateCoverLetterRequest;
 import com.kiwihirecoach.backend.service.JobApplicationService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -125,6 +126,17 @@ public class JobApplicationController {
             Authentication authentication
     ) {
         return jobApplicationService.updateAnswers(
+                id, request, currentUserId(authentication)
+        );
+    }
+
+    @PatchMapping("/{id}/cover-letter")
+    public JobApplicationResponse updateCoverLetter(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateCoverLetterRequest request,
+            Authentication authentication
+    ) {
+        return jobApplicationService.updateCoverLetter(
                 id, request, currentUserId(authentication)
         );
     }

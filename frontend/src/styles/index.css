@@ -273,8 +273,9 @@ main {
 .dashboard-candidate {
   position: absolute;
   left: 50%;
-  bottom: -48px;
-  width: min(75%, 280px);
+  bottom: 0;
+  width: min(82%, 560px);
+  height: auto;
   opacity: 0;
   transform: translateX(-50%);
   filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.32));
@@ -3155,6 +3156,110 @@ p {
   color: #176b58;
   font-weight: 800;
   cursor: pointer;
+}
+
+.submission-checklist {
+  display: grid;
+  gap: 0.45rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.submission-checklist li {
+  display: grid;
+  grid-template-columns: 1.25rem 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--muted-text);
+}
+
+.submission-checklist li > span:first-child {
+  color: var(--warning, #9a6700);
+  font-weight: 700;
+}
+
+.submission-checklist li.is-complete {
+  color: var(--text-color);
+}
+
+.submission-checklist li.is-complete > span:first-child {
+  color: var(--accent, #176f5b);
+}
+
+.submission-checklist small {
+  font-size: 0.75rem;
+  color: var(--muted-text);
+}
+
+.draft-status {
+  display: inline-flex;
+  margin-left: 0.65rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: #e8f5ef;
+  color: #176b58;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.draft-status.is-unsaved {
+  background: #fff3d6;
+  color: #8a5700;
+}
+
+.cover-letter-quality {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid #d7e3df;
+  border-radius: 12px;
+  background: #f8fbfa;
+}
+
+.cover-letter-quality h3 {
+  margin: 0.2rem 0 0;
+}
+
+.cover-letter-quality ul {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cover-letter-quality li {
+  display: grid;
+  grid-template-columns: 1.25rem 1fr;
+  gap: 0.5rem;
+  color: #8a5700;
+}
+
+.cover-letter-quality li.is-complete {
+  color: #176b58;
+}
+
+.cover-letter-quality li span:last-child {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.cover-letter-quality small {
+  color: var(--muted-text);
+}
+
+.cover-letter-profile-prompt {
+  margin: 0.75rem 0 0;
+  padding: 0.75rem 0.9rem;
+  border-left: 3px solid #d89a1d;
+  background: #fff9e9;
+  color: #694500;
+}
+
+.cover-letter-profile-prompt a {
+  color: inherit;
+  font-weight: 800;
 }
 
 .snapshot-content {

@@ -323,6 +323,103 @@ because code exists.
 
 These features should be considered only after the core workflow is usable and candidate validation shows a real need.
 
+## AI Integration Principles (For When Automatic AI Resume Rewriting Is Built)
+
+These are not implemented today - the product uses free, explainable local
+rules only (see MVP Product Features). This section exists so that when
+automatic AI resume rewriting or any other LLM-backed feature is eventually
+built, it follows a decided design rather than an improvised one. Drafted
+after reviewing two comparable products (an AI CV builder and an open-source
+AI job-search agent) for patterns worth adopting.
+
+1. **Untrusted input.** Any user-supplied free text sent to an LLM (job
+   descriptions above all) must be wrapped in an explicit delimiter and the
+   prompt must state plainly that the wrapped content is data, not
+   instructions, and that any instruction-like text inside it must be
+   ignored. This prevents prompt injection through a pasted job ad.
+
+2. **Draft and review as two separate calls.** A single prompt that both
+   generates and self-checks its own output is not sufficient. Generation
+   and review must be two independent calls (different prompt, ideally
+   framed as a different role) so the reviewer is not primed to agree with
+   the draft. The existing human `ReviewChecklist` component
+   (`frontend/src/components/ReviewChecklist.tsx`) is the human layer of
+   this pattern; an AI reviewer step would sit before it, not replace it.
+
+3. **Deterministic logic stays deterministic.** The existing rule-based
+   matching (Matched / Missing / Transferable skill analysis) must remain
+   the source of truth for whether a skill is supported by evidence. An
+   LLM may rephrase or explain these results in more natural language, but
+   must not be asked to decide the match itself - that keeps the analysis
+   explainable and consistent with the "not a black-box score" product
+   principle.
+
+4. **Explicit allow-list for any action the AI can take.** If a future
+   agent feature does anything beyond generating text - filling a form,
+   sending an email, modifying saved data - the set of allowed actions
+   must be an explicit, user-visible list, and anything consequential
+   needs a confirmation step. This follows the same rule already in place
+   for cost: no feature that spends money or acts on the user's behalf
+   turns on silently.
+
+### Status: partial implementation (2026-09-21)
+
+The Evidence-first Bullet Builder now has a first real (if small) AI
+component, not just rule-based drafting:
+
+- `frontend/src/utils/semanticRelevance.ts` loads a small sentence
+  embedding model (`Xenova/all-MiniLM-L6-v2`) at runtime via a dynamic
+  import from a public CDN - no npm dependency, no server, no API key, no
+  cost. It scores how semantically related a drafted bullet is to the job
+  description, as a genuine AI signal alongside the deterministic
+  keyword-overlap check in `resumeBulletReviewer.ts`.
+- This is wired into `ResumeBulletOptimizer.tsx` as an additional,
+  clearly-labelled "AI-assisted relevance check" panel that runs after
+  the drafter and the rule-based reviewer, and fails silently (falls back
+  to the existing checks) if the model can't load.
+- **Not yet verified in a real browser** - it was written and type-checked
+  (`npx tsc --noEmit` passes) but not run end to end, because the
+  environment used to write it has no browser and restricted network
+  access. Before calling this "implemented" per the rule below, load the
+  app in an actual browser, generate a draft with a job description
+  filled in, and confirm the relevance percentage appears (or fails
+  gracefully offline).
+
+Everything else in this section (untrusted input handling, draft/review
+separation for generated text, action allow-listing) remains a principle
+only - no automatic AI resume rewriting exists yet.
+
+### Status: cover letter + resume trimming additions (2026-09-21)
+
+Three follow-on changes, same "no paid AI, deterministic-by-default"
+rules as above:
+
+- `frontend/src/utils/localReview.ts` is a new shared module for the
+  word-counting, keyword-overlap, overclaim-phrase, and placeholder
+  detection that `resumeBulletReviewer.ts`'s `reviewResumeBullet` and
+  `coverLetterDraft.ts`'s `reviewCoverLetterDraft` each used to
+  reimplement separately. Both now build their checklists from it;
+  `reviewCoverLetterDraft` also gained an "avoids overclaiming" check as
+  a direct result of sharing this logic.
+- `CoverLetterBuilder.tsx` now runs the same local AI relevance check as
+  the bullet builder (`semanticRelevance.ts`), debounced against the
+  live draft text and the application's job description, with the same
+  silent-fallback behaviour if the model can't load.
+- `frontend/src/utils/resumeTrimSuggestions.ts` is a new, fully
+  deterministic (no AI) heuristic: it flags resume lines that don't
+  share any keyword with the `evidence` text already returned on matched
+  or transferable `ReviewAnalysisItem`s from a review, as candidates to
+  shorten or cut. It only has resume text to compare on the live
+  Resume Review page (`ResumeReviewPage.tsx`), not on saved historical
+  reviews, since saved reviews don't currently store the full resume
+  text - only the evidence snippets.
+- **None of this is verified in a real browser yet**, for the same
+  reason as the bullet builder's AI check above: `npx tsc --noEmit`
+  passes and the pure-logic pieces (`localReview.ts`,
+  `resumeTrimSuggestions.ts`) were exercised with hand-written Node
+  test cases against the compiled output, but nothing here has been run
+  end to end in an actual browser session.
+
 ## Unified Product Acceptance Checklist
 
 The checklist is intentionally unchecked until the dedicated verification

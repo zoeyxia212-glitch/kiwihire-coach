@@ -11,6 +11,7 @@ import {
   restoreAccountDataBackup,
   type AccountBackupPreview,
 } from "../utils/accountDataImport";
+import { PASSWORD_HELP_TEXT, validatePassword } from "../utils/passwordPolicy";
 
 type AccountPageProps = {
   onAccountDeleted: () => void;
@@ -47,6 +48,12 @@ export default function AccountPage({
     event.preventDefault();
     setError("");
     setSuccess("");
+
+    const passwordCheck = validatePassword(newPassword);
+    if (!passwordCheck.isValid) {
+      setError(passwordCheck.message);
+      return;
+    }
 
     if (newPassword !== confirmPassword) {
       setError("The new passwords do not match.");
@@ -220,6 +227,7 @@ export default function AccountPage({
               label="New password"
               value={newPassword}
               onChange={setNewPassword}
+              helpText={PASSWORD_HELP_TEXT}
             />
             <PasswordField
               id="confirm-new-password"
@@ -357,11 +365,13 @@ function PasswordField({
   label,
   value,
   onChange,
+  helpText,
 }: {
   id: string;
   label: string;
   value: string;
   onChange: (value: string) => void;
+  helpText?: string;
 }) {
   return (
     <div className="field">
@@ -375,6 +385,7 @@ function PasswordField({
         onChange={(event) => onChange(event.target.value)}
         required
       />
+      {helpText && <small>{helpText}</small>}
     </div>
   );
 }

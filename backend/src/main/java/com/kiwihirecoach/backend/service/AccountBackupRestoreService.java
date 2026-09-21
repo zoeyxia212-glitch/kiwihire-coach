@@ -19,6 +19,7 @@ import com.kiwihirecoach.backend.dto.SaveResumeRequest;
 import com.kiwihirecoach.backend.dto.UpdateApplicationAnswersRequest;
 import com.kiwihirecoach.backend.dto.UpdateApplicationDecisionRequest;
 import com.kiwihirecoach.backend.dto.UpdateApplicationEvidenceRequest;
+import com.kiwihirecoach.backend.dto.UpdateCoverLetterRequest;
 import com.kiwihirecoach.backend.dto.UpdateLearningGoalRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
@@ -93,6 +94,10 @@ public class AccountBackupRestoreService {
             applicationIds.put(requiredId(item), created.getId());
             if (item.path("archived").asBoolean(false)) {
                 applicationService.updateArchived(created.getId(), true, userId);
+            }
+            if (hasText(item, "coverLetterDraft")) {
+                applicationService.updateCoverLetter(created.getId(),
+                        new UpdateCoverLetterRequest(textOrNull(item, "coverLetterDraft")), userId);
             }
             if (hasText(item, "decision") || hasText(item, "decisionReason")
                     || hasText(item, "strongestFit") || hasText(item, "mainConcern")) {
@@ -200,6 +205,7 @@ public class AccountBackupRestoreService {
                         textOrNull(item, "submittedResumeName"),
                         textOrNull(item, "submittedJobDescription"),
                         textOrNull(item, "submittedResumeContent"),
+                        textOrNull(item, "submittedCoverLetter"),
                         textOrNull(item, "submittedAnswers"),
                         textOrNull(item, "submittedEvidence"),
                         userId

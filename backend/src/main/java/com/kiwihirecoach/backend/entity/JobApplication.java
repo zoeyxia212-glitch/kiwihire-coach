@@ -46,6 +46,8 @@ public class JobApplication {
     private String strongestFit;
     @Lob
     private String mainConcern;
+    @Lob
+    private String coverLetterDraft;
     @Column(nullable = false, columnDefinition = "boolean default false")
     private boolean archived;
     @Lob
@@ -56,6 +58,8 @@ public class JobApplication {
     private String submittedJobDescription;
     @Lob
     private String submittedResumeContent;
+    @Lob
+    private String submittedCoverLetter;
     @Lob
     private String submittedAnswers;
     @Lob
@@ -227,12 +231,14 @@ public class JobApplication {
     public String getDecisionReason() { return decisionReason; }
     public String getStrongestFit() { return strongestFit; }
     public String getMainConcern() { return mainConcern; }
+    public String getCoverLetterDraft() { return coverLetterDraft; }
     public Set<EvidenceItem> getEvidenceItems() { return evidenceItems; }
     public Set<ApplicationAnswer> getApplicationAnswers() { return applicationAnswers; }
     public LocalDateTime getSubmittedAt() { return submittedAt; }
     public String getSubmittedResumeName() { return submittedResumeName; }
     public String getSubmittedJobDescription() { return submittedJobDescription; }
     public String getSubmittedResumeContent() { return submittedResumeContent; }
+    public String getSubmittedCoverLetter() { return submittedCoverLetter; }
     public String getSubmittedAnswers() { return submittedAnswers; }
     public String getSubmittedEvidence() { return submittedEvidence; }
 
@@ -248,6 +254,10 @@ public class JobApplication {
         this.mainConcern = mainConcern;
     }
 
+    public void updateCoverLetterDraft(String coverLetterDraft) {
+        this.coverLetterDraft = coverLetterDraft;
+    }
+
     public void replaceEvidenceItems(Set<EvidenceItem> evidenceItems) {
         this.evidenceItems.clear();
         this.evidenceItems.addAll(evidenceItems);
@@ -261,6 +271,7 @@ public class JobApplication {
     public void createSubmissionSnapshot(
             String resumeName,
             String resumeContent,
+            String coverLetter,
             String answers,
             String evidence
     ) {
@@ -271,6 +282,7 @@ public class JobApplication {
         this.submittedJobDescription = jobDescription;
         this.submittedResumeName = resumeName;
         this.submittedResumeContent = resumeContent;
+        this.submittedCoverLetter = coverLetter;
         this.submittedAnswers = answers;
         this.submittedEvidence = evidence;
         this.status = "Applied";
@@ -281,6 +293,7 @@ public class JobApplication {
             String resumeName,
             String jobDescription,
             String resumeContent,
+            String coverLetter,
             String answers,
             String evidence
     ) {
@@ -291,6 +304,7 @@ public class JobApplication {
         this.submittedResumeName = resumeName;
         this.submittedJobDescription = jobDescription;
         this.submittedResumeContent = resumeContent;
+        this.submittedCoverLetter = coverLetter;
         this.submittedAnswers = answers;
         this.submittedEvidence = evidence;
     }

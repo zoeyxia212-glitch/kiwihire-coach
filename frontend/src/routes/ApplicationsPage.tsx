@@ -6,6 +6,7 @@ import type {
   ApplicationStatus,
 } from "../types/application";
 import { createApplicationEvent, getApplications } from "../utils/api";
+import { buildApplicationsCsv } from "../utils/applicationCsv";
 
 type StatusFilter = "All" | "Interview stages" | ApplicationStatus;
 type ViewFilter = "Active" | "Archived";
@@ -94,49 +95,7 @@ export default function ApplicationsPage() {
   }
 
   function exportApplications() {
-    const headers = [
-      "Company",
-      "Role title",
-      "Location",
-      "Status",
-      "Source",
-      "Work mode",
-      "Work rights requirement",
-      "Salary range",
-      "Contact person",
-      "Career level",
-      "Employment type",
-      "Graduate friendly",
-      "Visa sponsorship available",
-      "Industry",
-      "Closing date",
-      "Job URL",
-      "Created at",
-      "Archived",
-    ];
-    const rows = filteredApplications.map((application) => [
-      application.company,
-      application.roleTitle,
-      application.location,
-      application.status,
-      application.source,
-      application.workMode,
-      application.workRightsRequirement,
-      application.salaryRange,
-      application.contactPerson,
-      application.careerLevel,
-      application.employmentType,
-      optionalBooleanCsv(application.graduateFriendly),
-      optionalBooleanCsv(application.sponsorshipAvailable),
-      application.industry,
-      application.closingDate,
-      application.jobUrl,
-      application.createdAt,
-      application.archived ? "Yes" : "No",
-    ]);
-    const csv = [headers, ...rows]
-      .map((row) => row.map(csvCell).join(","))
-      .join("\n");
+    const csv = buildApplicationsCsv(filteredApplications);
     const file = new Blob([`\uFEFF${csv}`], {
       type: "text/csv;charset=utf-8",
     });
@@ -444,14 +403,6 @@ function localDateTimeValue() {
   return localTime.toISOString().slice(0, 19);
 }
 
-function optionalBooleanCsv(value: boolean | null) {
-  if (value === null) {
-    return "Unknown";
-  }
-
-  return value ? "Yes" : "No";
-}
-
 function isInterviewStage(status: ApplicationStatus) {
   return [
     "Recruiter Screen",
@@ -504,9 +455,4 @@ function applicationSorter(sortBy: SortOption) {
       new Date(first.createdAt).getTime()
     );
   };
-}
-
-function csvCell(value: string | number | boolean | null) {
-  const text = value === null ? "" : String(value);
-  return `"${text.replace(/"/g, '""')}"`;
 }

@@ -97,6 +97,11 @@ class AccountBackupRestoreIntegrationTest {
                 .andExpect(jsonPath("$[0].helpful").value(true))
                 .andExpect(jsonPath("$[0].workflowIntent").value("Yes"));
 
+        mockMvc.perform(get("/api/profile")
+                        .header("Authorization", authHeader))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.preferredName").value("Zoey Xia"));
+
         assertEquals(1, applicationRepository.findByUserId(user.getId()).size());
         assertEquals(1, resumeRepository.findByUserIdOrderByUpdatedAtDesc(user.getId()).size());
     }
@@ -119,6 +124,7 @@ class AccountBackupRestoreIntegrationTest {
         return """
                 {
                   "profile": {
+                    "preferredName": "Zoey Xia",
                     "targetRoles": "Junior Software Engineer",
                     "workRights": "NZ post-study work visa",
                     "preferredLocations": "Auckland",

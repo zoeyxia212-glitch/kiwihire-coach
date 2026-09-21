@@ -111,20 +111,30 @@ export default function ResumeReviewPage() {
 
   function chooseApplication(selectedId: string) {
     setApplicationId(selectedId);
-    setJobDescription(
-      applications.find(
-        (item) => String(item.id) === selectedId,
-      )?.jobDescription ?? "",
+
+    // Only overwrite the pasted text when an actual application was
+    // picked - selecting the "None selected" placeholder should not
+    // wipe out text the user already typed or pasted.
+    const matchedApplication = applications.find(
+      (item) => String(item.id) === selectedId,
     );
+    if (matchedApplication) {
+      setJobDescription(matchedApplication.jobDescription);
+    }
+
     clearResults();
   }
 
   function chooseResume(selectedId: string) {
     setResumeId(selectedId);
-    setResumeText(
-      resumes.find((item) => String(item.id) === selectedId)
-        ?.content ?? "",
+
+    const matchedResume = resumes.find(
+      (item) => String(item.id) === selectedId,
     );
+    if (matchedResume) {
+      setResumeText(matchedResume.content);
+    }
+
     clearResults();
   }
 
@@ -242,10 +252,7 @@ export default function ResumeReviewPage() {
         <div>
           <p className="eyebrow">Role-specific review</p>
           <h1>Compare your resume to the role.</h1>
-          <p className="muted">
-            Transparent local rules only—no paid API and no invented
-            experience.
-          </p>
+         
         </div>
       </div>
 
@@ -279,97 +286,118 @@ export default function ResumeReviewPage() {
         </div>
       </div>
 
-      {missingInputs ? (
+      {missingInputs && (
         <div className="panel">
           <div className="panel-inner">
-            <h2>Complete the inputs first</h2>
-            {applications.length === 0 && (
-              <p>
+            <p className="eyebrow">Try it now, save it later</p>
+            <p className="muted">
+              Paste a job description and resume text below to see a
+              match right away - nothing needs to be saved first.
+            </p>
+            {applications.length === 0 && resumes.length === 0 && (
+              <p className="muted">
+                Want to keep this analysis afterwards?{" "}
                 <Link to="/applications/new">Add an application</Link>{" "}
-                with a job description.
+                and <Link to="/resumes">save a resume</Link> first, then
+                come back here.
               </p>
             )}
-            {resumes.length === 0 && (
-              <p>
-                <Link to="/resumes">Save a resume</Link> to your
-                library.
+            {applications.length === 0 && resumes.length > 0 && (
+              <p className="muted">
+                Want to keep this analysis afterwards?{" "}
+                <Link to="/applications/new">Add an application</Link>{" "}
+                first, then come back here.
+              </p>
+            )}
+            {applications.length > 0 && resumes.length === 0 && (
+              <p className="muted">
+                Want to keep this analysis afterwards?{" "}
+                <Link to="/resumes">Save a resume</Link> first, then
+                come back here.
               </p>
             )}
           </div>
         </div>
-      ) : (
-        <>
-          <div className="grid two">
-            <ReviewInput
-              label="Application"
-              selectId="review-application"
-              textId="review-job-description"
-              value={applicationId}
-              options={applications.map((item) => ({
-                id: item.id,
-                label: `${item.company} · ${item.roleTitle}`,
-              }))}
-              text={jobDescription}
-              onSelect={chooseApplication}
-              onTextChange={(value) => {
-                setJobDescription(value);
-                clearResults();
-              }}
-            />
-            <ReviewInput
-              label="Resume"
-              selectId="review-resume"
-              textId="review-resume-text"
-              value={resumeId}
-              options={resumes.map((item) => ({
-                id: item.id,
-                label: item.name,
-              }))}
-              text={resumeText}
-              onSelect={chooseResume}
-              onTextChange={(value) => {
-                setResumeText(value);
-                clearResults();
-              }}
-            >
-              <button
-                className="button primary"
-                type="button"
-                onClick={handleAnalyze}
-              >
-                Analyze match
-              </button>
-            </ReviewInput>
-          </div>
+      )}
 
-          {analysis && (
-            <>
-              <div className="review-save-bar">
-                <button
-                  className="button primary"
-                  type="button"
-                  disabled={isSaving}
-                  onClick={handleSaveReview}
-                >
-                  {isSaving ? "Saving review..." : "Save review"}
-                </button>
-                {saveMessage && (
-                  <p className="success-message" role="status">
-                    {saveMessage}
-                  </p>
-                )}
-              </div>
-              <ReviewResultDisplay
-                analysis={analysis}
-                questions={questions}
-                starExamples={buildEvidenceExamples(
-                  candidateProfile,
-                  evidenceItems,
-                )}
-                jobDescription={jobDescription}
-              />
-            </>
-          )}
+      <div className="grid two">
+        <ReviewInput
+          label="Application"
+          textLabel="Job description"
+          selectId="review-application"
+          textId="review-job-description"
+          value={applicationId}
+          options={applications.map((item) => ({
+            id: item.id,
+            label: `${item.company} · ${item.roleTitle}`,
+          }))}
+          text={jobDescription}
+          onSelect={chooseApplication}
+          onTextChange={(value) => {
+            setJobDescription(value);
+            clearResults();
+          }}
+        />
+        <ReviewInput
+          label="Resume"
+          textLabel="Resume text"
+          selectId="review-resume"
+          textId="review-resume-text"
+          value={resumeId}
+          options={resumes.map((item) => ({
+            id: item.id,
+            label: item.name,
+          }))}
+          text={resumeText}
+          onSelect={chooseResume}
+          onTextChange={(value) => {
+            setResumeText(value);
+            clearResults();
+          }}
+        >
+          <button
+            className="button primary"
+            type="button"
+            onClick={handleAnalyze}
+          >
+            Analyze match
+          </button>
+        </ReviewInput>
+      </div>
+
+      {analysis && (
+        <>
+          <div className="review-save-bar">
+            <button
+              className="button primary"
+              type="button"
+              disabled={isSaving || !applicationId || !resumeId}
+              onClick={handleSaveReview}
+            >
+              {isSaving ? "Saving review..." : "Save review"}
+            </button>
+            {(!applicationId || !resumeId) && (
+              <p className="muted no-print">
+                Pick a saved application and resume above (or add one)
+                to save this analysis to your review history.
+              </p>
+            )}
+            {saveMessage && (
+              <p className="success-message" role="status">
+                {saveMessage}
+              </p>
+            )}
+          </div>
+          <ReviewResultDisplay
+            analysis={analysis}
+            questions={questions}
+            starExamples={buildEvidenceExamples(
+              candidateProfile,
+              evidenceItems,
+            )}
+            jobDescription={jobDescription}
+            resumeText={resumeText}
+          />
         </>
       )}
 
@@ -610,6 +638,7 @@ function calculateScoreChange(
 
 type ReviewInputProps = {
   label: string;
+  textLabel: string;
   selectId: string;
   textId: string;
   value: string;
@@ -622,6 +651,7 @@ type ReviewInputProps = {
 
 function ReviewInput({
   label,
+  textLabel,
   selectId,
   textId,
   value,
@@ -635,12 +665,15 @@ function ReviewInput({
     <div className="panel">
       <div className="panel-inner form-grid">
         <div className="field">
-          <label htmlFor={selectId}>{label}</label>
+          <label htmlFor={selectId}>
+            {label} <small>(optional - pick a saved one)</small>
+          </label>
           <select
             id={selectId}
             value={value}
             onChange={(event) => onSelect(event.target.value)}
           >
+            <option value="">None selected - type below instead</option>
             {options.map((option) => (
               <option key={option.id} value={option.id}>
                 {option.label}
@@ -649,10 +682,11 @@ function ReviewInput({
           </select>
         </div>
         <div className="field">
-          <label htmlFor={textId}>{label} text</label>
+          <label htmlFor={textId}>{textLabel}</label>
           <textarea
             id={textId}
             value={text}
+            placeholder={`Paste ${textLabel.toLowerCase()} here`}
             onChange={(event) => onTextChange(event.target.value)}
           />
         </div>

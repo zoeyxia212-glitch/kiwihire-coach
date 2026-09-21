@@ -22,6 +22,7 @@ public class CandidateProfile {
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
+    private String preferredName;
     private String targetRoles;
     private String workRights;
     private String preferredLocations;
@@ -41,6 +42,7 @@ public class CandidateProfile {
 
     public CandidateProfile(
             User user,
+            String preferredName,
             String targetRoles,
             String workRights,
             String preferredLocations,
@@ -51,6 +53,7 @@ public class CandidateProfile {
     ) {
         this.user = user;
         update(
+                preferredName,
                 targetRoles,
                 workRights,
                 preferredLocations,
@@ -62,6 +65,7 @@ public class CandidateProfile {
     }
 
     public void update(
+            String preferredName,
             String targetRoles,
             String workRights,
             String preferredLocations,
@@ -70,6 +74,7 @@ public class CandidateProfile {
             String experienceSummary,
             String starExamples
     ) {
+        this.preferredName = preferredName;
         this.targetRoles = targetRoles;
         this.workRights = workRights;
         this.preferredLocations = preferredLocations;
@@ -83,6 +88,8 @@ public class CandidateProfile {
     public Long getId() {
         return id;
     }
+
+    public String getPreferredName() { return preferredName; }
 
     public String getTargetRoles() {
         return targetRoles;

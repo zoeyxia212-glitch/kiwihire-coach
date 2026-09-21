@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 class AuthIntegrationTest {
     private static final String EMAIL = "auth.flow@example.com";
-    private static final String PASSWORD = "secure-password-123";
+    private static final String PASSWORD = "Secure-Password-123";
 
     @Autowired
     private MockMvc mockMvc;
@@ -41,7 +41,7 @@ class AuthIntegrationTest {
         String registerJson = """
                 {
                   "email": "AUTH.FLOW@EXAMPLE.COM",
-                  "password": "secure-password-123"
+                  "password": "Secure-Password-123"
                 }
                 """;
 
@@ -60,7 +60,7 @@ class AuthIntegrationTest {
         String loginJson = """
                 {
                   "email": "auth.flow@example.com",
-                  "password": "secure-password-123"
+                  "password": "Secure-Password-123"
                 }
                 """;
 

@@ -3,6 +3,7 @@ package com.kiwihirecoach.backend.controller;
 import com.kiwihirecoach.backend.dto.CreateJobApplicationRequest;
 import com.kiwihirecoach.backend.dto.JobApplicationResponse;
 import com.kiwihirecoach.backend.dto.UpdateJobApplicationRequest;
+import com.kiwihirecoach.backend.dto.UpdateCoverLetterRequest;
 import com.kiwihirecoach.backend.config.SecurityConfig;
 import com.kiwihirecoach.backend.exception.ResourceNotFoundException;
 import com.kiwihirecoach.backend.service.JobApplicationService;
@@ -28,6 +29,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -201,5 +203,33 @@ class JobApplicationControllerTest {
                         .value("Software Developer"))
                 .andExpect(jsonPath("$.location").value("Wellington"))
                 .andExpect(jsonPath("$.status").value("First Interview"));
+    }
+
+    @Test
+    void updateCoverLetterReturnsSavedDraft() throws Exception {
+        defaultResponse.addCoverLetterDraft("Dear Xero hiring team,");
+        when(jobApplicationService.updateCoverLetter(
+                eq(1L),
+                any(UpdateCoverLetterRequest.class),
+                eq(TEST_USER_ID)
+        )).thenReturn(defaultResponse);
+
+        mockMvc.perform(patch("/api/applications/1/cover-letter")
+                        .header("Authorization", AUTHORIZATION)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "coverLetterDraft": "Dear Xero hiring team,"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.coverLetterDraft")
+                        .value("Dear Xero hiring team,"));
+
+        verify(jobApplicationService).updateCoverLetter(
+                eq(1L),
+                any(UpdateCoverLetterRequest.class),
+                eq(TEST_USER_ID)
+        );
     }
 }

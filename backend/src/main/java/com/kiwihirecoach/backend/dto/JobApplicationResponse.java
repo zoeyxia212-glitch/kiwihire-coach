@@ -30,12 +30,14 @@ public class JobApplicationResponse {
     private String decisionReason;
     private String strongestFit;
     private String mainConcern;
+    private String coverLetterDraft;
     private List<Long> evidenceItemIds = List.of();
     private List<Long> applicationAnswerIds = List.of();
     private LocalDateTime submittedAt;
     private String submittedResumeName;
     private String submittedJobDescription;
     private String submittedResumeContent;
+    private String submittedCoverLetter;
     private String submittedAnswers;
     private String submittedEvidence;
     private boolean archived;
@@ -261,12 +263,14 @@ public JobApplicationResponse(
     public String getDecisionReason() { return decisionReason; }
     public String getStrongestFit() { return strongestFit; }
     public String getMainConcern() { return mainConcern; }
+    public String getCoverLetterDraft() { return coverLetterDraft; }
     public List<Long> getEvidenceItemIds() { return evidenceItemIds; }
     public List<Long> getApplicationAnswerIds() { return applicationAnswerIds; }
     public LocalDateTime getSubmittedAt() { return submittedAt; }
     public String getSubmittedResumeName() { return submittedResumeName; }
     public String getSubmittedJobDescription() { return submittedJobDescription; }
     public String getSubmittedResumeContent() { return submittedResumeContent; }
+    public String getSubmittedCoverLetter() { return submittedCoverLetter; }
     public String getSubmittedAnswers() { return submittedAnswers; }
     public String getSubmittedEvidence() { return submittedEvidence; }
 
@@ -274,11 +278,16 @@ public JobApplicationResponse(
         this.applicationAnswerIds = List.copyOf(applicationAnswerIds);
     }
 
+    public void addCoverLetterDraft(String coverLetterDraft) {
+        this.coverLetterDraft = coverLetterDraft;
+    }
+
     public void addSubmissionSnapshot(
             LocalDateTime submittedAt,
             String submittedResumeName,
             String submittedJobDescription,
             String submittedResumeContent,
+            String submittedCoverLetter,
             String submittedAnswers,
             String submittedEvidence
     ) {
@@ -286,6 +295,7 @@ public JobApplicationResponse(
         this.submittedResumeName = submittedResumeName;
         this.submittedJobDescription = submittedJobDescription;
         this.submittedResumeContent = submittedResumeContent;
+        this.submittedCoverLetter = submittedCoverLetter;
         this.submittedAnswers = submittedAnswers;
         this.submittedEvidence = submittedEvidence;
     }

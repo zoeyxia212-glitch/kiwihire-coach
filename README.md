@@ -70,7 +70,11 @@ This repository is also intended to give recruiters direct evidence of practical
 - Compare a saved resume with a job description using explainable matching logic
 - Show matched, missing, and transferable skills, resume evidence, improvement actions, and learning priorities
 - Build evidence-first resume bullet drafts locally from user-provided actions, tools, and truthful results without inventing experience
+- Review a drafted resume bullet through three separate layers before it can be marked "Accepted": local rule-based checks (missing metrics, unverifiable claims, passive voice, length, wording copied directly from the job description), an optional local AI relevance check (see below), and a required human checklist
+- Suggest resume lines to trim by comparing them locally against the skill evidence a review already matched or credited as transferable, without calling anything new
 - Show saved review history on its related application for quick return to role-specific preparation
+- Build a truthful cover letter draft locally from an application's role, contact person, and up to three pieces of saved evidence, with a local quality checklist (company/role named, concrete evidence, practical length, no leftover placeholders, no overclaiming) and the same optional local AI relevance check against the job description
+- Export all job applications and their tracked fields to a CSV file for use outside the app
 - Generate role-specific interview questions and STAR prompts, classify and filter questions, and track saved-answer preparation progress
 - Practise interview answers with browser text-to-speech, a two-minute timer, and private in-tab audio recording
 - Enable optional browser reminders or export upcoming interviews, follow-ups, and closing dates to a standard calendar file
@@ -243,6 +247,20 @@ The current automated test coverage includes Spring service unit tests, Spring M
 
 The resume matching feature uses transparent keyword-based logic rather than AI-generated rewriting. This keeps the matching behaviour explainable and provides clear business logic that can be discussed in a technical interview.
 
+Both the resume bullet builder and the cover letter builder share one
+genuinely AI-powered review step: a small sentence-embedding model
+(`Xenova/all-MiniLM-L6-v2`) runs entirely in the browser via a runtime
+import from a public CDN, scoring how semantically related the drafted
+text is to the job description. It costs nothing to run (no API key, no
+server, no paid service of any kind), fails back to the existing
+rule-based checks if it can't load, and never generates or rewrites text
+on its own - see "AI Integration Principles" in `docs/product-plan.md`
+for the design rules this follows, including why drafting and reviewing
+are always kept as separate passes. The rule-based side of both reviewers,
+plus the resume-trimming suggestions, share one local review module
+(`frontend/src/utils/localReview.ts`) instead of duplicating word-count,
+keyword-overlap, and overclaim-phrase logic in each place.
+
 New Zealand-specific application fields include job source, work-rights
 requirements, career level, employment type, industry, graduate suitability,
 and visa sponsorship availability.
@@ -312,5 +330,12 @@ The roadmap prioritises product validation and technical evidence commonly reque
     context
 32. [ ] Run the unified product acceptance checklist in
     `docs/product-plan.md`
+33. [ ] Add a three-layer resume bullet review (rule-based checks, local
+    in-browser AI relevance check, required human checklist) - written and
+    type-checked, not yet confirmed working in a real browser
+34. [ ] Extend the local AI relevance check to the cover letter builder,
+    and add local resume-trimming suggestions based on matched/
+    transferable evidence - written and type-checked, not yet confirmed
+    working in a real browser
 
 A third-party API integration will be selected only if candidate validation identifies a real need, rather than being added solely as a portfolio checkbox. The staged containerisation, CI, monitoring, logging, and operations plan is documented in `docs/cloud-native-plan.md`. Kubernetes follows a stable Docker Compose environment rather than being introduced as an isolated portfolio checkbox.

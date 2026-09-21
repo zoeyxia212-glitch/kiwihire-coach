@@ -1,6 +1,7 @@
 import type { CandidateProfile } from "../types/candidateProfile";
 
 const profileFields = [
+  { key: "preferredName", label: "preferred name" },
   { key: "targetRoles", label: "target roles" },
   { key: "workRights", label: "work rights" },
   { key: "preferredLocations", label: "preferred locations" },

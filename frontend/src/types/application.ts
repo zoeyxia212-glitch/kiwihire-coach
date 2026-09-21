@@ -36,12 +36,14 @@ export type Application = {
   decisionReason: string | null;
   strongestFit: string | null;
   mainConcern: string | null;
+  coverLetterDraft: string | null;
   evidenceItemIds: number[];
   applicationAnswerIds: number[];
   submittedAt?: string | null;
   submittedResumeName?: string | null;
   submittedJobDescription?: string | null;
   submittedResumeContent?: string | null;
+  submittedCoverLetter?: string | null;
   submittedAnswers?: string | null;
   submittedEvidence?: string | null;
   archived: boolean;

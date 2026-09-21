@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router";
 import StatusBadge from "../components/StatusBadge";
 import ApplicationTimeline from "../components/ApplicationTimeline";
 import FollowUpTemplateBuilder from "../components/FollowUpTemplateBuilder";
+import CoverLetterBuilder from "../components/CoverLetterBuilder";
 import ResourceNotFoundState from "../components/ResourceNotFoundState";
 import type { Application } from "../types/application";
 import type { ResumeReview } from "../types/resumeReview";
@@ -17,12 +18,15 @@ import {
   updateApplicationDecision,
   updateApplicationEvidence,
   updateApplicationAnswers,
+  updateApplicationCoverLetter,
   getApplicationAnswers,
+  getCandidateProfile,
   createSubmissionSnapshot,
   updateApplicationArchived,
   ResourceNotFoundError,
 } from "../utils/api";
 import { downloadSubmissionRecord } from "../utils/submissionRecord";
+import { getSafeExternalUrl } from "../utils/safeExternalUrl";
 
 function formatDateTime(value: string) {
   return new Intl.DateTimeFormat("en-NZ", {
@@ -57,6 +61,7 @@ export default function ApplicationDetailPage() {
   const [isSavingAnswers, setIsSavingAnswers] = useState(false);
   const [isCreatingSnapshot, setIsCreatingSnapshot] = useState(false);
   const [isDuplicating, setIsDuplicating] = useState(false);
+  const [candidateName, setCandidateName] = useState("");
 
   useEffect(() => {
     async function fetchApplication() {
@@ -121,6 +126,12 @@ export default function ApplicationDetailPage() {
         setAnswerItems(answers);
       })
       .catch(() => setPackMessage("Application Pack resources could not be loaded."));
+  }, []);
+
+  useEffect(() => {
+    getCandidateProfile()
+      .then((profile) => setCandidateName(profile.preferredName || ""))
+      .catch(() => setCandidateName(""));
   }, []);
 
   if (isNotFound) {
@@ -269,10 +280,25 @@ export default function ApplicationDetailPage() {
     }
   }
 
+  async function handleCoverLetterSave(draft: string) {
+    if (!application) return;
+    setApplication(
+      await updateApplicationCoverLetter(application.id, draft),
+    );
+  }
+
   async function handleCreateSnapshot() {
     if (!application) return;
+    const missingMaterials = [
+      !application.coverLetterDraft?.trim() && "cover letter",
+      application.applicationAnswerIds.length === 0 && "application answers",
+      application.evidenceItemIds.length === 0 && "selected evidence",
+    ].filter(Boolean);
+    const missingMessage = missingMaterials.length > 0
+      ? ` Missing optional materials: ${missingMaterials.join(", ")}.`
+      : " All application materials are attached.";
     const confirmed = window.confirm(
-      "Confirm that you submitted this application? KiwiHire will freeze the current job description, latest reviewed CV, and selected answers.",
+      `Confirm that you submitted this application? KiwiHire will freeze the current job description, latest reviewed CV, cover letter, selected answers, and evidence.${missingMessage}`,
     );
     if (!confirmed) return;
     setIsCreatingSnapshot(true);
@@ -292,6 +318,7 @@ export default function ApplicationDetailPage() {
     return <p className="muted">Loading application...</p>;
   }
 
+  const safeJobUrl = getSafeExternalUrl(application.jobUrl);
   const latestReview = relatedReviews[0];
   const fitRecommendation = latestReview
     ? buildFitRecommendation(latestReview)
@@ -368,6 +395,13 @@ export default function ApplicationDetailPage() {
       to: "#application-answers",
     },
     {
+      title: "Cover letter prepared",
+      description: "Generate, edit, and save the letter intended for this employer.",
+      complete: Boolean(application.coverLetterDraft?.trim()),
+      action: "Prepare letter",
+      to: "#cover-letter-builder",
+    },
+    {
       title: "Application submitted",
       description: "Update the stage after you actually send the application.",
       complete: Boolean(application.submittedAt),
@@ -381,6 +415,13 @@ export default function ApplicationDetailPage() {
   const readinessPercent = Math.round(
     (completedReadinessSteps / readinessSteps.length) * 100,
   );
+  const submissionChecks = [
+    { label: "Job description", complete: Boolean(application.jobDescription.trim()), required: true },
+    { label: "Reviewed CV", complete: Boolean(latestReview), required: true },
+    { label: "Cover letter", complete: Boolean(application.coverLetterDraft?.trim()), required: false },
+    { label: "Application answers", complete: application.applicationAnswerIds.length > 0, required: false },
+    { label: "Selected evidence", complete: application.evidenceItemIds.length > 0, required: false },
+  ];
 
   return (
     <section className="page">
@@ -442,12 +483,12 @@ export default function ApplicationDetailPage() {
           >
             Delete application
           </button>
-          {application.jobUrl && (
+          {safeJobUrl && (
             <a
               className="button"
-              href={application.jobUrl}
+              href={safeJobUrl}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
             >
               Open job listing
             </a>
@@ -510,14 +551,16 @@ export default function ApplicationDetailPage() {
             </p>
             <p className="muted">
               Job URL:{" "}
-              {application.jobUrl ? (
+              {safeJobUrl ? (
                 <a
-                  href={application.jobUrl}
+                  href={safeJobUrl}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                 >
                   Open original listing
                 </a>
+              ) : application.jobUrl ? (
+                "Invalid job URL"
               ) : (
                 "Not recorded"
               )}
@@ -537,6 +580,17 @@ export default function ApplicationDetailPage() {
                   Complete the role-specific preparation before marking the
                   application as submitted.
                 </p>
+                {!application.submittedAt && (
+                  <ul className="submission-checklist" aria-label="Submission material checklist">
+                    {submissionChecks.map((check) => (
+                      <li className={check.complete ? "is-complete" : ""} key={check.label}>
+                        <span aria-hidden="true">{check.complete ? "✓" : "○"}</span>
+                        <span>{check.label}</span>
+                        <small>{check.required ? "Required" : "Recommended"}</small>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
               <div className="readiness-score" aria-label={`${readinessPercent}% ready`}>
                 <strong>{readinessPercent}%</strong>
@@ -845,6 +899,8 @@ export default function ApplicationDetailPage() {
                       <pre>{application.submittedJobDescription}</pre>
                       <h4>CV · {application.submittedResumeName}</h4>
                       <pre>{application.submittedResumeContent}</pre>
+                      <h4>Cover letter</h4>
+                      <pre>{application.submittedCoverLetter || "No cover letter was attached."}</pre>
                       <h4>Application answers</h4>
                       <pre>{application.submittedAnswers || "No application answers were attached."}</pre>
                       <h4>Selected evidence</h4>
@@ -866,6 +922,20 @@ export default function ApplicationDetailPage() {
           </div>
         </div>
       </section>
+
+      <CoverLetterBuilder
+        company={application.company}
+        roleTitle={application.roleTitle}
+        candidateName={candidateName}
+        contactPerson={application.contactPerson || ""}
+        evidenceItems={evidenceItems.filter((item) =>
+          application.evidenceItemIds.includes(item.id)
+        )}
+        initialDraft={application.coverLetterDraft || ""}
+        jobDescription={application.jobDescription}
+        disabled={application.archived}
+        onSave={handleCoverLetterSave}
+      />
 
       <FollowUpTemplateBuilder
         company={application.company}

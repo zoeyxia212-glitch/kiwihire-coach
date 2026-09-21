@@ -14,6 +14,7 @@ import {
   registerUser,
   restoreAccountBackup,
   updateApplication,
+  updateApplicationCoverLetter,
 } from "./api";
 
 afterEach(() => {
@@ -386,5 +387,37 @@ describe("deleteApplication", () => {
     await expect(
       deleteApplication("99"),
     ).rejects.toThrow("Failed to delete application.");
+  });
+});
+
+describe("updateApplicationCoverLetter", () => {
+  it("sends the saved draft to the application's cover-letter endpoint", async () => {
+    const updatedApplication = {
+      id: 1,
+      coverLetterDraft: "Dear Xero hiring team,",
+    };
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => updatedApplication,
+    });
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await updateApplicationCoverLetter(
+      1,
+      "Dear Xero hiring team,",
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      `${API_BASE_URL}/api/applications/1/cover-letter`,
+      {
+        method: "PATCH",
+        headers: expect.any(Headers),
+        body: JSON.stringify({
+          coverLetterDraft: "Dear Xero hiring team,",
+        }),
+      },
+    );
+    expect(result).toEqual(updatedApplication);
   });
 });

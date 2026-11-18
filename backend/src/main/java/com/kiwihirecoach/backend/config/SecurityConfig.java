@@ -42,6 +42,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/actuator/health/**").permitAll()
+                        // Only reachable when MANAGEMENT_ENDPOINTS exposes it.
+                        .requestMatchers("/actuator/prometheus").permitAll()
+                        // Only reachable outside the prod profile.
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()
                 )

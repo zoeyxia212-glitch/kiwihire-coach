@@ -214,7 +214,9 @@ docker compose up --build
 
 The app runs at `http://localhost:8080`. `.env` is ignored by Git; never commit
 it. See [`docs/architecture.md`](docs/architecture.md) for how the containers fit
-together.
+together, [`docs/troubleshooting.md`](docs/troubleshooting.md) if something does not
+start, and `docker-compose.monitoring.yml` for the optional Prometheus and
+Grafana stack.
 
 ### Without Docker
 

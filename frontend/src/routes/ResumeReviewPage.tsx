@@ -13,13 +13,17 @@ import type { ResumeAnalysis } from "../types/resumeAnalysis";
 import {
   createResumeReview,
   getApplications,
+  getApplicationEvents,
   getCandidateProfile,
   getEvidenceItems,
   getResumes,
   getResumeReviews,
 } from "../utils/api";
 import { generateInterviewQuestions } from "../utils/interviewQuestionGenerator";
-import { collectPriorFeedback } from "../utils/questionPriority";
+import {
+  collectEventNotes,
+  collectPriorFeedback,
+} from "../utils/questionPriority";
 import { buildFitSummary } from "../utils/fitSummary";
 import { analyzeResume } from "../utils/resumeAnalysis";
 
@@ -46,6 +50,7 @@ export default function ResumeReviewPage() {
   const [analysis, setAnalysis] = useState<ResumeAnalysis | null>(null);
   const [questions, setQuestions] = useState<InterviewQuestion[]>([]);
   const [reviews, setReviews] = useState<ResumeReview[]>([]);
+  const [eventNotes, setEventNotes] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
@@ -55,6 +60,26 @@ export default function ResumeReviewPage() {
     useState<ReviewFilter>("All");
   const [reviewSort, setReviewSort] =
     useState<ReviewSort>("Newest");
+
+  useEffect(() => {
+    let cancelled = false;
+    setEventNotes([]);
+    if (!applicationId) {
+      return;
+    }
+    getApplicationEvents(applicationId)
+      .then((events) => {
+        if (!cancelled) {
+          setEventNotes(collectEventNotes(events));
+        }
+      })
+      .catch(() => {
+        // Timeline notes only sharpen the practice order; skip them on error.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [applicationId]);
 
   useEffect(() => {
     async function loadOptions() {
@@ -413,10 +438,10 @@ export default function ResumeReviewPage() {
             )}
             jobDescription={jobDescription}
             resumeText={resumeText}
-            priorFeedback={collectPriorFeedback(
-              reviews,
-              Number(applicationId),
-            )}
+            priorFeedback={[
+              ...collectPriorFeedback(reviews, Number(applicationId)),
+              ...eventNotes,
+            ]}
           />
         </>
       )}

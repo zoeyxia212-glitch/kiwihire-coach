@@ -3526,3 +3526,44 @@ p {
 .gap-challenges p {
   margin: 0.25rem 0;
 }
+
+/* Pre-submit checks and claim trace */
+.submit-checks {
+  margin: 1rem 0;
+}
+
+.submit-checks ul,
+.claim-trace ul {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0;
+}
+
+.submit-checks li {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 8px;
+  margin-bottom: 0.35rem;
+}
+
+.submit-checks li small {
+  display: block;
+  color: #475467;
+}
+
+.submit-checks li.is-pass {
+  background: #ecfdf3;
+}
+
+.submit-checks li.is-warn {
+  background: #fffaeb;
+}
+
+.submit-checks li.is-fail {
+  background: #fef3f2;
+}
+
+.claim-trace li {
+  margin-bottom: 0.5rem;
+}

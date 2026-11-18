@@ -73,3 +73,10 @@ The gates, thresholds, follow-up rules and text clean-up were adapted from ideas
 - **Interview round** (`interviewFocus.ts`): business or HR. It does not reorder questions (saved answers are stored by position). It shows which listed questions suit the round, and adds fixed HR questions for the HR round.
 - **Gap questions** (`gapChallenges.ts`): each skill gap becomes one question with an honest answer frame (say you have not used it, name the closest thing you have done, give a learning step). Limit 3 for business, 2 for HR. A skill that already has a question is skipped, so each topic is asked once.
 - Idea source: XiaqiuOO/interview-ready-skill (no licence file, so only the idea is used).
+
+## Languages, pre-submit checks, claim trace
+
+- **Language gate**: the profile now stores "Languages you speak" (V2 migration, `spoken_languages`). A language the posting asks for at fluent or native level, not marked as a bonus, and not on the profile fails the gate and the role is not scored. Everything else is shown with its quoted wording. With no languages saved, the requirement is shown as unchecked and never fails. "Chinese" is met by Mandarin or Cantonese.
+- **Pre-submit checks** (`submitChecks.ts`): closing date, work rights, language, cover letter claims, hidden text in the saved posting, and CV review. Fail means fix first, warn means take a look. Nothing blocks submitting.
+- **Claim trace** (`claimTrace.ts`): each cover letter sentence that names a tracked skill lists the sources that mention it (profile, submitted resume, named evidence item), or "no evidence".
+- **Timeline notes** now count as prior feedback for the "practise first" list, and the chosen interview round is remembered in the browser.

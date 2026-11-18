@@ -4,6 +4,7 @@ import { buildCoverLetterDraft, reviewCoverLetterDraft } from "../utils/coverLet
 import { useUnsavedChangesWarning } from "../hooks/useUnsavedChangesWarning";
 import { downloadCoverLetterDraft } from "../utils/coverLetterExport";
 import { findUnsupportedSkills } from "../utils/groundingCheck";
+import { traceClaims, type EvidenceSource } from "../utils/claimTrace";
 import {
   checkSemanticRelevance,
   type SemanticRelevanceResult,
@@ -19,6 +20,8 @@ type CoverLetterBuilderProps = {
   jobDescription?: string;
   /** Resume, profile and evidence text used to check the draft's claims. */
   groundingSources?: string[];
+  /** The same sources with names, so each claim can show where it comes from. */
+  labelledSources?: EvidenceSource[];
   disabled?: boolean;
   onSave: (draft: string) => Promise<void>;
 };
@@ -37,6 +40,7 @@ export default function CoverLetterBuilder({
   initialDraft,
   jobDescription = "",
   groundingSources,
+  labelledSources,
   disabled = false,
   onSave,
 }: CoverLetterBuilderProps) {
@@ -47,6 +51,10 @@ export default function CoverLetterBuilder({
     () =>
       groundingSources ? findUnsupportedSkills(draft, groundingSources) : [],
     [draft, groundingSources],
+  );
+  const tracedClaims = useMemo(
+    () => (labelledSources ? traceClaims(draft, labelledSources) : []),
+    [draft, labelledSources],
   );
   const [savedDraft, setSavedDraft] = useState(initialDraft);
   const [isSaving, setIsSaving] = useState(false);
@@ -296,6 +304,32 @@ export default function CoverLetterBuilder({
                     stated honestly than filled with a claim you cannot
                     back up.
                   </p>
+                </div>
+              )}
+
+              {tracedClaims.length > 0 && (
+                <div className="resume-bullet-review claim-trace">
+                  <p className="eyebrow">Where each claim comes from</p>
+                  <ul>
+                    {tracedClaims.map((claim) => (
+                      <li key={claim.sentence}>
+                        <span aria-hidden="true">
+                          {claim.supported ? "✓" : "○"}
+                        </span>{" "}
+                        {claim.sentence}
+                        <br />
+                        <small className="muted">
+                          {claim.skills
+                            .map((item) =>
+                              item.sources.length > 0
+                                ? `${item.skill}: ${item.sources.join(", ")}`
+                                : `${item.skill}: no evidence`,
+                            )
+                            .join(" · ")}
+                        </small>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
 

@@ -27,6 +27,10 @@ import {
   type InterviewQuestionCategory,
   type InterviewType,
 } from "../utils/interviewFocus";
+import {
+  readInterviewType,
+  saveInterviewType,
+} from "../utils/interviewTypeStorage";
 import { buildGapChallenges } from "../utils/gapChallenges";
 
 const NO_FEEDBACK: string[] = [];
@@ -105,8 +109,9 @@ export default function ReviewResultDisplay({
     [questions, priorFeedback, analysis.missing, jobDescription],
   );
   const practiseFirstNumbers = practiseFirst(priorities);
-  const [interviewType, setInterviewType] =
-    useState<InterviewType>("business");
+  const [interviewType, setInterviewType] = useState<InterviewType>(
+    readInterviewType,
+  );
   const focusNumbers = useMemo(
     () => focusQuestionNumbers(questions, interviewType),
     [questions, interviewType],
@@ -281,9 +286,11 @@ export default function ReviewResultDisplay({
               Interview round{" "}
               <select
                 value={interviewType}
-                onChange={(event) =>
-                  setInterviewType(event.target.value as InterviewType)
-                }
+                onChange={(event) => {
+                  const next = event.target.value as InterviewType;
+                  setInterviewType(next);
+                  saveInterviewType(next);
+                }}
               >
                 {(Object.keys(INTERVIEW_TYPE_LABELS) as InterviewType[]).map(
                   (type) => (

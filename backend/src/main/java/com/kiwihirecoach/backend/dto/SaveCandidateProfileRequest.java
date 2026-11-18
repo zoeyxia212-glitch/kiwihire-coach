@@ -10,6 +10,7 @@ public record SaveCandidateProfileRequest(
         @Size(max = 80) String careerStage,
         @Size(max = 1000) String technicalSkills,
         @Size(max = 5000) String experienceSummary,
-        @Size(max = 10000) String starExamples
+        @Size(max = 10000) String starExamples,
+        @Size(max = 200) String spokenLanguages
 ) {
 }

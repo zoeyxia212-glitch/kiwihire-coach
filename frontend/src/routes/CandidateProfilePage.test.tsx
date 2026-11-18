@@ -22,6 +22,7 @@ const profile = {
   technicalSkills: "Java, React",
   experienceSummary: "Built KiwiHire Coach",
   starExamples: "Delivered a tested REST API",
+  spokenLanguages: "English, Mandarin",
   updatedAt: "2026-09-07T10:00:00",
 };
 

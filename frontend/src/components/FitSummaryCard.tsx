@@ -58,16 +58,24 @@ export default function FitSummaryCard({ summary }: FitSummaryCardProps) {
         {languages.length > 0 && (
           <div className="fit-summary-languages">
             <p>
-              <strong>Language requirements to check.</strong> KiwiHire does
-              not store the languages you speak, so judge these yourself.
-              Terms like "fluent" vary a lot between employers.
+              <strong>Language requirements.</strong> Checked against the
+              languages on your profile. Terms like "fluent" vary a lot
+              between employers, so judge the wording yourself.
             </p>
             <ul>
               {languages.map((requirement) => (
                 <li key={requirement.language}>
                   <strong>{requirement.language}</strong>
                   {requirement.optional ? " (a bonus)" : ""}
-                  {requirement.demanding ? ", fluent or native level" : ""}:{" "}
+                  {requirement.demanding ? ", fluent or native level" : ""}{" "}
+                  <em>
+                    {requirement.status === "listed"
+                      ? "(on your profile)"
+                      : requirement.status === "not-listed"
+                        ? "(not on your profile)"
+                        : "(no languages saved on your profile)"}
+                  </em>
+                  :{" "}
                   <span className="muted">{requirement.quote}</span>
                 </li>
               ))}

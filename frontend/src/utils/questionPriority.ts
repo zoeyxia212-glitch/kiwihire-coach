@@ -18,6 +18,8 @@
  * MadsLorentzen/ai-job-search (MIT).
  */
 
+import type { ApplicationEvent } from "../types/applicationEvent";
+
 export type QuestionPriorityKind =
   | "feedback"
   | "gap"
@@ -118,5 +120,14 @@ export function collectPriorFeedback(
       review.mockInterviewSessions.map((session) => session.improvementNotes),
     )
     .map((note) => note.trim())
+    .filter(Boolean);
+}
+
+/** Notes written on the application timeline (interviews, calls, rejections). */
+export function collectEventNotes(
+  events: Pick<ApplicationEvent, "notes">[],
+): string[] {
+  return events
+    .map((event) => (event.notes ?? "").trim())
     .filter(Boolean);
 }

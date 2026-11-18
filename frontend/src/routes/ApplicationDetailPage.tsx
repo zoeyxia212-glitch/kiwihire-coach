@@ -7,6 +7,7 @@ import CoverLetterBuilder from "../components/CoverLetterBuilder";
 import ResourceNotFoundState from "../components/ResourceNotFoundState";
 import type { Application } from "../types/application";
 import type { ResumeReview } from "../types/resumeReview";
+import type { CandidateProfile } from "../types/candidateProfile";
 import type { EvidenceItem } from "../types/evidenceItem";
 import type { ApplicationAnswer } from "../types/applicationAnswer";
 import {
@@ -27,6 +28,7 @@ import {
 } from "../utils/api";
 import { downloadSubmissionRecord } from "../utils/submissionRecord";
 import { getSafeExternalUrl } from "../utils/safeExternalUrl";
+import { buildSubmitChecks } from "../utils/submitChecks";
 
 function formatDateTime(value: string) {
   return new Intl.DateTimeFormat("en-NZ", {
@@ -63,6 +65,8 @@ export default function ApplicationDetailPage() {
   const [isDuplicating, setIsDuplicating] = useState(false);
   const [candidateName, setCandidateName] = useState("");
   const [profileText, setProfileText] = useState("");
+  const [candidateProfile, setCandidateProfile] =
+    useState<CandidateProfile | null>(null);
 
   useEffect(() => {
     async function fetchApplication() {
@@ -132,6 +136,7 @@ export default function ApplicationDetailPage() {
   useEffect(() => {
     getCandidateProfile()
       .then((profile) => {
+        setCandidateProfile(profile);
         setCandidateName(profile.preferredName || "");
         setProfileText(
           [
@@ -428,6 +433,19 @@ export default function ApplicationDetailPage() {
   const readinessPercent = Math.round(
     (completedReadinessSteps / readinessSteps.length) * 100,
   );
+  const groundingTexts = [
+    profileText,
+    application.submittedResumeContent ?? "",
+    ...evidenceItems.map((item) =>
+      [item.title, item.context, item.action, item.result, item.skills].join(" "),
+    ),
+  ];
+  const preSubmitChecks = buildSubmitChecks({
+    application,
+    profile: candidateProfile,
+    groundingSources: groundingTexts,
+    hasCvReview: relatedReviews.length > 0,
+  });
   const submissionChecks = [
     { label: "Job description", complete: Boolean(application.jobDescription.trim()), required: true },
     { label: "Reviewed CV", complete: Boolean(latestReview), required: true },
@@ -615,6 +633,28 @@ export default function ApplicationDetailPage() {
               max={readinessSteps.length}
               value={completedReadinessSteps}
             />
+            {!application.submittedAt && (
+              <div className="submit-checks">
+                <h3>Pre-submit checks</h3>
+                <p className="muted">
+                  Rule-based checks on this role. A failed check is worth
+                  fixing first, but you may know something the data does not.
+                </p>
+                <ul>
+                  {preSubmitChecks.map((check) => (
+                    <li className={`is-${check.status}`} key={check.key}>
+                      <span aria-hidden="true">
+                        {check.status === "pass" ? "✓" : check.status === "warn" ? "!" : "✕"}
+                      </span>
+                      <span>
+                        <strong>{check.label}</strong>
+                        <small>{check.detail}</small>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <ol className="readiness-list">
               {readinessSteps.map((step, index) => (
                 <li className={step.complete ? "is-complete" : ""} key={step.title}>
@@ -946,12 +986,17 @@ export default function ApplicationDetailPage() {
         )}
         initialDraft={application.coverLetterDraft || ""}
         jobDescription={application.jobDescription}
-        groundingSources={[
-          profileText,
-          application.submittedResumeContent ?? "",
-          ...evidenceItems.map((item) =>
-            [item.title, item.context, item.action, item.result, item.skills].join(" "),
-          ),
+        groundingSources={groundingTexts}
+        labelledSources={[
+          { label: "Profile", text: profileText },
+          {
+            label: "Submitted resume",
+            text: application.submittedResumeContent ?? "",
+          },
+          ...evidenceItems.map((item) => ({
+            label: `Evidence: ${item.title}`,
+            text: [item.context, item.action, item.result, item.skills].join(" "),
+          })),
         ]}
         disabled={application.archived}
         onSave={handleCoverLetterSave}

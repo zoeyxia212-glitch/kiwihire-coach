@@ -2,10 +2,11 @@
  * Finds language requirements in a job posting so the user can check them
  * against their own level.
  *
- * KiwiHire does not store the languages a candidate speaks, so this cannot
- * pass or fail a role. It surfaces the requirement with its quoted wording
- * and lets the person decide: bars like "fluent" vary a lot between
- * employers, and the human is the tiebreaker.
+ * Each requirement is checked against the languages the person lists on
+ * their profile. A language they have not listed is only a gate when the
+ * posting asks for fluency or native level and does not call it a bonus.
+ * Everything else is shown with its quoted wording and left to the person,
+ * because bars like "fluent" vary a lot between employers.
  */
 
 export type LanguageRequirement = {
@@ -98,4 +99,61 @@ export function findLanguageRequirements(
   }
 
   return [...found.values()];
+}
+
+export type LanguageStatus = "listed" | "not-listed" | "unchecked";
+
+export type CheckedLanguage = LanguageRequirement & {
+  status: LanguageStatus;
+};
+
+function listedLanguages(spoken: string): string[] {
+  return spoken
+    .split(/[,;/&\n]|\band\b/i)
+    .map((entry) => normalise(entry.trim()).toLowerCase())
+    .filter(Boolean);
+}
+
+function isListed(language: string, listed: string[]): boolean {
+  const wanted = language.toLowerCase();
+  if (listed.includes(wanted)) {
+    return true;
+  }
+  // "Chinese" in a posting is met by Mandarin or Cantonese, and the reverse
+  // when the person simply lists "Chinese".
+  if (wanted === "chinese") {
+    return listed.some((entry) => entry === "mandarin" || entry === "cantonese");
+  }
+  if (wanted === "mandarin" || wanted === "cantonese") {
+    return listed.includes("chinese");
+  }
+  return false;
+}
+
+/** Marks each requirement as listed, not listed, or unchecked (no languages saved). */
+export function checkLanguages(
+  requirements: LanguageRequirement[],
+  spokenLanguages: string,
+): CheckedLanguage[] {
+  const listed = listedLanguages(spokenLanguages ?? "");
+
+  return requirements.map((requirement) => ({
+    ...requirement,
+    status:
+      listed.length === 0
+        ? "unchecked"
+        : isListed(requirement.language, listed)
+          ? "listed"
+          : "not-listed",
+  }));
+}
+
+/** The requirement that blocks the role, if any. */
+export function failedLanguage(
+  checked: CheckedLanguage[],
+): CheckedLanguage | undefined {
+  return checked.find(
+    (item) =>
+      item.status === "not-listed" && item.demanding && !item.optional,
+  );
 }

@@ -21,8 +21,10 @@ import type { CandidateProfile } from "../types/candidateProfile";
 import type { ResumeAnalysis } from "../types/resumeAnalysis";
 import { checkEligibility, type EligibilityResult } from "./eligibilityGate";
 import {
+  checkLanguages,
+  failedLanguage,
   findLanguageRequirements,
-  type LanguageRequirement,
+  type CheckedLanguage,
 } from "./languageRequirements";
 import { extractKeywords } from "./localReview";
 
@@ -43,7 +45,8 @@ export type FitApplication = Pick<
 export type FitProfile = Pick<
   CandidateProfile,
   "targetRoles" | "workRights" | "preferredLocations" | "careerStage"
->;
+> &
+  Partial<Pick<CandidateProfile, "spokenLanguages">>;
 
 export type FitBand = "strong" | "good" | "moderate" | "weak" | "poor";
 
@@ -62,7 +65,7 @@ export type LocationNote = {
 
 export type FitSummary = {
   gate: EligibilityResult;
-  languages: LanguageRequirement[];
+  languages: CheckedLanguage[];
   scored: boolean;
   overall: number | null;
   band: FitBand | null;
@@ -249,7 +252,11 @@ export function buildFitSummary(input: {
     company: application.company,
     industry: application.industry,
   });
-  const languages = findLanguageRequirements(application.jobDescription);
+  const languages = checkLanguages(
+    findLanguageRequirements(application.jobDescription),
+    profile?.spokenLanguages ?? "",
+  );
+  const blockedLanguage = failedLanguage(languages);
   const location = profile
     ? locationNote(application, profile.preferredLocations)
     : null;
@@ -292,6 +299,19 @@ export function buildFitSummary(input: {
       band: null,
       advice:
         "Not scored. Check the wording below; you may know something about your own status that your profile does not record.",
+      dimensions,
+      location,
+    };
+  }
+
+  if (blockedLanguage) {
+    return {
+      gate,
+      languages,
+      scored: false,
+      overall: null,
+      band: null,
+      advice: `Not scored. The posting asks for ${blockedLanguage.language} at fluent or native level and it is not in the languages on your profile. If you do speak it, add it to your profile.`,
       dimensions,
       location,
     };

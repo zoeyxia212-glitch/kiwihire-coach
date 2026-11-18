@@ -8,6 +8,7 @@ export type CandidateProfile = {
   technicalSkills: string;
   experienceSummary: string;
   starExamples: string;
+  spokenLanguages: string;
   updatedAt: string | null;
 };
 

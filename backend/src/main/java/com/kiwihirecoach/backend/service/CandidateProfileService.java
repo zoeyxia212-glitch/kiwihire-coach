@@ -35,6 +35,7 @@ public class CandidateProfileService {
                         "",
                         "",
                         "",
+                        "",
                         null
                 ));
     }
@@ -54,6 +55,7 @@ public class CandidateProfileService {
                         "",
                         "",
                         "",
+                        "",
                         ""
                 ));
 
@@ -65,7 +67,8 @@ public class CandidateProfileService {
                 normalize(request.careerStage()),
                 normalize(request.technicalSkills()),
                 normalize(request.experienceSummary()),
-                normalize(request.starExamples())
+                normalize(request.starExamples()),
+                normalize(request.spokenLanguages())
         );
 
         return toResponse(candidateProfileRepository.save(profile));
@@ -95,6 +98,7 @@ public class CandidateProfileService {
                 profile.getTechnicalSkills(),
                 profile.getExperienceSummary(),
                 profile.getStarExamples(),
+                profile.getSpokenLanguages(),
                 profile.getUpdatedAt()
         );
     }

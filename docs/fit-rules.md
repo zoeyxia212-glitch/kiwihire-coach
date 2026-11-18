@@ -80,3 +80,9 @@ The gates, thresholds, follow-up rules and text clean-up were adapted from ideas
 - **Pre-submit checks** (`submitChecks.ts`): closing date, work rights, language, cover letter claims, hidden text in the saved posting, and CV review. Fail means fix first, warn means take a look. Nothing blocks submitting.
 - **Claim trace** (`claimTrace.ts`): each cover letter sentence that names a tracked skill lists the sources that mention it (profile, submitted resume, named evidence item), or "no evidence".
 - **Timeline notes** now count as prior feedback for the "practise first" list, and the chosen interview round is remembered in the browser.
+
+## Insights, offers, work rights pointers
+
+- **Insights** (`insights.ts`): sent, responded, interviewed and offers by source and by resume sent. Uses the current status only. "Responded" means moved past Applied; Withdrawn is not a response. Groups under 5 are marked as small samples, and no source is called best or worst unless at least two groups have 5 or more.
+- **Offer comparison** (`offerCompare.ts`): each criterion is scored within the offers compared, weighted by the person's own 0 to 5 priorities. A blank figure is skipped and weights rebalance, so missing never means zero. Offers are kept in the browser only.
+- **Work rights pointers** (`visaHints.ts`): general pointers with links to Immigration New Zealand pages (AEWV, accredited employer list, post-study work visa). Not immigration advice and not a verdict.

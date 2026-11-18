@@ -29,6 +29,7 @@ import {
 import { downloadSubmissionRecord } from "../utils/submissionRecord";
 import { getSafeExternalUrl } from "../utils/safeExternalUrl";
 import { buildSubmitChecks } from "../utils/submitChecks";
+import { buildVisaHints, VISA_DISCLAIMER } from "../utils/visaHints";
 
 function formatDateTime(value: string) {
   return new Intl.DateTimeFormat("en-NZ", {
@@ -440,6 +441,10 @@ export default function ApplicationDetailPage() {
       [item.title, item.context, item.action, item.result, item.skills].join(" "),
     ),
   ];
+  const visaHints = buildVisaHints({
+    candidateWorkRights: candidateProfile?.workRights ?? "",
+    sponsorshipAvailable: application.sponsorshipAvailable,
+  });
   const preSubmitChecks = buildSubmitChecks({
     application,
     profile: candidateProfile,
@@ -633,6 +638,34 @@ export default function ApplicationDetailPage() {
               max={readinessSteps.length}
               value={completedReadinessSteps}
             />
+            {!application.submittedAt && visaHints.length > 0 && (
+              <div className="submit-checks visa-hints">
+                <h3>Work rights pointers</h3>
+                <ul>
+                  {visaHints.map((hint) => (
+                    <li className="is-warn" key={hint.text}>
+                      <span aria-hidden="true">i</span>
+                      <span>
+                        {hint.text}
+                        {hint.links.length > 0 && (
+                          <small>
+                            {hint.links.map((link, index) => (
+                              <span key={link.url}>
+                                {index > 0 ? " · " : ""}
+                                <a href={link.url} target="_blank" rel="noopener noreferrer">
+                                  {link.label}
+                                </a>
+                              </span>
+                            ))}
+                          </small>
+                        )}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="muted">{VISA_DISCLAIMER}</p>
+              </div>
+            )}
             {!application.submittedAt && (
               <div className="submit-checks">
                 <h3>Pre-submit checks</h3>

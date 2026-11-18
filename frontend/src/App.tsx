@@ -23,6 +23,8 @@ const CandidateProfilePage = lazy(
   () => import("./routes/CandidateProfilePage"),
 );
 const LearningPlanPage = lazy(() => import("./routes/LearningPlanPage"));
+const InsightsPage = lazy(() => import("./routes/InsightsPage"));
+const OffersPage = lazy(() => import("./routes/OffersPage"));
 const AccountPage = lazy(() => import("./routes/AccountPage"));
 const FeedbackPage = lazy(() => import("./routes/FeedbackPage"));
 const ContactPage = lazy(() => import("./routes/ContactPage"));
@@ -100,6 +102,18 @@ export default function App() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Learning
+              </Link>
+              <Link
+                to="/insights"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Insights
+              </Link>
+              <Link
+                to="/offers"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Offers
               </Link>
               <Link
                 to="/answers"
@@ -202,6 +216,8 @@ export default function App() {
             <Route path="/reviews/:id/mock-interview" element={<MockInterviewPage />} />
             <Route path="/profile" element={<CandidateProfilePage />} />
             <Route path="/learning" element={<LearningPlanPage />} />
+            <Route path="/insights" element={<InsightsPage />} />
+            <Route path="/offers" element={<OffersPage />} />
             <Route path="/answers" element={<ApplicationAnswersPage />} />
             <Route path="/feedback" element={<FeedbackPage />} />
             <Route

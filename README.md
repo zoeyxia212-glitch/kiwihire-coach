@@ -118,8 +118,8 @@ Responses travel back through response DTOs and JSON before being rendered by Re
 
 ### Database
 
-- H2 for the current local development environment
-- PostgreSQL JDBC driver included for the planned local PostgreSQL migration
+- PostgreSQL 16 with Flyway migrations (`backend/src/main/resources/db/migration`)
+- H2 is used only by the automated tests
 
 ### Testing and Development Tools
 
@@ -136,7 +136,7 @@ React and TypeScript provide a component-based frontend with explicit data types
 
 Spring Boot provides a structured Java backend. Controllers handle HTTP requests, services contain application logic, repositories handle persistence, entities model database records, and DTOs define the API contract.
 
-Spring Data JPA reduces repetitive persistence code while preserving a relational data model. H2 keeps local development and basic tests lightweight. PostgreSQL is included as the next local database step; cloud infrastructure is intentionally outside the current scope.
+Spring Data JPA reduces repetitive persistence code while preserving a relational data model. PostgreSQL runs the application and Flyway versions the schema. H2 keeps the automated tests fast. Cloud infrastructure is intentionally outside the current scope until the local stack is verified.
 
 ## Backend Architecture
 
@@ -203,18 +203,33 @@ Application, resume, review, profile, dashboard, and account endpoints derive ow
 
 ## Running Locally
 
-### Start the backend
+### With Docker (recommended)
+
+Copy `.env.example` to `.env`, set real values for `POSTGRES_PASSWORD` and
+`JWT_SECRET` (for example `openssl rand -base64 48`), then:
+
+```bash
+docker compose up --build
+```
+
+The app runs at `http://localhost:8080`. `.env` is ignored by Git; never commit
+it. See [`docs/architecture.md`](docs/architecture.md) for how the containers fit
+together.
+
+### Without Docker
+
+The backend needs a PostgreSQL database; set `DB_URL`, `DB_USERNAME` and
+`DB_PASSWORD`, then start it:
 
 ```bash
 cd backend
 ./mvnw spring-boot:run
 ```
 
-The API runs at `http://localhost:8080`.
+The API runs at `http://localhost:8080`. Swagger UI is at
+`http://localhost:8080/swagger-ui.html` (off under the `prod` profile).
 
-### Start the frontend
-
-In a second terminal:
+In a second terminal, start the frontend:
 
 ```bash
 cd frontend
@@ -241,7 +256,7 @@ cd backend
 ./mvnw test
 ```
 
-The current automated test coverage includes Spring service unit tests, Spring MVC controller slice tests, a Spring context smoke test, Controller-to-H2 integration tests for CRUD and error behaviour, and Vitest coverage for the interview-question generator and frontend API client. React component and end-to-end coverage will be expanded as the project develops.
+The current automated test coverage includes Spring service unit tests, Spring MVC controller slice tests, a Spring context smoke test, Controller-to-H2 integration tests for CRUD and error behaviour, and Vitest coverage for the interview-question generator and frontend API client. Browser journey tests live in [`e2e`](e2e/README.md) and run against the Docker stack. Fixed rule cases in `frontend/src/evals` and a secret scan (`node scripts/scanSecrets.mjs`) run in CI.
 
 ## Product Direction
 

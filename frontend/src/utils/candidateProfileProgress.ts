@@ -9,13 +9,14 @@ const profileFields = [
   { key: "technicalSkills", label: "technical skills" },
   { key: "experienceSummary", label: "experience summary" },
   { key: "starExamples", label: "STAR examples" },
+  { key: "spokenLanguages", label: "languages you speak" },
 ] as const;
 
 export function getCandidateProfileProgress(
   profile: CandidateProfile,
 ) {
   const missing = profileFields
-    .filter(({ key }) => !profile[key].trim())
+    .filter(({ key }) => !(profile[key] ?? "").trim())
     .map(({ label }) => label);
   const completed = profileFields.length - missing.length;
 

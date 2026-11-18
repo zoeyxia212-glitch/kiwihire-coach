@@ -11,12 +11,25 @@ import type {
 import ResumeBulletOptimizer from "./ResumeBulletOptimizer";
 import ReviewChecklist from "./ReviewChecklist";
 import VoiceAnswerRecorder from "./VoiceAnswerRecorder";
+import { buildConsistencyBrief } from "../utils/consistencyBrief";
+import {
+  practiseFirst,
+  rankQuestionPriorities,
+  type QuestionPriority,
+} from "../utils/questionPriority";
 import { suggestResumeTrims } from "../utils/resumeTrimSuggestions";
 
-type InterviewQuestionCategory =
-  | "Behavioural"
-  | "Situational"
-  | "Technical";
+import {
+  HR_PROMPTS,
+  INTERVIEW_TYPE_LABELS,
+  focusQuestionNumbers,
+  questionCategory,
+  type InterviewQuestionCategory,
+  type InterviewType,
+} from "../utils/interviewFocus";
+import { buildGapChallenges } from "../utils/gapChallenges";
+
+const NO_FEEDBACK: string[] = [];
 
 type QuestionCategoryFilter =
   | "All categories"
@@ -25,35 +38,6 @@ type QuestionCategoryFilter =
 type QuestionStatusFilter =
   | "All statuses"
   | InterviewAnswerStatus;
-
-function questionCategory(
-  question: SavedReviewQuestion,
-): InterviewQuestionCategory {
-  const text = question.question.toLowerCase();
-
-  if (
-    text.includes("what would you") ||
-    text.includes("how would you") ||
-    text.includes("imagine") ||
-    text.includes("suppose") ||
-    text.includes("if you were")
-  ) {
-    return "Situational";
-  }
-
-  if (
-    text.includes("tell me about a time") ||
-    text.includes("describe a time") ||
-    text.includes("give an example") ||
-    text.includes("conflict") ||
-    text.includes("feedback") ||
-    text.includes("worked in a team")
-  ) {
-    return "Behavioural";
-  }
-
-  return "Technical";
-}
 
 type ReviewResultDisplayProps = {
   analysis: ResumeAnalysis;
@@ -65,6 +49,8 @@ type ReviewResultDisplayProps = {
   starExamples?: string;
   jobDescription?: string;
   resumeText?: string;
+  /** Improvement notes from earlier practice or interviews for this role. */
+  priorFeedback?: string[];
   onSavePracticeAnswer?: (
     questionIndex: number,
     answer: string,
@@ -89,6 +75,7 @@ export default function ReviewResultDisplay({
   starExamples = "",
   jobDescription = "",
   resumeText = "",
+  priorFeedback = NO_FEEDBACK,
   onSavePracticeAnswer,
   onUpdatePracticeStatus,
   onUpdateSuggestionStatus,
@@ -108,9 +95,43 @@ export default function ReviewResultDisplay({
   const [statusFilter, setStatusFilter] =
     useState<QuestionStatusFilter>("All statuses");
   const [checklistComplete, setChecklistComplete] = useState(false);
+  const priorities = useMemo(
+    () =>
+      rankQuestionPriorities(questions, {
+        feedbackTexts: priorFeedback,
+        missingSkills: analysis.missing.map((item) => item.skill),
+        jobDescription,
+      }),
+    [questions, priorFeedback, analysis.missing, jobDescription],
+  );
+  const practiseFirstNumbers = practiseFirst(priorities);
+  const [interviewType, setInterviewType] =
+    useState<InterviewType>("business");
+  const focusNumbers = useMemo(
+    () => focusQuestionNumbers(questions, interviewType),
+    [questions, interviewType],
+  );
+  const gapChallenges = useMemo(
+    () =>
+      buildGapChallenges(
+        analysis.missing,
+        analysis.transferable,
+        questions,
+        interviewType,
+      ),
+    [analysis.missing, analysis.transferable, questions, interviewType],
+  );
+  const consistencyBrief = useMemo(
+    () =>
+      resumeText.trim()
+        ? buildConsistencyBrief(analysis.matched, resumeText)
+        : [],
+    [analysis.matched, resumeText],
+  );
   const indexedQuestions = questions.map((question, index) => ({
     question,
     index,
+    priority: priorities[index],
     category: questionCategory(question),
     status: practiceStatuses[index] ?? "Not started",
   }));
@@ -255,6 +276,101 @@ export default function ReviewResultDisplay({
             you can practise different interview styles.
           </p>
 
+          <div className="interview-type">
+            <label>
+              Interview round{" "}
+              <select
+                value={interviewType}
+                onChange={(event) =>
+                  setInterviewType(event.target.value as InterviewType)
+                }
+              >
+                {(Object.keys(INTERVIEW_TYPE_LABELS) as InterviewType[]).map(
+                  (type) => (
+                    <option key={type} value={type}>
+                      {INTERVIEW_TYPE_LABELS[type]}
+                    </option>
+                  ),
+                )}
+              </select>
+            </label>
+            <p className="muted">
+              {interviewType === "business"
+                ? "Expect project detail and role skills."
+                : "Expect motivation, teamwork, reliability and plans."}{" "}
+              {focusNumbers.length > 0
+                ? `Best fit in this list: question${focusNumbers.length === 1 ? "" : "s"} ${focusNumbers.join(", ")}.`
+                : "None of the questions below suit this round, so use the extra questions."}
+            </p>
+
+            {gapChallenges.length > 0 && (
+              <div className="gap-challenges">
+                <h3>Gap questions an interviewer may ask</h3>
+                {gapChallenges.map((challenge) => (
+                  <div key={challenge.skill}>
+                    <p>
+                      <strong>{challenge.question}</strong>
+                    </p>
+                    <ul>
+                      {challenge.answerFrame.map((line) => (
+                        <li key={line}>{line}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {interviewType === "hr" && (
+              <div className="gap-challenges">
+                <h3>Common HR round questions</h3>
+                {HR_PROMPTS.map((prompt) => (
+                  <div key={prompt.question}>
+                    <p>
+                      <strong>{prompt.question}</strong>
+                    </p>
+                    <p className="muted">{prompt.answerGuide}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {practiseFirstNumbers.length > 0 && (
+            <p>
+              <strong>Practise these first:</strong> question
+              {practiseFirstNumbers.length === 1 ? "" : "s"}{" "}
+              {practiseFirstNumbers.join(", ")}. They were raised in
+              earlier feedback or are gaps in this review.
+            </p>
+          )}
+
+          {consistencyBrief.length > 0 && (
+            <div className="consistency-brief">
+              <h3>Be ready to defend these resume claims</h3>
+              <p className="muted">
+                The interviewer has read your resume. Nothing should come
+                up in the room that is not on the paper, and every claim
+                on the paper must hold up in depth.
+              </p>
+              <ul>
+                {consistencyBrief.map((item) => (
+                  <li key={item.claim}>
+                    {item.claim}{" "}
+                    <span className="muted">
+                      {item.reasons.includes("requirement")
+                        ? `Matches the posting${item.skills.length ? ` (${item.skills.join(", ")})` : ""}.`
+                        : ""}{" "}
+                      {item.reasons.includes("number")
+                        ? "Contains a figure: be ready to explain how it was measured."
+                        : ""}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {onSavePracticeAnswer && questions.length > 0 && (
             <div className="interview-progress">
               <div>
@@ -329,6 +445,7 @@ export default function ReviewResultDisplay({
                 key={`${practiceKey ?? "preview"}-${item.question.question}-${item.index}`}
                 question={item.question}
                 category={item.category}
+                priority={item.priority}
                 index={item.index}
                 initialAnswer={practiceAnswers[item.index] ?? ""}
                 status={item.status}
@@ -350,6 +467,7 @@ export default function ReviewResultDisplay({
 function InterviewQuestionCard({
   question,
   category,
+  priority,
   index,
   initialAnswer,
   status,
@@ -359,6 +477,7 @@ function InterviewQuestionCard({
 }: {
   question: SavedReviewQuestion;
   category: InterviewQuestionCategory;
+  priority?: QuestionPriority;
   index: number;
   initialAnswer: string;
   status: InterviewAnswerStatus;
@@ -651,6 +770,11 @@ function InterviewQuestionCard({
       <div className="question-statuses">
         <span className="status">{category}</span>
         <span className="status">{question.relatedSkill}</span>
+        {priority && priority.kind !== "general" && (
+          <span className="status status-overdue" title={priority.detail}>
+            {priority.label}
+          </span>
+        )}
         {onSaveAnswer && <span className="status">{status}</span>}
       </div>
     </article>

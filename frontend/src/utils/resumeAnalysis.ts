@@ -96,6 +96,15 @@ function findEvidence(text: string, terms: string[]) {
     );
 }
 
+/** Names of catalogue skills mentioned anywhere in the text. */
+export function findSkillsMentioned(text: string): string[] {
+  const normalized = text.toLowerCase();
+
+  return skills
+    .filter((skill) => includesAny(normalized, skill.terms))
+    .map((skill) => skill.name);
+}
+
 export function analyzeResume(
   jobDescription: string,
   resumeText: string,

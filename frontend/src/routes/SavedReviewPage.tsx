@@ -451,6 +451,9 @@ export default function SavedReviewPage() {
           suggestions: review.suggestions,
         }}
         questions={review.questions}
+        priorFeedback={review.mockInterviewSessions
+          .map((session) => session.improvementNotes)
+          .filter(Boolean)}
         practiceKey={`resume-review-${review.id}`}
         practiceAnswers={review.answers}
         practiceStatuses={review.answerStatuses}

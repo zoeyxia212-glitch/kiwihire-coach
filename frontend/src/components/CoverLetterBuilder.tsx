@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { EvidenceItem } from "../types/evidenceItem";
 import { buildCoverLetterDraft, reviewCoverLetterDraft } from "../utils/coverLetterDraft";
 import { useUnsavedChangesWarning } from "../hooks/useUnsavedChangesWarning";
 import { downloadCoverLetterDraft } from "../utils/coverLetterExport";
+import { findUnsupportedSkills } from "../utils/groundingCheck";
 import {
   checkSemanticRelevance,
   type SemanticRelevanceResult,
@@ -16,6 +17,8 @@ type CoverLetterBuilderProps = {
   evidenceItems: EvidenceItem[];
   initialDraft: string;
   jobDescription?: string;
+  /** Resume, profile and evidence text used to check the draft's claims. */
+  groundingSources?: string[];
   disabled?: boolean;
   onSave: (draft: string) => Promise<void>;
 };
@@ -33,12 +36,18 @@ export default function CoverLetterBuilder({
   evidenceItems,
   initialDraft,
   jobDescription = "",
+  groundingSources,
   disabled = false,
   onSave,
 }: CoverLetterBuilderProps) {
   const [hiringManagerName, setHiringManagerName] = useState(contactPerson);
   const [motivation, setMotivation] = useState("");
   const [draft, setDraft] = useState(initialDraft);
+  const unsupportedSkills = useMemo(
+    () =>
+      groundingSources ? findUnsupportedSkills(draft, groundingSources) : [],
+    [draft, groundingSources],
+  );
   const [savedDraft, setSavedDraft] = useState(initialDraft);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -275,6 +284,20 @@ export default function CoverLetterBuilder({
                   ))}
                 </ul>
               </div>
+
+              {unsupportedSkills.length > 0 && (
+                <div className="resume-bullet-review">
+                  <p className="eyebrow">Evidence check</p>
+                  <p>
+                    These skills appear in your draft but not in your
+                    resume, profile or saved evidence:{" "}
+                    <strong>{unsupportedSkills.join(", ")}</strong>. Remove
+                    them, or add real evidence first. A gap is better
+                    stated honestly than filled with a claim you cannot
+                    back up.
+                  </p>
+                </div>
+              )}
 
               {jobDescription.trim() && (
                 <div className="resume-bullet-review">

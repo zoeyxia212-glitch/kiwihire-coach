@@ -62,6 +62,7 @@ export default function ApplicationDetailPage() {
   const [isCreatingSnapshot, setIsCreatingSnapshot] = useState(false);
   const [isDuplicating, setIsDuplicating] = useState(false);
   const [candidateName, setCandidateName] = useState("");
+  const [profileText, setProfileText] = useState("");
 
   useEffect(() => {
     async function fetchApplication() {
@@ -130,8 +131,20 @@ export default function ApplicationDetailPage() {
 
   useEffect(() => {
     getCandidateProfile()
-      .then((profile) => setCandidateName(profile.preferredName || ""))
-      .catch(() => setCandidateName(""));
+      .then((profile) => {
+        setCandidateName(profile.preferredName || "");
+        setProfileText(
+          [
+            profile.technicalSkills,
+            profile.experienceSummary,
+            profile.starExamples,
+          ].join("\n"),
+        );
+      })
+      .catch(() => {
+        setCandidateName("");
+        setProfileText("");
+      });
   }, []);
 
   if (isNotFound) {
@@ -933,6 +946,13 @@ export default function ApplicationDetailPage() {
         )}
         initialDraft={application.coverLetterDraft || ""}
         jobDescription={application.jobDescription}
+        groundingSources={[
+          profileText,
+          application.submittedResumeContent ?? "",
+          ...evidenceItems.map((item) =>
+            [item.title, item.context, item.action, item.result, item.skills].join(" "),
+          ),
+        ]}
         disabled={application.archived}
         onSave={handleCoverLetterSave}
       />

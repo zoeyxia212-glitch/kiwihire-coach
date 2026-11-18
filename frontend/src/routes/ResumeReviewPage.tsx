@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { Link, useSearchParams } from "react-router";
+import FitSummaryCard from "../components/FitSummaryCard";
 import ReviewResultDisplay from "../components/ReviewResultDisplay";
 import type { Application } from "../types/application";
 import type { CandidateProfile } from "../types/candidateProfile";
@@ -18,6 +19,8 @@ import {
   getResumeReviews,
 } from "../utils/api";
 import { generateInterviewQuestions } from "../utils/interviewQuestionGenerator";
+import { collectPriorFeedback } from "../utils/questionPriority";
+import { buildFitSummary } from "../utils/fitSummary";
 import { analyzeResume } from "../utils/resumeAnalysis";
 
 type ReviewFilter =
@@ -218,6 +221,9 @@ export default function ResumeReviewPage() {
     return <p className="muted">Loading review workspace...</p>;
   }
 
+  const selectedApplication = applications.find(
+    (item) => String(item.id) === applicationId,
+  );
   const missingInputs =
     applications.length === 0 || resumes.length === 0;
   const normalizedReviewSearch = reviewSearch.trim().toLowerCase();
@@ -388,6 +394,16 @@ export default function ResumeReviewPage() {
               </p>
             )}
           </div>
+          {selectedApplication && (
+            <FitSummaryCard
+              summary={buildFitSummary({
+                analysis,
+                // Use the text that was analysed, which can be edited above.
+                application: { ...selectedApplication, jobDescription },
+                profile: candidateProfile,
+              })}
+            />
+          )}
           <ReviewResultDisplay
             analysis={analysis}
             questions={questions}
@@ -397,6 +413,10 @@ export default function ResumeReviewPage() {
             )}
             jobDescription={jobDescription}
             resumeText={resumeText}
+            priorFeedback={collectPriorFeedback(
+              reviews,
+              Number(applicationId),
+            )}
           />
         </>
       )}

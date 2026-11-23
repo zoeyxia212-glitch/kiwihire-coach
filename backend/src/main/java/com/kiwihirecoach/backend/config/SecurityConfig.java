@@ -1,5 +1,6 @@
 package com.kiwihirecoach.backend.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -16,6 +17,15 @@ import java.util.List;
 @Configuration
 public class SecurityConfig {
 
+    private final List<String> allowedOrigins;
+
+    public SecurityConfig(
+            @Value("${app.cors.allowed-origins:http://localhost:5173}")
+            List<String> allowedOrigins
+    ) {
+        this.allowedOrigins = allowedOrigins;
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
@@ -31,6 +41,11 @@ public class SecurityConfig {
                 ))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/actuator/health/**").permitAll()
+                        // Only reachable when MANAGEMENT_ENDPOINTS exposes it.
+                        .requestMatchers("/actuator/prometheus").permitAll()
+                        // Only reachable outside the prod profile.
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()
                 )
@@ -44,9 +59,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(
-                List.of("http://localhost:5173")
-        );
+        configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowedMethods(
                 List.of(
                         "GET",

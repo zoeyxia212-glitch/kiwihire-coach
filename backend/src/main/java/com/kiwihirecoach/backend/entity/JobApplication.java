@@ -4,7 +4,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
@@ -40,29 +39,29 @@ public class JobApplication {
     private Boolean sponsorshipAvailable;
     private String industry;
     private String decision;
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String decisionReason;
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String strongestFit;
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String mainConcern;
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String coverLetterDraft;
     @Column(nullable = false, columnDefinition = "boolean default false")
     private boolean archived;
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String jobDescription;
     private LocalDateTime submittedAt;
     private String submittedResumeName;
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String submittedJobDescription;
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String submittedResumeContent;
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String submittedCoverLetter;
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String submittedAnswers;
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String submittedEvidence;
 
     @ManyToOne

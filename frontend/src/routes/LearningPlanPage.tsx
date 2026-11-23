@@ -12,11 +12,17 @@ import {
   deleteLearningGoal,
   getLearningGoals,
   getEvidenceItems,
+  getResumeReviews,
   getSkillGapInsights,
   updateLearningGoal,
 } from "../utils/api";
 import { downloadLearningGoalCalendar } from "../utils/reminderCalendar";
 import { downloadLearningProgressReport } from "../utils/learningProgressReport";
+import {
+  orderBySkillPriority,
+  weightSkillGaps,
+  type SkillGapPriority,
+} from "../utils/skillGapPriority";
 
 const statuses: LearningGoalStatus[] = [
   "To learn",
@@ -27,6 +33,10 @@ const statuses: LearningGoalStatus[] = [
 export default function LearningPlanPage() {
   const [goals, setGoals] = useState<LearningGoal[]>([]);
   const [skillGaps, setSkillGaps] = useState<SkillGapInsight[]>([]);
+  const [gapPriority, setGapPriority] = useState<SkillGapPriority>({
+    gaps: [],
+    skippedUnscored: 0,
+  });
   const [evidenceGoalIds, setEvidenceGoalIds] = useState<Set<number>>(
     new Set(),
   );
@@ -40,13 +50,16 @@ export default function LearningPlanPage() {
   useEffect(() => {
     async function loadGoals() {
       try {
-        const [loadedGoals, loadedSkillGaps, evidenceItems] = await Promise.all([
-          getLearningGoals(),
-          getSkillGapInsights(),
-          getEvidenceItems(),
-        ]);
+        const [loadedGoals, loadedSkillGaps, evidenceItems, reviews] =
+          await Promise.all([
+            getLearningGoals(),
+            getSkillGapInsights(),
+            getEvidenceItems(),
+            getResumeReviews(),
+          ]);
         setGoals(loadedGoals);
         setSkillGaps(loadedSkillGaps);
+        setGapPriority(weightSkillGaps(reviews));
         setEvidenceGoalIds(
           new Set(
             evidenceItems
@@ -337,9 +350,20 @@ export default function LearningPlanPage() {
             <p className="muted">
               Based on the latest CV review for each application, so
               reviewing one role twice does not inflate the count.
+              Ordered by how close the affected roles are to a match, so
+              the first skills are the ones most likely to unlock a role
+              you could already win.
             </p>
+            {gapPriority.skippedUnscored > 0 && (
+              <p className="muted">
+                {gapPriority.skippedUnscored} review
+                {gapPriority.skippedUnscored === 1 ? " has" : "s have"} no
+                score and {gapPriority.skippedUnscored === 1 ? "is" : "are"}{" "}
+                left out of the order.
+              </p>
+            )}
             <div className="skill-gap-grid">
-              {skillGaps.map((gap) => (
+              {orderBySkillPriority(skillGaps, gapPriority.gaps).map((gap) => (
                 <article className="skill-gap-card" key={gap.skill}>
                   <div>
                     <span className="status-badge">

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { collectEventNotes } from "../utils/questionPriority";
 import { Link, useNavigate, useParams } from "react-router";
 import ReviewResultDisplay from "../components/ReviewResultDisplay";
 import ResourceNotFoundState from "../components/ResourceNotFoundState";
@@ -13,6 +14,7 @@ import {
   createLearningGoal,
   deleteResumeReview,
   getApplicationById,
+  getApplicationEvents,
   getCandidateProfile,
   getResumeReviewById,
   updateResumeReviewAnswers,
@@ -37,6 +39,7 @@ export default function SavedReviewPage() {
     useState<WorkflowIntent>(null);
   const [addedSkills, setAddedSkills] = useState<string[]>([]);
   const [error, setError] = useState("");
+  const [eventNotes, setEventNotes] = useState<string[]>([]);
   const [isNotFound, setIsNotFound] = useState(false);
 
   useEffect(() => {
@@ -54,10 +57,15 @@ export default function SavedReviewPage() {
 
       try {
         const loadedReview = await getResumeReviewById(id);
-        const [loadedProfile, loadedApplication] = await Promise.all([
-          getCandidateProfile(),
-          getApplicationById(String(loadedReview.applicationId)),
-        ]);
+        const [loadedProfile, loadedApplication, loadedEvents] =
+          await Promise.all([
+            getCandidateProfile(),
+            getApplicationById(String(loadedReview.applicationId)),
+            getApplicationEvents(String(loadedReview.applicationId)).catch(
+              () => [],
+            ),
+          ]);
+        setEventNotes(collectEventNotes(loadedEvents));
         setReview(loadedReview);
         setCandidateProfile(loadedProfile);
         setJobDescription(loadedApplication.jobDescription);
@@ -451,6 +459,12 @@ export default function SavedReviewPage() {
           suggestions: review.suggestions,
         }}
         questions={review.questions}
+        priorFeedback={[
+          ...review.mockInterviewSessions
+            .map((session) => session.improvementNotes)
+            .filter(Boolean),
+          ...eventNotes,
+        ]}
         practiceKey={`resume-review-${review.id}`}
         practiceAnswers={review.answers}
         practiceStatuses={review.answerStatuses}

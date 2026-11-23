@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { EvidenceItem } from "../types/evidenceItem";
 import { buildCoverLetterDraft, reviewCoverLetterDraft } from "../utils/coverLetterDraft";
 import { useUnsavedChangesWarning } from "../hooks/useUnsavedChangesWarning";
 import { downloadCoverLetterDraft } from "../utils/coverLetterExport";
+import { findUnsupportedSkills } from "../utils/groundingCheck";
+import { traceClaims, type EvidenceSource } from "../utils/claimTrace";
 import {
   checkSemanticRelevance,
   type SemanticRelevanceResult,
@@ -16,6 +18,10 @@ type CoverLetterBuilderProps = {
   evidenceItems: EvidenceItem[];
   initialDraft: string;
   jobDescription?: string;
+  /** Resume, profile and evidence text used to check the draft's claims. */
+  groundingSources?: string[];
+  /** The same sources with names, so each claim can show where it comes from. */
+  labelledSources?: EvidenceSource[];
   disabled?: boolean;
   onSave: (draft: string) => Promise<void>;
 };
@@ -33,12 +39,23 @@ export default function CoverLetterBuilder({
   evidenceItems,
   initialDraft,
   jobDescription = "",
+  groundingSources,
+  labelledSources,
   disabled = false,
   onSave,
 }: CoverLetterBuilderProps) {
   const [hiringManagerName, setHiringManagerName] = useState(contactPerson);
   const [motivation, setMotivation] = useState("");
   const [draft, setDraft] = useState(initialDraft);
+  const unsupportedSkills = useMemo(
+    () =>
+      groundingSources ? findUnsupportedSkills(draft, groundingSources) : [],
+    [draft, groundingSources],
+  );
+  const tracedClaims = useMemo(
+    () => (labelledSources ? traceClaims(draft, labelledSources) : []),
+    [draft, labelledSources],
+  );
   const [savedDraft, setSavedDraft] = useState(initialDraft);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -275,6 +292,46 @@ export default function CoverLetterBuilder({
                   ))}
                 </ul>
               </div>
+
+              {unsupportedSkills.length > 0 && (
+                <div className="resume-bullet-review">
+                  <p className="eyebrow">Evidence check</p>
+                  <p>
+                    These skills appear in your draft but not in your
+                    resume, profile or saved evidence:{" "}
+                    <strong>{unsupportedSkills.join(", ")}</strong>. Remove
+                    them, or add real evidence first. A gap is better
+                    stated honestly than filled with a claim you cannot
+                    back up.
+                  </p>
+                </div>
+              )}
+
+              {tracedClaims.length > 0 && (
+                <div className="resume-bullet-review claim-trace">
+                  <p className="eyebrow">Where each claim comes from</p>
+                  <ul>
+                    {tracedClaims.map((claim) => (
+                      <li key={claim.sentence}>
+                        <span aria-hidden="true">
+                          {claim.supported ? "✓" : "○"}
+                        </span>{" "}
+                        {claim.sentence}
+                        <br />
+                        <small className="muted">
+                          {claim.skills
+                            .map((item) =>
+                              item.sources.length > 0
+                                ? `${item.skill}: ${item.sources.join(", ")}`
+                                : `${item.skill}: no evidence`,
+                            )
+                            .join(" · ")}
+                        </small>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               {jobDescription.trim() && (
                 <div className="resume-bullet-review">

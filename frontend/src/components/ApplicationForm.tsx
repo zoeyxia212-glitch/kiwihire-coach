@@ -1,6 +1,10 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { ApplicationStatus } from "../types/application";
 import { parseDocumentFile } from "../utils/documentFileParser";
+import {
+  describeSanitizerWarnings,
+  sanitizeJobText,
+} from "../utils/jobTextSanitizer";
 import { useUnsavedChangesWarning } from "../hooks/useUnsavedChangesWarning";
 
 export type ApplicationFormValues = {
@@ -44,6 +48,10 @@ export default function ApplicationForm({
   );
   const [jobDescription, setJobDescription] = useState(
     initialValues?.jobDescription ?? "",
+  );
+  const jobTextNotice = useMemo(
+    () => describeSanitizerWarnings(sanitizeJobText(jobDescription)),
+    [jobDescription],
   );
   const [closingDate, setClosingDate] = useState(
     initialValues?.closingDate ?? "",
@@ -157,7 +165,8 @@ export default function ApplicationForm({
       roleTitle,
       location,
       status,
-      jobDescription,
+      // Invisible characters are removed before the text is stored.
+      jobDescription: sanitizeJobText(jobDescription).text,
       closingDate,
       source,
       workMode,
@@ -431,6 +440,11 @@ export default function ApplicationForm({
             value={jobDescription}
             onChange={(event) => setJobDescription(event.target.value)}
           />
+          {jobTextNotice && (
+            <p className="info-message" role="status">
+              {jobTextNotice}
+            </p>
+          )}
         </div>
         {errorMessage && <p className="error-message">{errorMessage}</p>}
 

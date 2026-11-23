@@ -23,6 +23,10 @@ import {
   showDashboardNotifications,
   showTestBrowserNotification,
 } from "../utils/browserNotifications";
+import {
+  findMissedDeadlines,
+  quietStatus,
+} from "../utils/applicationAttention";
 import { getCandidateProfileProgress } from "../utils/candidateProfileProgress";
 import { downloadReminderCalendar } from "../utils/reminderCalendar";
 import candidateOne from "../assets/kiwihire-hero-candidate.png";
@@ -255,10 +259,21 @@ export default function DashboardPage() {
         .length,
     0,
   );
-  const inactiveApplications = dashboard.inactiveApplications.filter(
-    (application) =>
-      daysSince(application.lastActivityAt) >= inactiveThreshold,
-  );
+  // A saved role that was never submitted is not "quiet": nobody is late
+  // replying to something that was not sent. Finished applications are
+  // skipped for the same reason.
+  const inactiveApplications = dashboard.inactiveApplications
+    .map((application) => ({
+      ...application,
+      quiet: quietStatus(application.status, application.lastActivityAt),
+    }))
+    .filter(
+      (application) =>
+        application.quiet.kind !== "not-sent" &&
+        application.quiet.kind !== "closed" &&
+        daysSince(application.lastActivityAt) >= inactiveThreshold,
+    );
+  const missedDeadlines = findMissedDeadlines(applications);
   const statusCounts = buildStatusCounts(applications);
   const recentReviews = [...reviews]
     .sort(
@@ -768,8 +783,10 @@ export default function DashboardPage() {
                 }
               >
                 <option value={7}>7 days</option>
+                <option value={10}>10 days</option>
                 <option value={14}>14 days</option>
                 <option value={30}>30 days</option>
+                <option value={60}>60 days</option>
               </select>
             </label>
           </div>
@@ -795,12 +812,45 @@ export default function DashboardPage() {
                       {formatReminderDate(application.lastActivityAt)}
                     </p>
                   </div>
-                  <span className="status status-overdue">
-                    {daysSince(application.lastActivityAt)} days
+                  <span
+                    className={
+                      application.quiet.kind === "active"
+                        ? "status"
+                        : "status status-overdue"
+                    }
+                  >
+                    {application.quiet.label}
                   </span>
                 </Link>
               ))}
             </div>
+          )}
+
+          {missedDeadlines.length > 0 && (
+            <>
+              <h3>Saved roles that closed before you applied</h3>
+              <p className="muted">
+                Your documents may be ready, but the closing date has
+                passed. Archive these or note the outcome.
+              </p>
+              <div className="list">
+                {missedDeadlines.map((application) => (
+                  <Link
+                    className="list-row"
+                    key={application.id}
+                    to={`/applications/${application.id}`}
+                  >
+                    <div>
+                      <h3>
+                        {application.company} · {application.roleTitle}
+                      </h3>
+                      <p>Closed {application.closingDate}</p>
+                    </div>
+                    <span className="status status-overdue">Closed</span>
+                  </Link>
+                ))}
+              </div>
+            </>
           )}
         </div>
       </div>

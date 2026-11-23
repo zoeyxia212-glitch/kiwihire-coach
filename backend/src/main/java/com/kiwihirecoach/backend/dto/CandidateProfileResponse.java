@@ -12,6 +12,7 @@ public record CandidateProfileResponse(
         String technicalSkills,
         String experienceSummary,
         String starExamples,
+        String spokenLanguages,
         LocalDateTime updatedAt
 ) {
 }

@@ -3420,3 +3420,150 @@ p {
     flex-direction: column;
   }
 }
+
+/* Fit summary */
+.fit-summary-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 0.5rem 0 1rem;
+}
+
+.fit-summary-header h2,
+.fit-summary-header p {
+  margin: 0;
+}
+
+.fit-summary-score {
+  display: grid;
+  place-items: center;
+  min-width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background: #eef2ff;
+  color: #3730a3;
+  font-size: 1.5rem;
+}
+
+.fit-summary-gate {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: #f8fafc;
+  border-left: 4px solid #94a3b8;
+}
+
+.fit-summary-gate p,
+.fit-summary-gate blockquote {
+  margin: 0.25rem 0;
+}
+
+.fit-summary-gate-pass {
+  background: #ecfdf3;
+  border-left-color: #12b76a;
+}
+
+.fit-summary-gate-fail {
+  background: #fef3f2;
+  border-left-color: #b42318;
+}
+
+.fit-summary-gate-unverified {
+  background: #fffaeb;
+  border-left-color: #f79009;
+}
+
+.fit-summary-languages {
+  margin: 0 0 1rem;
+}
+
+.fit-summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 0.75rem;
+}
+
+.fit-summary-table th,
+.fit-summary-table td {
+  padding: 0.4rem 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+  vertical-align: top;
+}
+
+.fit-summary-flag {
+  color: #b54708;
+}
+
+/* Interview consistency brief */
+.consistency-brief {
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: #f8fafc;
+  border-left: 4px solid #6366f1;
+}
+
+.consistency-brief h3,
+.consistency-brief p {
+  margin: 0.25rem 0;
+}
+
+/* Interview type and gap questions */
+.interview-type {
+  margin: 1rem 0;
+}
+
+.gap-challenges {
+  margin: 0.75rem 0;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: #fff7ed;
+  border-left: 4px solid #ea580c;
+}
+
+.gap-challenges h3,
+.gap-challenges p {
+  margin: 0.25rem 0;
+}
+
+/* Pre-submit checks and claim trace */
+.submit-checks {
+  margin: 1rem 0;
+}
+
+.submit-checks ul,
+.claim-trace ul {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0;
+}
+
+.submit-checks li {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 8px;
+  margin-bottom: 0.35rem;
+}
+
+.submit-checks li small {
+  display: block;
+  color: #475467;
+}
+
+.submit-checks li.is-pass {
+  background: #ecfdf3;
+}
+
+.submit-checks li.is-warn {
+  background: #fffaeb;
+}
+
+.submit-checks li.is-fail {
+  background: #fef3f2;
+}
+
+.claim-trace li {
+  margin-bottom: 0.5rem;
+}

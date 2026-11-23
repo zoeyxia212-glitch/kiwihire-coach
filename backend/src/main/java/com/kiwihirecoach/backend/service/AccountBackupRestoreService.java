@@ -224,7 +224,7 @@ public class AccountBackupRestoreService {
         boolean profileHasContent = List.of(
                 profile.targetRoles(), profile.workRights(), profile.preferredLocations(),
                 profile.careerStage(), profile.technicalSkills(), profile.experienceSummary(),
-                profile.starExamples()
+                profile.starExamples(), profile.spokenLanguages()
         ).stream().anyMatch(value -> value != null && !value.isBlank());
         if (profileHasContent || !applicationService.getApplicationsForUser(userId).isEmpty()
                 || !resumeService.getResumes(userId).isEmpty() || !reviewService.getReviews(userId).isEmpty()

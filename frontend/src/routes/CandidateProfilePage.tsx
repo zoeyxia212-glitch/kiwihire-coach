@@ -34,6 +34,7 @@ export default function CandidateProfilePage() {
   const [technicalSkills, setTechnicalSkills] = useState("");
   const [experienceSummary, setExperienceSummary] = useState("");
   const [starExamples, setStarExamples] = useState("");
+  const [spokenLanguages, setSpokenLanguages] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
@@ -55,6 +56,7 @@ export default function CandidateProfilePage() {
     technicalSkills: "",
     experienceSummary: "",
     starExamples: "",
+    spokenLanguages: "",
   }));
   const currentProfileValues = {
     preferredName,
@@ -65,6 +67,7 @@ export default function CandidateProfilePage() {
     technicalSkills,
     experienceSummary,
     starExamples,
+    spokenLanguages,
   };
   const hasProfileChanges = profileKey(currentProfileValues) !== savedProfileKey;
   const hasEvidenceChanges = JSON.stringify(evidenceForm) !== savedEvidenceKey;
@@ -86,6 +89,8 @@ export default function CandidateProfilePage() {
         setTechnicalSkills(profile.technicalSkills);
         setExperienceSummary(profile.experienceSummary);
         setStarExamples(profile.starExamples);
+      setSpokenLanguages(profile.spokenLanguages ?? "");
+        setSpokenLanguages(profile.spokenLanguages ?? "");
         setSavedProfileKey(profileKey({
           preferredName: profile.preferredName,
           targetRoles: profile.targetRoles,
@@ -95,6 +100,7 @@ export default function CandidateProfilePage() {
           technicalSkills: profile.technicalSkills,
           experienceSummary: profile.experienceSummary,
           starExamples: profile.starExamples,
+          spokenLanguages: profile.spokenLanguages ?? "",
         }));
         setEvidenceItems(items);
       } catch {
@@ -123,6 +129,7 @@ export default function CandidateProfilePage() {
       setTechnicalSkills(savedProfile.technicalSkills);
       setExperienceSummary(savedProfile.experienceSummary);
       setStarExamples(savedProfile.starExamples);
+      setSpokenLanguages(savedProfile.spokenLanguages ?? "");
       setSavedProfileKey(profileKey({
         preferredName: savedProfile.preferredName,
         targetRoles: savedProfile.targetRoles,
@@ -132,6 +139,7 @@ export default function CandidateProfilePage() {
         technicalSkills: savedProfile.technicalSkills,
         experienceSummary: savedProfile.experienceSummary,
         starExamples: savedProfile.starExamples,
+          spokenLanguages: savedProfile.spokenLanguages ?? "",
       }));
       setSuccess("Candidate profile saved.");
     } catch {
@@ -240,6 +248,7 @@ export default function CandidateProfilePage() {
     technicalSkills,
     experienceSummary,
     starExamples,
+    spokenLanguages,
     updatedAt: null,
   };
   const progress = getCandidateProfileProgress(currentProfile);
@@ -482,6 +491,21 @@ export default function CandidateProfilePage() {
                 setTechnicalSkills(event.target.value)
               }
             />
+          </div>
+
+          <div className="field">
+            <label htmlFor="spoken-languages">Languages you speak</label>
+            <input
+              id="spoken-languages"
+              value={spokenLanguages}
+              maxLength={200}
+              placeholder="English, Mandarin..."
+              onChange={(event) => setSpokenLanguages(event.target.value)}
+            />
+            <p className="muted">
+              Used to check language requirements in a posting. Only list
+              languages you can use at work.
+            </p>
           </div>
 
           <div className="field">

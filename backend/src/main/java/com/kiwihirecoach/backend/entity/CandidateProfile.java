@@ -29,6 +29,8 @@ public class CandidateProfile {
     private String careerStage;
     private String technicalSkills;
 
+    private String spokenLanguages;
+
     @Column(columnDefinition = "TEXT")
     private String experienceSummary;
 
@@ -49,7 +51,8 @@ public class CandidateProfile {
             String careerStage,
             String technicalSkills,
             String experienceSummary,
-            String starExamples
+            String starExamples,
+            String spokenLanguages
     ) {
         this.user = user;
         update(
@@ -60,7 +63,8 @@ public class CandidateProfile {
                 careerStage,
                 technicalSkills,
                 experienceSummary,
-                starExamples
+                starExamples,
+                spokenLanguages
         );
     }
 
@@ -72,7 +76,8 @@ public class CandidateProfile {
             String careerStage,
             String technicalSkills,
             String experienceSummary,
-            String starExamples
+            String starExamples,
+            String spokenLanguages
     ) {
         this.preferredName = preferredName;
         this.targetRoles = targetRoles;
@@ -82,6 +87,7 @@ public class CandidateProfile {
         this.technicalSkills = technicalSkills;
         this.experienceSummary = experienceSummary;
         this.starExamples = starExamples;
+        this.spokenLanguages = spokenLanguages;
         this.updatedAt = LocalDateTime.now();
     }
 
@@ -117,6 +123,10 @@ public class CandidateProfile {
 
     public String getStarExamples() {
         return starExamples;
+    }
+
+    public String getSpokenLanguages() {
+        return spokenLanguages;
     }
 
     public LocalDateTime getUpdatedAt() {

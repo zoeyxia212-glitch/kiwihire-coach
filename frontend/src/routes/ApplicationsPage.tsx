@@ -32,7 +32,7 @@ export default function ApplicationsPage() {
     useState<ViewFilter>("Active");
   const [sortBy, setSortBy] =
     useState<SortOption>("Recently added");
-  const [layoutMode, setLayoutMode] = useState<LayoutMode>("List");
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>(readLayoutMode);
   const [draggedApplicationId, setDraggedApplicationId] = useState<number | null>(null);
   const [updatingApplicationId, setUpdatingApplicationId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -53,6 +53,15 @@ export default function ApplicationsPage() {
 
     fetchApplications();
   }, []);
+
+  function changeLayoutMode(mode: LayoutMode) {
+    setLayoutMode(mode);
+    try {
+      localStorage.setItem(LAYOUT_STORAGE_KEY, mode);
+    } catch {
+      // Storage can be unavailable; the choice just will not be remembered.
+    }
+  }
 
   const normalizedSearch = searchTerm.trim().toLowerCase();
   const filteredApplications = applications
@@ -257,7 +266,7 @@ export default function ApplicationsPage() {
               type="button"
               key={mode}
               aria-pressed={layoutMode === mode}
-              onClick={() => setLayoutMode(mode)}
+              onClick={() => changeLayoutMode(mode)}
             >
               {mode}
             </button>
@@ -382,6 +391,18 @@ export default function ApplicationsPage() {
       )}
     </section>
   );
+}
+
+const LAYOUT_STORAGE_KEY = "kiwihire.applications.layout";
+
+function readLayoutMode(): LayoutMode {
+  try {
+    return localStorage.getItem(LAYOUT_STORAGE_KEY) === "List"
+      ? "List"
+      : "Board";
+  } catch {
+    return "Board";
+  }
 }
 
 const APPLICATION_STATUSES: ApplicationStatus[] = [

@@ -1,5 +1,10 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router";
 import type { ApplicationStatus } from "../types/application";
+import {
+  findDuplicateApplication,
+  type DuplicateCandidate,
+} from "../utils/duplicateApplication";
 import { parseDocumentFile } from "../utils/documentFileParser";
 import {
   describeSanitizerWarnings,
@@ -34,11 +39,14 @@ export type ApplicationFormValues = {
 };
 type ApplicationFormProps = {
   initialValues?: ApplicationFormValues;
+  /** Existing applications, used only to warn about a likely duplicate. */
+  existingApplications?: DuplicateCandidate[];
   submitLabel?: string;
   onSubmit: (values: ApplicationFormValues) => Promise<void>;
 };
 export default function ApplicationForm({
   initialValues,
+  existingApplications = [],
   submitLabel = "Save application",
   onSubmit,
 }: ApplicationFormProps) {
@@ -94,6 +102,11 @@ export default function ApplicationForm({
     initialValues?.industry ?? "",
   );
   const [errorMessage, setErrorMessage] = useState("");
+  const duplicate = findDuplicateApplication(
+    existingApplications,
+    company,
+    roleTitle,
+  );
   const [isParsingJobFile, setIsParsingJobFile] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -455,6 +468,14 @@ export default function ApplicationForm({
             </p>
           )}
         </div>
+        {duplicate && (
+          <p className="info-message" role="status">
+            You already have {duplicate.company} – {duplicate.roleTitle} (
+            {duplicate.status}).{" "}
+            <Link to={`/applications/${duplicate.id}`}>Open it</Link> or
+            save anyway if this is a different posting.
+          </p>
+        )}
         {errorMessage && <p className="error-message">{errorMessage}</p>}
 
         <button

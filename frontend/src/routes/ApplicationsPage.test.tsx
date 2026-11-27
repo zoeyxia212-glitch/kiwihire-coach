@@ -25,6 +25,7 @@ describe("ApplicationsPage", () => {
       new Promise(() => {}),
     );
 
+    localStorage.setItem("kiwihire.applications.layout", "List");
     render(
       <MemoryRouter>
         <ApplicationsPage />

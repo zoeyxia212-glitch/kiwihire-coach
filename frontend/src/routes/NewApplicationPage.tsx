@@ -1,9 +1,18 @@
+import { useEffect, useState } from "react";
 import ApplicationForm, {
   type ApplicationFormValues,
 } from "../components/ApplicationForm";
-import { createApplication } from "../utils/api";
+import type { Application } from "../types/application";
+import { createApplication, getApplications } from "../utils/api";
 
 export default function NewApplicationPage() {
+  const [existing, setExisting] = useState<Application[]>([]);
+
+  useEffect(() => {
+    // The warning is a convenience, so a failed load is silently ignored.
+    getApplications().then(setExisting).catch(() => undefined);
+  }, []);
+
   async function handleCreate(values: ApplicationFormValues) {
     await createApplication(values);
 
@@ -22,7 +31,10 @@ export default function NewApplicationPage() {
           </p>
         </div>
       </div>
-      <ApplicationForm onSubmit={handleCreate} />
+      <ApplicationForm
+        existingApplications={existing}
+        onSubmit={handleCreate}
+      />
     </section>
   );
 }

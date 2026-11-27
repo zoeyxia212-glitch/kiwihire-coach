@@ -5,7 +5,15 @@ import type {
   Application,
   ApplicationStatus,
 } from "../types/application";
-import { createApplicationEvent, getApplications } from "../utils/api";
+import {
+  createApplication,
+  createApplicationEvent,
+  getApplications,
+} from "../utils/api";
+import {
+  previewCsvImport,
+  type CsvImportPreview,
+} from "../utils/applicationCsvImport";
 import { buildApplicationsCsv } from "../utils/applicationCsv";
 
 type StatusFilter = "All" | "Interview stages" | ApplicationStatus;
@@ -32,12 +40,15 @@ export default function ApplicationsPage() {
     useState<ViewFilter>("Active");
   const [sortBy, setSortBy] =
     useState<SortOption>("Recently added");
-  const [layoutMode, setLayoutMode] = useState<LayoutMode>("List");
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>(readLayoutMode);
   const [draggedApplicationId, setDraggedApplicationId] = useState<number | null>(null);
   const [updatingApplicationId, setUpdatingApplicationId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [boardMessage, setBoardMessage] = useState("");
+  const [importPreview, setImportPreview] = useState<CsvImportPreview | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importMessage, setImportMessage] = useState("");
 
   useEffect(() => {
     async function fetchApplications() {
@@ -53,6 +64,15 @@ export default function ApplicationsPage() {
 
     fetchApplications();
   }, []);
+
+  function changeLayoutMode(mode: LayoutMode) {
+    setLayoutMode(mode);
+    try {
+      localStorage.setItem(LAYOUT_STORAGE_KEY, mode);
+    } catch {
+      // Storage can be unavailable; the choice just will not be remembered.
+    }
+  }
 
   const normalizedSearch = searchTerm.trim().toLowerCase();
   const filteredApplications = applications
@@ -92,6 +112,42 @@ export default function ApplicationsPage() {
   function clearFilters() {
     setSearchTerm("");
     setStatusFilter("All");
+  }
+
+  async function chooseImportFile(file: File | undefined) {
+    setImportMessage("");
+    setImportPreview(null);
+    if (!file) return;
+    if (file.size > 1_000_000) {
+      setImportMessage("That file is larger than 1 MB. Split it and try again.");
+      return;
+    }
+    setImportPreview(previewCsvImport(await file.text(), applications));
+  }
+
+  async function confirmImport() {
+    if (!importPreview || importPreview.rows.length === 0) return;
+    setIsImporting(true);
+    let created = 0;
+    try {
+      for (const row of importPreview.rows) {
+        await createApplication(row);
+        created += 1;
+      }
+      setImportMessage(`Imported ${created} applications.`);
+    } catch {
+      setImportMessage(
+        `Imported ${created} of ${importPreview.rows.length} before an error stopped the import. Importing again skips the ones already saved.`,
+      );
+    } finally {
+      setImportPreview(null);
+      setIsImporting(false);
+      try {
+        setApplications(await getApplications());
+      } catch {
+        setErrorMessage("Failed to load applications.");
+      }
+    }
   }
 
   function exportApplications() {
@@ -154,9 +210,14 @@ export default function ApplicationsPage() {
             Keep every role, deadline, and next step in one place.
           </p>
         </div>
-        <Link className="button primary" to="/applications/new">
-          New application
-        </Link>
+        <div className="page-header-actions">
+          <Link className="button" to="/calendar">
+            Calendar
+          </Link>
+          <Link className="button primary" to="/applications/new">
+            New application
+          </Link>
+        </div>
       </div>
 
       <div className="panel application-filters">
@@ -232,6 +293,19 @@ export default function ApplicationsPage() {
             >
               Export CSV
             </button>
+            <label className="text-button">
+              Import CSV
+              <input
+                className="visually-hidden"
+                type="file"
+                accept=".csv,text/csv"
+                aria-label="Import applications from a CSV file"
+                onChange={(event) => {
+                  void chooseImportFile(event.target.files?.[0]);
+                  event.target.value = "";
+                }}
+              />
+            </label>
             {hasFilters && (
               <button
                 className="text-button"
@@ -257,7 +331,7 @@ export default function ApplicationsPage() {
               type="button"
               key={mode}
               aria-pressed={layoutMode === mode}
-              onClick={() => setLayoutMode(mode)}
+              onClick={() => changeLayoutMode(mode)}
             >
               {mode}
             </button>
@@ -266,6 +340,53 @@ export default function ApplicationsPage() {
       </div>
 
       {boardMessage && <p className="info-message" role="status">{boardMessage}</p>}
+      {importMessage && <p className="info-message" role="status">{importMessage}</p>}
+      {importPreview && (
+        <div className="panel">
+          <div className="panel-inner">
+            <h2>Import preview</h2>
+            <p>
+              {importPreview.rows.length} to import
+              {importPreview.duplicates > 0 &&
+                `, ${importPreview.duplicates} skipped as duplicates`}
+              .
+            </p>
+            {importPreview.placeholderClosingDates > 0 && (
+              <p className="muted">
+                {importPreview.placeholderClosingDates} rows have no closing
+                date, so one 30 days from today is used as a placeholder.
+                Edit it later if it matters.
+              </p>
+            )}
+            {importPreview.problems.length > 0 && (
+              <ul className="error-message">
+                {importPreview.problems.slice(0, 8).map((problem) => (
+                  <li key={problem}>{problem}</li>
+                ))}
+                {importPreview.problems.length > 8 && (
+                  <li>and {importPreview.problems.length - 8} more.</li>
+                )}
+              </ul>
+            )}
+            <button
+              className="button primary"
+              type="button"
+              disabled={isImporting || importPreview.rows.length === 0}
+              onClick={() => void confirmImport()}
+            >
+              {isImporting ? "Importing..." : `Import ${importPreview.rows.length} applications`}
+            </button>{" "}
+            <button
+              className="button"
+              type="button"
+              disabled={isImporting}
+              onClick={() => setImportPreview(null)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {layoutMode === "List" ? <div className="panel">
         <div className="panel-inner list">
@@ -382,6 +503,18 @@ export default function ApplicationsPage() {
       )}
     </section>
   );
+}
+
+const LAYOUT_STORAGE_KEY = "kiwihire.applications.layout";
+
+function readLayoutMode(): LayoutMode {
+  try {
+    return localStorage.getItem(LAYOUT_STORAGE_KEY) === "List"
+      ? "List"
+      : "Board";
+  } catch {
+    return "Board";
+  }
 }
 
 const APPLICATION_STATUSES: ApplicationStatus[] = [

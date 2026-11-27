@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState } from "react";
-import { Link, Route, Routes } from "react-router";
+import { Link, NavLink, Route, Routes } from "react-router";
 import ProtectedRoute from "./components/ProtectedRoute";
 import BrowserReminderMonitor from "./components/BrowserReminderMonitor";
 import {
@@ -23,6 +23,7 @@ const CandidateProfilePage = lazy(
   () => import("./routes/CandidateProfilePage"),
 );
 const LearningPlanPage = lazy(() => import("./routes/LearningPlanPage"));
+const CalendarPage = lazy(() => import("./routes/CalendarPage"));
 const InsightsPage = lazy(() => import("./routes/InsightsPage"));
 const OffersPage = lazy(() => import("./routes/OffersPage"));
 const AccountPage = lazy(() => import("./routes/AccountPage"));
@@ -73,73 +74,73 @@ export default function App() {
         >
           {authSession ? (
             <>
-              <Link
+              <NavLink
                 to="/applications"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Job Tracker
-              </Link>
-              <Link
+              </NavLink>
+              <NavLink
                 to="/resumes"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Resumes
-              </Link>
-              <Link
+              </NavLink>
+              <NavLink
                 to="/review"
                 onClick={() => setIsMenuOpen(false)}
               >
                 CV Review
-              </Link>
-              <Link
+              </NavLink>
+              <NavLink
                 to="/profile"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Profile
-              </Link>
-              <Link
+              </NavLink>
+              <NavLink
                 to="/learning"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Learning
-              </Link>
-              <Link
+              </NavLink>
+              <NavLink
                 to="/insights"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Insights
-              </Link>
-              <Link
+              </NavLink>
+              <NavLink
                 to="/offers"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Offers
-              </Link>
-              <Link
+              </NavLink>
+              <NavLink
                 to="/answers"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Answers
-              </Link>
-              <Link
+              </NavLink>
+              <NavLink
                 to="/feedback"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Feedback
-              </Link>
-              <Link
+              </NavLink>
+              <NavLink
                 to="/contact"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Contact
-              </Link>
-              <Link
+              </NavLink>
+              <NavLink
                 to="/account"
                 className="nav-user"
                 onClick={() => setIsMenuOpen(false)}
               >
                 {authSession.email}
-              </Link>
+              </NavLink>
               <button
                 className="nav-button"
                 type="button"
@@ -150,24 +151,24 @@ export default function App() {
             </>
           ) : (
             <>
-              <Link
+              <NavLink
                 to="/contact"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Contact
-              </Link>
-              <Link
+              </NavLink>
+              <NavLink
                 to="/login"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Login
-              </Link>
-              <Link
+              </NavLink>
+              <NavLink
                 to="/register"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Register
-              </Link>
+              </NavLink>
             </>
           )}
         </nav>
@@ -216,6 +217,7 @@ export default function App() {
             <Route path="/reviews/:id/mock-interview" element={<MockInterviewPage />} />
             <Route path="/profile" element={<CandidateProfilePage />} />
             <Route path="/learning" element={<LearningPlanPage />} />
+            <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/insights" element={<InsightsPage />} />
             <Route path="/offers" element={<OffersPage />} />
             <Route path="/answers" element={<ApplicationAnswersPage />} />

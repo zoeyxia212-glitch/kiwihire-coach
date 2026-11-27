@@ -8,6 +8,11 @@ import type { LoginResponse } from "../utils/api";
 import { loginUser } from "../utils/api";
 import { consumeAuthMessage } from "../utils/auth";
 
+// Public demo credentials for a sample account with fictional data.
+// Set in the frontend build only when a demo is deployed.
+const DEMO_EMAIL = import.meta.env.VITE_DEMO_EMAIL as string | undefined;
+const DEMO_PASSWORD = import.meta.env.VITE_DEMO_PASSWORD as string | undefined;
+
 type LoginPageProps = {
   onLogin: (session: LoginResponse) => void;
 };
@@ -27,11 +32,18 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    await signIn(email, password);
+  }
+
+  async function signIn(loginEmail: string, loginPassword: string) {
     setError("");
     setIsSubmitting(true);
 
     try {
-      const session = await loginUser({ email, password });
+      const session = await loginUser({
+        email: loginEmail,
+        password: loginPassword,
+      });
       onLogin(session);
       navigate(locationState?.from ?? "/", { replace: true });
     } catch (caughtError) {
@@ -97,6 +109,16 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           >
             {isSubmitting ? "Logging in..." : "Login"}
           </button>
+          {DEMO_EMAIL && DEMO_PASSWORD && (
+            <button
+              className="button"
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => void signIn(DEMO_EMAIL, DEMO_PASSWORD)}
+            >
+              Try the demo account
+            </button>
+          )}
           <p className="muted">
             Need an account?{" "}
             <Link to="/register">Create one</Link>

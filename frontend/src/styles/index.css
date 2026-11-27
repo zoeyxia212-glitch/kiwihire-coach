@@ -99,6 +99,14 @@ a {
   color: #111827;
 }
 
+/* The page the person is on. React Router adds aria-current="page". */
+.top-bar nav a[aria-current="page"] {
+  background: #fff;
+  color: #0c2f27;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(17, 24, 39, 0.18), 0 0 0 1px rgba(31, 122, 92, 0.25);
+}
+
 .nav-user {
   padding: 8px 4px 8px 12px;
   color: #4b5563;
@@ -3603,4 +3611,96 @@ p {
 
 #application-decision .button.primary {
   justify-self: start;
+}
+
+/* Insights bar charts */
+.bar-chart {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.bar-chart li {
+  display: grid;
+  grid-template-columns: 96px 1fr 36px;
+  align-items: center;
+  gap: 12px;
+}
+
+.bar-chart-track {
+  height: 14px;
+  border-radius: 7px;
+  background: #e8efec;
+  overflow: hidden;
+}
+
+.bar-chart-fill {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  border-radius: 7px;
+  background: #1f7a5c;
+}
+
+.bar-chart-value {
+  text-align: right;
+  font-weight: 600;
+}
+
+/* Calendar */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  border: 1px solid #d8e2de;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.calendar-weekday {
+  padding: 8px;
+  font-weight: 600;
+  background: #f1f6f4;
+  border-bottom: 1px solid #d8e2de;
+}
+
+.calendar-cell {
+  min-height: 92px;
+  padding: 6px;
+  border-right: 1px solid #eef3f1;
+  border-bottom: 1px solid #eef3f1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.calendar-cell.is-outside {
+  background: #fafcfb;
+  color: #8a9a95;
+}
+
+.calendar-day {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.calendar-item {
+  font-size: 0.75rem;
+  line-height: 1.25;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: #d9f2e8;
+  color: #0c2f27;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+  .calendar-cell {
+    min-height: 64px;
+  }
 }

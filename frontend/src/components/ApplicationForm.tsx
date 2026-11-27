@@ -6,7 +6,7 @@ import {
   sanitizeJobText,
 } from "../utils/jobTextSanitizer";
 import { useUnsavedChangesWarning } from "../hooks/useUnsavedChangesWarning";
-import SuggestSelect from "./SuggestSelect";
+import Combobox from "./Combobox";
 import {
   COMPANY_SUGGESTIONS,
   LOCATION_SUGGESTIONS,
@@ -213,9 +213,12 @@ export default function ApplicationForm({
       <div className="panel-inner form-grid">
         <div className="field">
           <label>Company</label>
-          <SuggestSelect
+          <Combobox
             value={company}
-            onChange={setCompany}
+            onChange={(next) => {
+              setCompany(next);
+              setHasUnsavedChanges(true);
+            }}
             options={COMPANY_SUGGESTIONS}
             placeholder="Xero"
           />
@@ -223,9 +226,12 @@ export default function ApplicationForm({
 
         <div className="field">
           <label>Role title</label>
-          <SuggestSelect
+          <Combobox
             value={roleTitle}
-            onChange={setRoleTitle}
+            onChange={(next) => {
+              setRoleTitle(next);
+              setHasUnsavedChanges(true);
+            }}
             options={ROLE_SUGGESTIONS}
             placeholder="Junior Software Developer"
           />
@@ -233,9 +239,12 @@ export default function ApplicationForm({
 
         <div className="field">
           <label>Location</label>
-          <SuggestSelect
+          <Combobox
             value={location}
-            onChange={setLocation}
+            onChange={(next) => {
+              setLocation(next);
+              setHasUnsavedChanges(true);
+            }}
             options={LOCATION_SUGGESTIONS}
             placeholder="Auckland"
           />

@@ -3604,3 +3604,54 @@ p {
 #application-decision .button.primary {
   justify-self: start;
 }
+
+/* Combobox: a text box with a scrollable list of suggestions. */
+.combobox {
+  position: relative;
+}
+
+.combobox input {
+  padding-right: 40px;
+}
+
+.combobox-toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 40px;
+  border: 0;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.combobox-list {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  max-height: 240px;
+  overflow-y: auto;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 14px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
+}
+
+.combobox-option {
+  padding: 9px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: #111827;
+}
+
+.combobox-option:hover,
+.combobox-option.active {
+  background: #eef2ff;
+}

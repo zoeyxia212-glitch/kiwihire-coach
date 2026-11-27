@@ -31,10 +31,7 @@ test("register, log in, save a role and see it listed", async ({ page }) => {
   await login(page, email);
 
   await page.goto("/applications/new");
-  // Company and role are dropdowns. Pick "Other" to type a custom value.
-  await field(page, "Company").locator("select").selectOption({ label: "Other (type your own)" });
   await field(page, "Company").locator("input").fill("E2E Kiwi Tech");
-  await field(page, "Role title").locator("select").selectOption({ label: "Other (type your own)" });
   await field(page, "Role title").locator("input").fill("Junior Developer");
   await field(page, "Job description")
     .locator("textarea")

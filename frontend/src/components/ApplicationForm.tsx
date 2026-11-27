@@ -6,6 +6,12 @@ import {
   sanitizeJobText,
 } from "../utils/jobTextSanitizer";
 import { useUnsavedChangesWarning } from "../hooks/useUnsavedChangesWarning";
+import SuggestSelect from "./SuggestSelect";
+import {
+  COMPANY_SUGGESTIONS,
+  LOCATION_SUGGESTIONS,
+  ROLE_SUGGESTIONS,
+} from "../utils/applicationSuggestions";
 
 export type ApplicationFormValues = {
   company: string;
@@ -207,28 +213,31 @@ export default function ApplicationForm({
       <div className="panel-inner form-grid">
         <div className="field">
           <label>Company</label>
-          <input
-            placeholder="Xero"
+          <SuggestSelect
             value={company}
-            onChange={(event) => setCompany(event.target.value)}
+            onChange={setCompany}
+            options={COMPANY_SUGGESTIONS}
+            placeholder="Xero"
           />
         </div>
 
         <div className="field">
           <label>Role title</label>
-          <input
-            placeholder="Junior Software Developer"
+          <SuggestSelect
             value={roleTitle}
-            onChange={(event) => setRoleTitle(event.target.value)}
+            onChange={setRoleTitle}
+            options={ROLE_SUGGESTIONS}
+            placeholder="Junior Software Developer"
           />
         </div>
 
         <div className="field">
           <label>Location</label>
-          <input
-            placeholder="Auckland"
+          <SuggestSelect
             value={location}
-            onChange={(event) => setLocation(event.target.value)}
+            onChange={setLocation}
+            options={LOCATION_SUGGESTIONS}
+            placeholder="Auckland"
           />
         </div>
 

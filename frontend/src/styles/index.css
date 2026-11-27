@@ -99,6 +99,14 @@ a {
   color: #111827;
 }
 
+/* The page the person is on. React Router adds aria-current="page". */
+.top-bar nav a[aria-current="page"] {
+  background: #fff;
+  color: #0c2f27;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(17, 24, 39, 0.18), 0 0 0 1px rgba(31, 122, 92, 0.25);
+}
+
 .nav-user {
   padding: 8px 4px 8px 12px;
   color: #4b5563;

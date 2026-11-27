@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import type { Application } from "../types/application";
 import { getApplications } from "../utils/api";
+import BarChart from "../components/BarChart";
+import { funnelBars, monthlyCounts } from "../utils/insightCharts";
 import { buildInsights, MIN_SAMPLE, type InsightRow } from "../utils/insights";
 
 function InsightTable({ title, rows }: { title: string; rows: InsightRow[] }) {
@@ -87,6 +89,16 @@ export default function InsightsPage() {
             interview, <strong>{insights.total.offers}</strong> offers.
           </p>
           {insights.headline && <p>{insights.headline}</p>}
+          <div className="grid two">
+            <BarChart
+              title="Pipeline funnel"
+              data={funnelBars(insights.total)}
+            />
+            <BarChart
+              title="Applications added per month"
+              data={monthlyCounts(applications, new Date())}
+            />
+          </div>
           <InsightTable title="By source" rows={insights.bySource} />
           <InsightTable title="By resume sent" rows={insights.byResume} />
         </>

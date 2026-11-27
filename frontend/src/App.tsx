@@ -23,6 +23,7 @@ const CandidateProfilePage = lazy(
   () => import("./routes/CandidateProfilePage"),
 );
 const LearningPlanPage = lazy(() => import("./routes/LearningPlanPage"));
+const CalendarPage = lazy(() => import("./routes/CalendarPage"));
 const InsightsPage = lazy(() => import("./routes/InsightsPage"));
 const OffersPage = lazy(() => import("./routes/OffersPage"));
 const AccountPage = lazy(() => import("./routes/AccountPage"));
@@ -216,6 +217,7 @@ export default function App() {
             <Route path="/reviews/:id/mock-interview" element={<MockInterviewPage />} />
             <Route path="/profile" element={<CandidateProfilePage />} />
             <Route path="/learning" element={<LearningPlanPage />} />
+            <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/insights" element={<InsightsPage />} />
             <Route path="/offers" element={<OffersPage />} />
             <Route path="/answers" element={<ApplicationAnswersPage />} />

@@ -163,9 +163,14 @@ export default function ApplicationsPage() {
             Keep every role, deadline, and next step in one place.
           </p>
         </div>
-        <Link className="button primary" to="/applications/new">
-          New application
-        </Link>
+        <div className="page-header-actions">
+          <Link className="button" to="/calendar">
+            Calendar
+          </Link>
+          <Link className="button primary" to="/applications/new">
+            New application
+          </Link>
+        </div>
       </div>
 
       <div className="panel application-filters">
